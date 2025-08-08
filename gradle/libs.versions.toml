@@ -1,0 +1,104 @@
+[versions]
+agp = "8.10.1"
+kotlin = "2.1.21"
+coreKtx = "1.16.0"
+junit = "4.13.2"
+junitVersion = "1.2.1"
+espressoCore = "3.6.1"
+lifecycleRuntimeKtx = "2.9.1"
+activityCompose = "1.10.1"
+composeBom = "2025.06.01"
+navigationCompose = "2.9.0"
+materialIconsExtended = "1.7.8"
+firebaseFirestoreKtx = "25.1.4"
+firebaseBom = "33.16.0"
+googleGmsServices = "4.4.3"
+kotlinxSerializationJson = "1.8.1"
+appcompat = "1.7.1"
+material = "1.12.0"
+coilNetworkOkhttp = "3.2.0"
+coilCompose = "3.2.0"
+apng = "3.0.5"
+glide = "4.16.0"
+glidePlugin = "2.28.0'"
+jetbrainsKotlinJvm = "2.1.21"
+comGoogleGmsGoogleServicesGradlePlugin = "4.4.3"
+firebaseBomVersion = "34.0.0"
+
+retrofit = "3.0.0"
+converterGson = "3.0.0"
+
+
+v2User = "2.21.4"
+converterScalars = "3.0.0"
+lifecycleViewmodelCompose = "2.9.2"
+lifecycleRuntimeCompose = "2.9.2"
+kotlinxCoroutinesCore = "1.10.2"
+comGoogleAndroidLibrariesMapsplatformSecretsGradlePluginGradlePlugin = "2.0.1"
+secretsGradlePlugin = "2.0.1"
+
+[libraries]
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-material = { module = "androidx.compose.material:material" }
+androidx-runtime = { module = "androidx.compose.runtime:runtime" }
+androidx-foundation = { module = "androidx.compose.foundation:foundation" }
+androidx-ui-res = { module = "androidx.compose.ui:ui-res" }
+foundation = { module = "androidx.compose.foundation:foundation" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+androidx-ui = { group = "androidx.compose.ui", name = "ui" }
+androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
+androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
+androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
+androidx-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended", version.ref = "materialIconsExtended" }
+firebase-firestore-ktx = { group = "com.google.firebase", name = "firebase-firestore-ktx", version.ref = "firebaseFirestoreKtx" }
+firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+runtime = { module = "androidx.compose.runtime:runtime" }
+ui = { module = "androidx.compose.ui:ui" }
+ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
+ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
+coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coilNetworkOkhttp" }
+coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coilCompose" }
+apng = { group = "com.github.penfeizhou.android.animation", name = "apng", version.ref = "apng" }
+glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
+glide-plugin = { group = "'com.github.penfeizhou.android.animation", name = "glide-plugin", version.ref = "glidePlugin" }
+com-google-gms-google-services-gradle-plugin = { group = "com.google.gms.google-services", name = "com.google.gms.google-services.gradle.plugin", version.ref = "comGoogleGmsGoogleServicesGradlePlugin" }
+xcom-firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBomVersion" }
+v2-user = { group = "com.kakao.sdk", name = "v2-user", version.ref = "v2User" }
+retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
+converter-gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "converterGson" }
+converter-scalars = { group = "com.squareup.retrofit2", name = "converter-scalars", version.ref = "converterScalars" }
+androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycleViewmodelCompose" }
+androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycleRuntimeCompose" }
+kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
+com-google-android-libraries-mapsplatform-secrets-gradle-plugin-gradle-plugin = { group = "com.google.android.libraries.mapsplatform.secrets-gradle-plugin", name = "com.google.android.libraries.mapsplatform.secrets-gradle-plugin.gradle.plugin", version.ref = "comGoogleAndroidLibrariesMapsplatformSecretsGradlePluginGradlePlugin" }
+secrets-gradle-plugin = { group = "com.google.android.libraries.mapsplatform.secrets-gradle-plugin", name = "secrets-gradle-plugin", version.ref = "secretsGradlePlugin" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+google-gms-google-services = { id = "com.google.gms.google-services", version.ref = "googleGmsServices" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin"}
+kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin"}
+android-library = { id = "com.android.library", version.ref = "agp" }
+jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlinJvm" }
+secrets-gradle-plugin = { id = "com.google.android.libraries.mapsplatform.secrets-gradle-plugin",  version.ref = "secretsGradlePlugin" }
+
+[bundles]
+compose-libraries = ["androidx-activity-compose", "androidx-ui"]
+firebase-libraries = ["firebase-firestore-ktx"]
+kakao-libraries = ["v2-user"]
+coil-libraries =["coil-network-okhttp","coil-compose"]
+navigation-libraries = ["androidx-navigation-compose", ]
