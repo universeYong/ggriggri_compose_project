@@ -15,13 +15,13 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.ahn.common_ui.R
 import com.ahn.common_ui.components.CommonOutlinedTextField
-import theme.GgrigggriTheme
+import theme.GgriggriTheme
 
 @Composable
 fun FindIdScreen(
     onNavigateBack: () -> Unit,
 ) {
-    GgrigggriTheme {
+    GgriggriTheme {
         Column(
             modifier = Modifier
                 .fillMaxSize()

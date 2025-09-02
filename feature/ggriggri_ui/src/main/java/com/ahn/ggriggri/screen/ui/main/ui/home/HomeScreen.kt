@@ -1,5 +1,6 @@
 package com.ahn.ggriggri.screen.main.home
 
+import android.util.Log
 import android.widget.ImageView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -12,112 +13,108 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import coil3.compose.AsyncImage
 import com.ahn.common_ui.R
+import com.ahn.ggriggri.screen.ui.main.ui.home.component.bottomsheet.AllProfilesSheetContent
+import com.ahn.ggriggri.screen.ui.main.viewmodel.HomeViewModel
+import com.ahn.ggriggri.screen.ui.main.viewmodel.Profile
 import com.bumptech.glide.Glide
+import kotlinx.coroutines.launch
+import theme.GgriggriTheme
+import theme.NanumSquareBold
+import theme.NanumSquareRegular
 
-// 데이터 모델 정의
-data class Profile(val id: Int, val imageRes: Int)
-data class Question(val content: String, val emojiUrl: String, val buttonText: String)
-data class Request(val content: String, val buttonText: String, val isActive: Boolean)
-data class Memory(val id: Int, val imageRes: Int)
 
-// XML의 폰트 스타일을 대체하기 위한 변수 (필요시 FontFamily 정의 추가)
-val nanumSquareRegular = FontWeight.Normal
-val nanumSquareBold = FontWeight.Bold
-
-val imageUrl = "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/refs/heads/master/Emojis/People/Baby%20Angel.png"
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-//    // ViewModel 등에서 전달받을 상태
-//    profiles: List<Profile>,
-//    question: Question,
-//    request: Request,
-//    memories: List<Memory>,
-//    onSeeAllProfilesClick: () -> Unit,
-//    onAnswerClick: () -> Unit,
-//    onRespondClick: () -> Unit
+    homeViewmodel: HomeViewModel,
 ) {
-    val dummyProfiles = listOf(
-        Profile(1, R.drawable.google),
-        Profile(2, R.drawable.naver),
-        Profile(3, R.drawable.kakao),
-        Profile(4, R.drawable.main_logo_background)
-    )
-    val dummyQuestion = Question(
-        content = "이 그룹과 함께 하며 가장 화난 순간은?",
-        emojiUrl = imageUrl,
-        buttonText = "답변하기"
-    )
-    val dummyRequest = Request(
-        content = "야 오늘 월요일인데 뭐하고있냐 난...",
-        buttonText = "응답하기",
-        isActive = true
-    )
-    val dummyMemories = listOf(
-        Memory(1, R.drawable.kakao),
-        Memory(2, R.drawable.naver),
-        Memory(3, R.drawable.google)
-    )
+    val profiles by homeViewmodel.profiles.collectAsState()
 
-    val profiles = dummyProfiles
-    val question = dummyQuestion
-    val request = dummyRequest
-    val memories = dummyMemories
-    Scaffold(
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text("홈", style = MaterialTheme.typography.titleLarge) }, // 타이틀 예시
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = Color.Transparent
-                )
-            )
-        },
-        containerColor = Color.White
-    ) { paddingValues ->
-        // ScrollView + ConstraintLayout -> LazyColumn으로 대체
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-            contentPadding = PaddingValues(vertical = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+    // BottomSheet
+    val sheetState = rememberModalBottomSheetState()
+    var showBottomSheet by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+
+    GgriggriTheme {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
         ) {
-            // 프로필 목록 카드
-            item {
-                ProfileSummaryCard(
-                    profiles = profiles,
-                    onSeeAllClick = {}
-                )
-            }
-            // 오늘의 질문 카드
-            item {
-                TodayQuestionCard(
-                    question = question,
-                    onAnswerClick = {}
-                )
-            }
-            // 요청 카드
-            item {
-                RequestCard(
-                    request = request,
-                    onRespondClick = {}
-                )
-            }
-            // 추억 캐러셀
-            item {
-                MemoriesCarousel(memories = memories)
+            Box(modifier = Modifier.fillMaxSize()) {
+                // ScrollView + ConstraintLayout -> LazyColumn으로 대체
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    contentPadding = PaddingValues(vertical = 20.dp),
+                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                ) {
+                    // 프로필 목록 카드
+                    item {
+                        ProfileSummaryCard(
+                            profiles = profiles,
+                            onSeeAllClick = { showBottomSheet = true }
+                        )
+                    }
+                // 오늘의 질문 카드
+                item {
+                    TodayQuestionCard(
+                        question = question,
+                        onAnswerClick = {}
+                    )
+                }
+//                // 요청 카드
+//                item {
+//                    RequestCard(
+//                        request = request,
+//                        onRespondClick = {}
+//                    )
+//                }
+//                // 추억 캐러셀
+//                item {
+//                    MemoriesCarousel(memories = memories)
+//                }
+                }
+                // ModalBottomSheet
+                if (showBottomSheet) {
+                    ModalBottomSheet(
+                        onDismissRequest = {
+                            showBottomSheet = false
+                        },
+                        sheetState = sheetState
+                    ) {
+                        AllProfilesSheetContent(
+                            profiles = profiles,
+                            onCloseSheet = {
+                                scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                    if (!sheetState.isVisible) {
+                                        showBottomSheet = false
+                                    }
+                                }
+                            }
+                        )
+                    }
+                }
             }
         }
     }
@@ -126,6 +123,7 @@ fun HomeScreen(
 /**
  * 프로필 목록을 보여주는 카드 (cvHomeProfileList)
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ProfileSummaryCard(profiles: List<Profile>, onSeeAllClick: () -> Unit) {
     Card(
@@ -139,27 +137,38 @@ fun ProfileSummaryCard(profiles: List<Profile>, onSeeAllClick: () -> Unit) {
             modifier = Modifier.padding(15.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // ConstraintLayout의 Flow -> FlowRow로 대체
             FlowRow(
                 modifier = Modifier.weight(1f),
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
-                maxItemsInEachRow = 4 // 예시, 필요에 따라 조절
             ) {
-                profiles.take(4).forEach { profile ->
-                    Image(
-                        painter = painterResource(id = profile.imageRes),
-                        contentDescription = "프로필 ${profile.id}",
+                profiles.take(profiles.size).forEach { profile ->
+                    Log.d(
+                        "ProfileSummaryCard",
+                        "Profile: ${profile.name}, URL: ${profile.profileImageUrl}"
+                    ) // 로그 추가
+                    AsyncImage(
+                        model = profile.profileImageUrl,
+                        contentDescription = "프로필 ${profile.name}",
                         modifier = Modifier
                             .size(50.dp)
                             .clip(CircleShape),
-                        contentScale = ContentScale.Crop
+                        contentScale = ContentScale.Crop,
+                        placeholder = painterResource(id = R.drawable.outline_account_circle_24),
+                        error = painterResource(id = R.drawable.outline_account_circle_24),
+                        onError = { errorResult ->
+                            Log.e(
+                                "AsyncImageError",
+                                "Failed to load image: ${profile.profileImageUrl}",
+                                errorResult.result.throwable
+                            )
+                        }
                     )
                 }
             }
             Text(
                 text = "전체보기",
                 modifier = Modifier.clickable(onClick = onSeeAllClick),
-                fontWeight = nanumSquareRegular,
+                fontFamily = NanumSquareRegular,
                 fontSize = 14.sp,
                 color = Color.Black
             )
@@ -188,7 +197,7 @@ fun TodayQuestionCard(question: Question, onAnswerClick: () -> Unit) {
                     Text(
                         text = "오늘의 질문",
                         fontSize = 16.sp,
-                        fontWeight = nanumSquareBold,
+                        fontFamily = NanumSquareBold,
                         color = Color.Black
                     )
                     Spacer(modifier = Modifier.height(20.dp))
@@ -197,7 +206,7 @@ fun TodayQuestionCard(question: Question, onAnswerClick: () -> Unit) {
                         modifier = Modifier.width(200.dp),
                         textAlign = TextAlign.Center,
                         fontSize = 14.sp,
-                        fontWeight = nanumSquareRegular,
+                        fontFamily = NanumSquareRegular,
                         color = Color.Black
                     )
                 }
@@ -213,96 +222,96 @@ fun TodayQuestionCard(question: Question, onAnswerClick: () -> Unit) {
                 ),
                 shape = RoundedCornerShape(8.dp)
             ) {
-                Text(text = question.buttonText, fontSize = 16.sp, fontWeight = nanumSquareBold)
+                Text(text = question.buttonText, fontSize = 16.sp, fontFamily = NanumSquareBold)
             }
         }
     }
 }
-
-/**
- * 요청 카드 (cvHomeRequest)
- */
-@Composable
-fun RequestCard(request: Request, onRespondClick: () -> Unit) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp),
-        shape = RoundedCornerShape(15.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFDE7)) // mainColor 예시
-    ) {
-        Column(
-            modifier = Modifier.padding(15.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Box(modifier = Modifier.fillMaxWidth()) {
-                if(request.isActive) {
-                    Box(
-                        modifier = Modifier
-                            .size(10.dp)
-                            .background(Color.Green, CircleShape)
-                            .align(Alignment.TopStart)
-                    )
-                }
-                Text(
-                    text = "요청",
-                    modifier = Modifier.align(Alignment.TopCenter),
-                    fontSize = 16.sp,
-                    fontWeight = nanumSquareBold,
-                    color = Color.Black
-                )
-            }
-            Spacer(modifier = Modifier.height(28.dp))
-            Text(
-                text = request.content,
-                fontSize = 14.sp,
-                fontWeight = nanumSquareRegular,
-                color = Color.Black
-            )
-            Spacer(modifier = Modifier.height(30.dp))
-            Button(
-                onClick = onRespondClick,
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White,
-                    contentColor = Color.Black
-                ),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Text(text = request.buttonText, fontSize = 16.sp, fontWeight = nanumSquareBold)
-            }
-        }
-    }
-}
-
-/**
- * 추억 캐러셀 (recyclerViewCarousel)
- */
-@Composable
-fun MemoriesCarousel(memories: List<Memory>) {
-    LazyRow(
-        contentPadding = PaddingValues(horizontal = 20.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        items(memories) { memory ->
-            Card(
-                modifier = Modifier.size(width = 180.dp, height = 240.dp),
-                shape = RoundedCornerShape(15.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.LightGray)
-            ) {
-                // 캐러셀 아이템 내부 UI (예시)
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Image(
-                        painter = painterResource(id = memory.imageRes),
-                        contentDescription = "추억 ${memory.id}",
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                }
-            }
-        }
-    }
-}
+//
+///**
+// * 요청 카드 (cvHomeRequest)
+// */
+//@Composable
+//fun RequestCard(request: Request, onRespondClick: () -> Unit) {
+//    Card(
+//        modifier = Modifier
+//            .fillMaxWidth()
+//            .padding(horizontal = 20.dp),
+//        shape = RoundedCornerShape(15.dp),
+//        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFDE7)) // mainColor 예시
+//    ) {
+//        Column(
+//            modifier = Modifier.padding(15.dp),
+//            horizontalAlignment = Alignment.CenterHorizontally
+//        ) {
+//            Box(modifier = Modifier.fillMaxWidth()) {
+//                if(request.isActive) {
+//                    Box(
+//                        modifier = Modifier
+//                            .size(10.dp)
+//                            .background(Color.Green, CircleShape)
+//                            .align(Alignment.TopStart)
+//                    )
+//                }
+//                Text(
+//                    text = "요청",
+//                    modifier = Modifier.align(Alignment.TopCenter),
+//                    fontSize = 16.sp,
+//                    fontFamily = NanumSquareBold,
+//                    color = Color.Black
+//                )
+//            }
+//            Spacer(modifier = Modifier.height(28.dp))
+//            Text(
+//                text = request.content,
+//                fontSize = 14.sp,
+//                fontFamily = NanumSquareRegular,
+//                color = Color.Black
+//            )
+//            Spacer(modifier = Modifier.height(30.dp))
+//            Button(
+//                onClick = onRespondClick,
+//                modifier = Modifier.fillMaxWidth(),
+//                colors = ButtonDefaults.buttonColors(
+//                    containerColor = Color.White,
+//                    contentColor = Color.Black
+//                ),
+//                shape = RoundedCornerShape(8.dp)
+//            ) {
+//                Text(text = request.buttonText, fontSize = 16.sp, fontFamily = NanumSquareBold)
+//            }
+//        }
+//    }
+//}
+//
+///**
+// * 추억 캐러셀 (recyclerViewCarousel)
+// */
+//@Composable
+//fun MemoriesCarousel(memories: List<Memory>) {
+//    LazyRow(
+//        contentPadding = PaddingValues(horizontal = 20.dp),
+//        horizontalArrangement = Arrangement.spacedBy(16.dp)
+//    ) {
+//        items(memories) { memory ->
+//            Card(
+//                modifier = Modifier.size(width = 180.dp, height = 240.dp),
+//                shape = RoundedCornerShape(15.dp),
+//                colors = CardDefaults.cardColors(containerColor = Color.LightGray)
+//            ) {
+//                // 캐러셀 아이템 내부 UI (예시)
+//                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+//                    Image(
+//                        painter = painterResource(id = memory.imageRes),
+//                        contentDescription = "추억 ${memory.id}",
+//                        modifier = Modifier.fillMaxSize(),
+//                        contentScale = ContentScale.Crop
+//                    )
+//                }
+//            }
+//        }
+//    }
+//}
 
 @Composable
 fun LoadAnimatedApngFromUrl(imageUrl: String) {

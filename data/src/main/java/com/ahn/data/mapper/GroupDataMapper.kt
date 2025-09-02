@@ -4,14 +4,15 @@ import com.ahn.data.remote.dto.GroupDTO
 import com.ahn.domain.model.Group
 import kotlin.Int
 
-fun GroupDTO.toDomainGroup() = Group(
-    _groupState,
-    _groupName,
-    _groupCode,
-    _groupPw,
-    _groupUserDocumentID,
-    _groupRequestDocumentID,
-    _groupQuestionDocumentID
+fun GroupDTO.toDomainGroup(documentId: String): Group = Group(
+    groupDocumentId = documentId,
+    groupState = _groupState,
+    groupName = _groupName,
+    groupCode = _groupCode,
+    groupPw = _groupPw,
+    groupUserDocumentID = _groupUserDocumentID,
+    groupRequestDocumentID = _groupRequestDocumentID,
+    groupQuestionDocumentID = _groupQuestionDocumentID
 )
 
 fun Group.toFirestoreGroupDTO() = mapOf(

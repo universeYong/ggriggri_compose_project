@@ -2,6 +2,7 @@ package com.ahn.ggriggri.screen.group.joingroup
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -11,7 +12,8 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -24,13 +26,18 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ahn.common_ui.R
 import com.ahn.common_ui.components.CommonButton
 import com.ahn.common_ui.components.CommonOutlinedTextField
-import theme.GgrigggriTheme
+import com.ahn.ggriggri.screen.ui.group.viewmodel.GroupViewModel
+import theme.GgriggriTheme
 
 @Composable
-fun JoinGroupScreen() {
+fun JoinGroupScreen(
+    groupViewModel: GroupViewModel = viewModel(),
+    userId: String,
+) {
 
     var groupCode by remember { mutableStateOf("") }
     var groupPw by remember { mutableStateOf("") }
@@ -38,24 +45,15 @@ fun JoinGroupScreen() {
     var passwordVisible by remember { mutableStateOf(false) }
 
 
-    GgrigggriTheme {
-        Scaffold(
-            bottomBar = {
-                CommonButton(
-                    onClick = {},
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .padding(bottom = 32.dp)
-                ) {
-                    Text(stringResource(R.string.group_btn_inGroup))
-                }
-            }
-        ) { innerPadding ->
+    GgriggriTheme {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ){
+
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding)
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ){
@@ -90,6 +88,20 @@ fun JoinGroupScreen() {
                         }
                     }
                 )
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                CommonButton(
+                    onClick = {
+                        groupViewModel.joinGroup(userId, groupCode, groupPw)
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp)
+                        .padding(bottom = 32.dp)
+                ){
+                    Text(stringResource(R.string.group_btn_joinGroup))
+                }
             }
         }
     }

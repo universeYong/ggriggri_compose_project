@@ -14,7 +14,6 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,7 +34,7 @@ import com.ahn.common_ui.R
 import com.ahn.common_ui.components.CommonButton
 import com.ahn.common_ui.components.CommonOutlinedTextField
 import com.ahn.ggriggri.screen.ui.group.viewmodel.GroupViewModel
-import theme.GgrigggriTheme
+import theme.GgriggriTheme
 
 @Composable
 fun MakeGroupScreen(
@@ -45,6 +44,7 @@ fun MakeGroupScreen(
 
     var groupName by remember { mutableStateOf("") }
     var groupCode by remember { mutableStateOf("") }
+    val isCodeDuplicateResult by groupViewModel.isGroupCodeDuplicate.collectAsState()
     var groupPw by remember { mutableStateOf("") }
     var groupConfirmPw by remember { mutableStateOf("") }
 
@@ -57,7 +57,7 @@ fun MakeGroupScreen(
 
     val createResult by groupViewModel.createResult.collectAsState()
 
-    GgrigggriTheme {
+    GgriggriTheme {
         Surface(
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
@@ -87,7 +87,9 @@ fun MakeGroupScreen(
                     CommonOutlinedTextField(
                         modifier = Modifier.weight(1f),
                         value = groupCode,
-                        onValueChange = { groupCode = it },
+                        onValueChange = {
+                            groupCode = it
+                            groupViewModel.checkGroupCodeDuplicate(it) },
                         label = { Text(stringResource(R.string.group_code)) },
                         singleLine = true
                     )

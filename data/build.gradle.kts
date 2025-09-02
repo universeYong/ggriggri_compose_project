@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     id("com.google.gms.google-services")
+    alias(libs.plugins.kotlinKapt)
 }
 
 android {
@@ -46,6 +47,10 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
     implementation(libs.converter.scalars)
+
+    implementation(libs.bundles.moshi.libraries)
+    implementation(libs.bundles.datastore.libraries)
+
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

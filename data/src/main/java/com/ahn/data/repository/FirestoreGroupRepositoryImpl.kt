@@ -8,10 +8,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 
-class FirestoreGroupRepositoryImpl(val targetDataSource: GroupDataSource): GroupRepository  {
+class FirestoreGroupRepositoryImpl(val groupDataSource: GroupDataSource): GroupRepository  {
     override suspend fun create(groupInfo: Group): Flow<DataResourceResult<String>> = flow {
         emit(DataResourceResult.Loading)
-        emit(targetDataSource.create(groupInfo))
+        emit(groupDataSource.create(groupInfo))
     }.catch { emit(DataResourceResult.Failure(it)) }
 
     override suspend fun read(): Flow<DataResourceResult<List<Group>>> {
@@ -25,4 +25,27 @@ class FirestoreGroupRepositoryImpl(val targetDataSource: GroupDataSource): Group
     override suspend fun delete(groupId: String): Flow<DataResourceResult<Unit>> {
         TODO("Not yet implemented")
     }
+
+    override suspend fun getGroupByCode(groupCode: String): Flow<DataResourceResult<Group?>> = flow{
+        emit(DataResourceResult.Loading)
+        emit(groupDataSource.getGroupByCode(groupCode))
+    }.catch { emit(DataResourceResult.Failure(it)) }
+
+    override suspend fun addUserToGroup(
+        groupId: String,
+        userId: String,
+    ): Flow<DataResourceResult<Unit>> = flow{
+        emit(DataResourceResult.Loading)
+        emit(groupDataSource.addUserToGroup(groupId, userId))
+    }.catch { emit(DataResourceResult.Failure(it)) }
+
+    override suspend fun isGroupCodeExist(groupCode: String): Flow<DataResourceResult<Boolean>> = flow{
+        emit(DataResourceResult.Loading)
+        emit(groupDataSource.isGroupCodeExist(groupCode))
+    }.catch { emit(DataResourceResult.Failure(it)) }
+
+    override suspend fun getGroupMembers(groupId: String): Flow<DataResourceResult<List<String>>> = flow{
+        emit(DataResourceResult.Loading)
+        emit(groupDataSource.getGroupMembers(groupId))
+    }.catch { emit(DataResourceResult.Failure(it)) }
 }

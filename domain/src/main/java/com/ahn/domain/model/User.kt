@@ -1,5 +1,9 @@
 package com.ahn.domain.model
 
+import com.squareup.moshi.JsonClass
+
+
+@JsonClass(generateAdapter = true)
 data class User(
     var userId: String = "",
     var userName: String = "",

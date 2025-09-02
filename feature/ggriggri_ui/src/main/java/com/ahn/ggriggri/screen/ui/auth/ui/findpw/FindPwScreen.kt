@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.dp
 import com.ahn.common_ui.R
 import com.ahn.common_ui.components.CommonButton
 import com.ahn.common_ui.components.CommonOutlinedTextField
-import theme.GgrigggriTheme
+import theme.GgriggriTheme
 import theme.NanumSquareBold
 
 @Composable
@@ -27,7 +27,7 @@ fun FindPwScreen(
     onNavigateToResetPw: () -> Unit,
     onNavigateBack: () -> Unit,
 ) {
-    GgrigggriTheme {
+    GgriggriTheme {
 
         Column(
             modifier = Modifier

@@ -15,7 +15,7 @@ import com.ahn.ggriggri.screen.archive.questionlist.QuestionListScreen
 import com.ahn.ggriggri.screen.archive.requestlist.RequestListScreen
 import kotlinx.coroutines.launch
 import theme.BtnContentColor
-import theme.GgrigggriTheme
+import theme.GgriggriTheme
 import theme.MainColor
 import theme.NanumSquareExtraBold
 
@@ -26,7 +26,7 @@ fun MemoryScreen() {
     val pagerState = rememberPagerState (pageCount = { tabItems.size })
     val coroutineScope = rememberCoroutineScope()
 
-    GgrigggriTheme {
+    GgriggriTheme {
         Column {
             PrimaryTabRow(selectedTabIndex = pagerState.currentPage) {
                 tabItems.forEachIndexed { index, title ->

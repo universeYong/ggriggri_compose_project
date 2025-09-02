@@ -1,7 +1,7 @@
 package com.ahn.domain.model
 
 data class Answer(
-    var answerID: String = "",
+    var answerId: String = "",
     var answerMessage: String = "",
     var answerResponseTime: Long = 0L,
     var answerRequestState: Int = 1,
