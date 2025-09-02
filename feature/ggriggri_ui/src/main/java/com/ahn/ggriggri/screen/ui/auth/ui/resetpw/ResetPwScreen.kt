@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.dp
 import com.ahn.common_ui.R
 import com.ahn.common_ui.components.CommonButton
 import com.ahn.common_ui.components.CommonOutlinedTextField
-import theme.GgrigggriTheme
+import theme.GgriggriTheme
 
 @Composable
 fun ResetPwScreen() {
@@ -41,7 +41,7 @@ fun ResetPwScreen() {
     val isPasswordMismatch =
         password.isNotEmpty() && confirmPassword.isNotEmpty() && password != confirmPassword
 
-    GgrigggriTheme {
+    GgriggriTheme {
         Column(
             modifier = Modifier
                 .fillMaxSize()

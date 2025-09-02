@@ -9,7 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.ahn.common_ui.components.CommonButton
 import com.ahn.common_ui.components.PasswordTextField
-import theme.GgrigggriTheme
+import theme.GgriggriTheme
 
 
 @Composable
@@ -22,7 +22,7 @@ fun ModifyUserPwScreen(
     // 유효성 검사 로직 (예: 새 비밀번호와 확인 비밀번호가 일치하는지)
     val isNewPasswordValid = newPassword.isNotEmpty() && newPassword == confirmNewPassword
     val isButtonEnabled = currentPassword.isNotEmpty() && isNewPasswordValid
-    GgrigggriTheme {
+    GgriggriTheme {
         Column(
             modifier = Modifier
                 .fillMaxSize()

@@ -8,31 +8,31 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 
-class FirestoreUserRepositoryImpl(val targetDataSource: UserDataSource) : UserRepository {
+class FirestoreUserRepositoryImpl(val userDataSource: UserDataSource) : UserRepository {
     override suspend fun create(userInfo: User): Flow<DataResourceResult<Unit>> = flow {
         emit(DataResourceResult.Loading)
-        emit(targetDataSource.create(userInfo))
+        emit(userDataSource.create(userInfo))
     }.catch { emit(DataResourceResult.Failure(it)) }
 
     override suspend fun read(): Flow<DataResourceResult<List<User>>> = flow {
         emit(DataResourceResult.Loading)
-        emit(targetDataSource.read())
+        emit(userDataSource.read())
     }.catch { emit(DataResourceResult.Failure(it)) }
 
     override suspend fun update(userInfo: User): Flow<DataResourceResult<Unit>> = flow {
         emit(DataResourceResult.Loading)
-        emit(targetDataSource.update(userInfo))
+        emit(userDataSource.update(userInfo))
     }.catch { emit(DataResourceResult.Failure(it)) }
 
     override suspend fun delete(userId: String): Flow<DataResourceResult<Unit>> = flow {
         emit(DataResourceResult.Loading)
-        emit(targetDataSource.delete(userId))
+        emit(userDataSource.delete(userId))
     }.catch { emit(DataResourceResult.Failure(it)) }
 
     override suspend fun getUserGroupDocumentId(userId: String):
             Flow<DataResourceResult<String?>> = flow {
         emit(DataResourceResult.Loading)
-        emit(targetDataSource.getUserGroupDocumentId(userId))
+        emit(userDataSource.getUserGroupDocumentId(userId))
     }
 
     override suspend fun updateUserGroupDocumentId(
@@ -40,7 +40,14 @@ class FirestoreUserRepositoryImpl(val targetDataSource: UserDataSource) : UserRe
         groupDocumentId: String,
     ): Flow<DataResourceResult<Unit>> = flow{
         emit(DataResourceResult.Loading)
-        emit(targetDataSource.updateUserGroupDocumentId(userId,groupDocumentId))
+        emit(userDataSource.updateUserGroupDocumentId(userId,groupDocumentId))
     }
 
+    override suspend fun getUserById(userId: String): Flow<DataResourceResult<User?>> = flow{
+        emit(DataResourceResult.Loading)
+        val result = userDataSource.getUserById(userId)
+        emit(result)
+    }.catch { exception ->
+        emit(DataResourceResult.Failure(exception))
+    }
 }

@@ -1,5 +1,6 @@
 package com.ahn.ggrigggri
 
+import android.util.Log
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -16,6 +17,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.ahn.domain.common.SessionManager
 import com.ahn.ggrigggri.common.GgriggriBottomBar
 import com.ahn.ggrigggri.common.GgriggriTopBar
 import com.ahn.ggrigggri.navigation.bottom.BottomAppBarItem
@@ -34,15 +36,26 @@ import com.ahn.ggriggri.screen.setting.modifyuserpw.ModifyUserPwScreen
 import com.ahn.ggriggri.screen.setting.mypage.MyPageScreen
 import com.ahn.ggriggri.screen.setting.settinggroup.SettingGroupScreen
 import com.ahn.ggriggri.screen.ui.auth.viewmodel.OAuthViewModel
+import com.ahn.ggriggri.screen.ui.auth.viewmodel.OAuthViewModelFactory
+import com.ahn.ggriggri.screen.ui.setting.viewmodel.factory.MyPageViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EntryPointScreen() {
 
-    val authViewModel: OAuthViewModel = viewModel()
-
     val navController = rememberNavController()
     val context = LocalContext.current
+    val application = context.applicationContext as ggriggriAplication
+    val appContainer = application.appContainer // AppContainer 가져오기
+
+    // Factory 생성
+    val oauthViewModelFactory = OAuthViewModelFactory(
+        application,
+        application.sessionManager,
+        application.userRepository,
+    )
+    // ViewModel 생성
+    val authViewModel: OAuthViewModel = viewModel(factory = oauthViewModelFactory)
 
     //Bottom App Bar items
     val bottomAppBarItems = remember {
@@ -100,10 +113,12 @@ fun EntryPointScreen() {
                 MemoryScreen()
             }
             composable<MainNavigationRoute.HomeTab> {
-                HomeScreen()
+                HomeScreen(homeViewmodel = viewModel(factory = appContainer.provideHomeViewModelFactory()))
             }
             composable<MainNavigationRoute.MyPageTab> {
-                MyPageScreen()
+                MyPageScreen(
+                    myPageviewModel = viewModel(factory = appContainer.provideMyPageViewModelFactory())
+                )
             }
 
             /********* archive ******************************************************/
@@ -120,9 +135,11 @@ fun EntryPointScreen() {
                 LoginScreen(
                     authViewModel = authViewModel,
                    onNavigationToGroup = {
+                       Log.d("AppNavigation", "onNavigationToGroup called") // 로그 추가
                        navController.navigate(MainNavigationRoute.Group)
                    },
                     onNavigationToHome = {
+                        Log.d("AppNavigation", "onNavigationToHome called") // 로그 추가
                         navController.navigate(MainNavigationRoute.HomeTab) {
                             popUpTo(MainNavigationRoute.Login) {inclusive = true}
                         }

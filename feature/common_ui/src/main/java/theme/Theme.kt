@@ -1,6 +1,5 @@
 package theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -36,7 +35,7 @@ private val LightColorScheme = lightColorScheme(
 )
 
 @Composable
-fun GgrigggriTheme(
+fun GgriggriTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
     // dynamicColor 를 false 처리해서 시스템 색상이 우리 테마를 덮어쓰지 못하게 해야함

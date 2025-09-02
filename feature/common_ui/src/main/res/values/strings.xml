@@ -100,7 +100,7 @@
     <string name="group_confirm_pw">그룹코드 비밀번호 확인</string>
 
     <!-- 그룹 들어가기 string -->
-    <string name="group_btn_inGroup">그룹 들어가기</string>
+    <string name="group_btn_joinGroup">그룹 들어가기</string>
 
 
     <!-- 홈 string -->

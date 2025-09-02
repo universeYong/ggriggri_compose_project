@@ -9,12 +9,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import theme.GgrigggriTheme
+import theme.GgriggriTheme
 import theme.NanumSquareRegular
 
 @Composable
 fun SettingGroupScreen() {
-    GgrigggriTheme {
+    GgriggriTheme {
         Column(
             modifier = Modifier
                 .fillMaxSize()

@@ -9,4 +9,5 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.jvm) apply false
     alias(libs.plugins.secrets.gradle.plugin) apply false
     id("com.google.gms.google-services") version "4.4.3" apply false
+    alias(libs.plugins.kotlinKapt) apply false
 }

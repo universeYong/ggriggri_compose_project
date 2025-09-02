@@ -1,5 +1,7 @@
 package com.ahn.ggriggri.screen.auth.login
 
+import android.app.Application
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -24,38 +26,36 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ahn.common_ui.R
 import com.ahn.common_ui.components.AppLogo
+import com.ahn.domain.repository.UserRepository
 import com.ahn.ggriggri.screen.auth.login.components.LoginText
 import com.ahn.ggriggri.screen.auth.login.components.SocialLoginDivider
 import com.ahn.ggriggri.screen.ui.auth.viewmodel.OAuthViewModel
-import theme.GgrigggriTheme
+import com.ahn.ggriggri.screen.ui.auth.viewmodel.OAuthViewModelFactory
+import theme.GgriggriTheme
 import theme.NanumSquareBold
 
 @Composable
 fun LoginScreen(
-    authViewModel: OAuthViewModel = viewModel(),
+    authViewModel: OAuthViewModel,
     onNavigationToGroup: () -> Unit,
-    onNavigationToHome: () -> Unit
+    onNavigationToHome: () -> Unit,
 ) {
     val context = LocalContext.current
 
     val loginStatus by authViewModel.loginStatus.collectAsStateWithLifecycle()
-    val userId by authViewModel.currentUserId.collectAsStateWithLifecycle()
+    val currentUserId by authViewModel.currentUserId.collectAsStateWithLifecycle()
 
-    if (loginStatus == "로그인 및 회원 정보 저장 성공" && userId != null){
-        LaunchedEffect(userId) {
+    LaunchedEffect(currentUserId) {
+        if (currentUserId != null) {
+            Log.d("LoginScreen", "CurrentUserId is $currentUserId, checking group and navigating.")
             authViewModel.checkUserGroupAndNavigate(
-                userId = userId!!,
                 onNavigationToGroup = onNavigationToGroup,
                 onNavigationToHome = onNavigationToHome
             )
         }
     }
 
-//    if (loginStatus == "로그인 성공") {
-////        onSuccessLogin()
-//    }
-
-    GgrigggriTheme {
+    GgriggriTheme {
         Surface(
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
@@ -81,10 +81,13 @@ fun LoginScreen(
                 Image(
                     painter = painterResource(id = R.drawable.kakao_login_large_wide),
                     contentDescription = "Kakao Login",
-                    modifier = Modifier.clickable {
-                        authViewModel.handleKakaoLogin(context)
+                    modifier = Modifier
+                        .clickable {
+                            authViewModel.handleKakaoLogin(context)
 
-                    }.fillMaxWidth().height(60.dp)
+                        }
+                        .fillMaxWidth()
+                        .height(60.dp)
                 )
 
             }

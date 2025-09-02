@@ -52,6 +52,7 @@ dependencies {
 
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.compose.runtime.runtime)
 
 
     // Compose Preview를 위해 아래 두 의존성을 추가합니다.

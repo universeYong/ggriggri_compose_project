@@ -23,7 +23,7 @@ import com.ahn.ggriggri.screen.group.makegroup.MakeGroupScreen
 import com.ahn.ggriggri.screen.ui.auth.viewmodel.OAuthViewModel
 import kotlinx.coroutines.launch
 import theme.BtnContentColor
-import theme.GgrigggriTheme
+import theme.GgriggriTheme
 import theme.MainColor
 import theme.NanumSquareExtraBold
 
@@ -40,7 +40,7 @@ fun GroupScreen(
     Log.d("GroupScreen", "userId: $userId")
 
 
-    GgrigggriTheme {
+    GgriggriTheme {
         Column(
 
         ) {
@@ -76,7 +76,11 @@ fun GroupScreen(
                             MakeGroupScreen(userId = userId!!)
                         }
                     }
-                    1 -> JoinGroupScreen()
+                    1 -> {
+                        if (!userId.isNullOrBlank()) {
+                            JoinGroupScreen(userId = userId!!)
+                        }
+                    }
                 }
             }
         }

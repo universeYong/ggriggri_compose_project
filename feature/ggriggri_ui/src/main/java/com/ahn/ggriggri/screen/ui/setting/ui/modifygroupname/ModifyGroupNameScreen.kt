@@ -2,7 +2,6 @@ package com.ahn.ggriggri.screen.setting.modifygroupname
 
 import androidx.compose.runtime.Composable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.*
@@ -12,7 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.ahn.common_ui.components.CommonButton
-import theme.GgrigggriTheme
+import theme.GgriggriTheme
 
 @Composable
 fun ModifyGroupNameScreen() {
@@ -21,7 +20,7 @@ fun ModifyGroupNameScreen() {
 
     // 버튼 활성화 여부를 groupName의 내용에 따라 결정
     val isButtonEnabled = groupName.isNotEmpty()
-    GgrigggriTheme {
+    GgriggriTheme {
         Column(
             modifier = Modifier
                 .fillMaxSize()

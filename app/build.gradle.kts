@@ -60,6 +60,8 @@ secrets {
 dependencies {
     implementation(project(":feature:ggriggri_ui"))
     implementation(project(":feature:common_ui"))
+    implementation(project(":data"))
+    implementation(project(":domain"))
 
 
     implementation(libs.androidx.core.ktx)
@@ -76,9 +78,11 @@ dependencies {
     implementation(libs.firebase.firestore.ktx)
     implementation(platform(libs.firebase.bom))
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.bundles.moshi.libraries)
 
     implementation(libs.v2.user)
     implementation(libs.bundles.coil.libraries)
+
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
