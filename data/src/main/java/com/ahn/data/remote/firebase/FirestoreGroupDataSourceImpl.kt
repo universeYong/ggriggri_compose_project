@@ -1,6 +1,5 @@
 package com.ahn.data.remote.firebase
 
-import android.provider.ContactsContract
 import android.util.Log
 import com.ahn.data.datasource.GroupDataSource
 import com.ahn.data.mapper.toDomainGroup
@@ -9,7 +8,6 @@ import com.ahn.data.remote.dto.GroupDTO
 import com.ahn.domain.common.DataResourceResult
 import com.ahn.domain.model.Group
 import com.google.firebase.Firebase
-import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.tasks.await

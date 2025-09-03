@@ -14,7 +14,7 @@ android {
 
     defaultConfig {
         applicationId = "com.ahn.ggrigggri"
-        minSdk = 24
+        minSdk = 26
         //noinspection EditedTargetSdkVersion
         targetSdk = 36
         versionCode = 1
@@ -79,6 +79,7 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.bundles.moshi.libraries)
+    implementation(libs.bundles.work.libraries)
 
     implementation(libs.v2.user)
     implementation(libs.bundles.coil.libraries)

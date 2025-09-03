@@ -42,6 +42,7 @@ moshiKotlin = "1.15.2"
 orgJetbrainsKotlinKaptGradlePlugin = "2.2.0"
 moshiKotlinCodegen = "1.15.2"
 runtime = "1.9.0"
+workRuntimeKtx = "2.9.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -95,6 +96,7 @@ moshi-kotlin = { group = "com.squareup.moshi", name = "moshi-kotlin", version.re
 org-jetbrains-kotlin-kapt-gradle-plugin = { group = "org.jetbrains.kotlin.kapt", name = "org.jetbrains.kotlin.kapt.gradle.plugin", version.ref = "orgJetbrainsKotlinKaptGradlePlugin" }
 moshi-kotlin-codegen = { group = "com.squareup.moshi", name = "moshi-kotlin-codegen", version.ref = "moshiKotlinCodegen" }
 androidx-compose-runtime-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "runtime" }
+work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workRuntimeKtx" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -116,3 +118,4 @@ coil-libraries =["coil-network-okhttp","coil-compose"]
 navigation-libraries = ["androidx-navigation-compose" ]
 moshi-libraries = ["moshi-kotlin","moshi-kotlin-codegen"]
 datastore-libraries = ["androidx-datastore-preferences"]
+work-libraries = ["work-runtime-ktx"]

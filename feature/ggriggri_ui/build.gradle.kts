@@ -9,7 +9,7 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        minSdk = 24
+        minSdk = 26
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
@@ -53,6 +53,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.compose.runtime.runtime)
+    implementation(libs.bundles.work.libraries)
 
 
     // Compose Preview를 위해 아래 두 의존성을 추가합니다.
