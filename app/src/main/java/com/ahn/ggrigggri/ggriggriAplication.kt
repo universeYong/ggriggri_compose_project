@@ -2,7 +2,7 @@ package com.ahn.ggrigggri
 
 import android.app.Application
 import android.content.Context
-import androidx.compose.foundation.layout.add
+import androidx.work.Configuration
 import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.SingletonImageLoader
@@ -13,19 +13,28 @@ import com.ahn.data.datasource.GroupDataSource
 import com.ahn.data.datasource.UserDataSource
 import com.ahn.data.local.SessionManagerImpl
 import com.ahn.data.remote.firebase.FirestoreGroupDataSourceImpl
+import com.ahn.data.remote.firebase.FirestoreQuestionDataSourceImpl
+import com.ahn.data.remote.firebase.FirestoreQuestionListDataSourceImpl
 import com.ahn.data.remote.firebase.FirestoreUserDataSourceImpl
 import com.ahn.data.repository.FirestoreGroupRepositoryImpl
+import com.ahn.data.repository.FirestoreQuestionListRepositoryImpl
+import com.ahn.data.repository.FirestoreQuestionRepositoryImpl
 import com.ahn.data.repository.FirestoreUserRepositoryImpl
 import com.ahn.domain.common.SessionManager
 import com.ahn.domain.repository.GroupRepository
+import com.ahn.domain.repository.QuestionListRepository
+import com.ahn.domain.repository.QuestionRepository
 import com.ahn.domain.repository.UserRepository
 import com.ahn.ggriggri.screen.ui.auth.viewmodel.OAuthViewModelFactory
 import com.ahn.ggriggri.screen.ui.main.viewmodel.HomeViewModelFactory
+import com.ahn.ggriggri.screen.ui.main.worker.AppWorkScheduler
+import com.ahn.ggriggri.screen.ui.main.worker.CustomWorkerFactory
+import com.ahn.ggriggri.screen.ui.main.worker.WorkSchedulerImpl
 import com.ahn.ggriggri.screen.ui.setting.viewmodel.factory.MyPageViewModelFactory
-import com.google.firebase.firestore.FirebaseFirestore
 import com.kakao.sdk.common.KakaoSdk
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import kotlin.getValue
 
 //Default Memory Size = 0.15 ~ 0.2
 const val COIL_MEMORY_CACHE_SIZE_PRECENT = 0.1 // 10% 사용량 많으면 25%~30%사용
@@ -34,7 +43,8 @@ const val COIL_MEMORY_CACHE_SIZE_PRECENT = 0.1 // 10% 사용량 많으면 25%~30
 const val COIL_DISK_CACHE_DIR_NAME = "coil_file_cache"
 const val COIL_DISK_CACHE_MAX_SIZE = 1024 * 1024 * 30
 
-class ggriggriAplication : Application(), SingletonImageLoader.Factory {
+class ggriggriAplication : Application(), SingletonImageLoader.Factory,
+    Configuration.Provider{
 
     val appContainer by lazy { AppContainer(this) }
 
@@ -60,12 +70,31 @@ class ggriggriAplication : Application(), SingletonImageLoader.Factory {
         FirestoreUserRepositoryImpl(userDataSource)
     }
 
-    private val groupDataSource: GroupDataSource by lazy {
-        FirestoreGroupDataSourceImpl()
-    }
-
+    private val groupDataSource: GroupDataSource by lazy { FirestoreGroupDataSourceImpl() }
     val groupRepository: GroupRepository by lazy {
         FirestoreGroupRepositoryImpl(groupDataSource)
+    }
+
+    private val questionListDataSource by lazy { FirestoreQuestionListDataSourceImpl() }
+    val questionListRepository: QuestionListRepository by lazy {
+        FirestoreQuestionListRepositoryImpl(questionListDataSource)
+    }
+
+    private val questionDataSource by lazy { FirestoreQuestionDataSourceImpl() }
+    val questionRepository: QuestionRepository by lazy {
+        FirestoreQuestionRepositoryImpl(questionDataSource)
+    }
+
+    // WorkScheduler 인스턴스
+    private lateinit var appWorkScheduler: AppWorkScheduler
+
+    // CustomWorkerFactory 인스턴스 (lazy 초기화)
+    private val customWorkerFactory: CustomWorkerFactory by lazy {
+        CustomWorkerFactory(
+            sessionManager,
+            questionListRepository,
+            questionRepository
+        )
     }
 
     override fun onCreate() {
@@ -73,13 +102,18 @@ class ggriggriAplication : Application(), SingletonImageLoader.Factory {
 //        seSacApplication = this
 //        sessionManager = SessionManager(applicationContext)
 
-        KakaoSdk.init(this,"fdf59a777205057ffca042069bd2284d")
+
+        appWorkScheduler = WorkSchedulerImpl(applicationContext)
+        appWorkScheduler.scheduleDailyTasks()
 
 //        Log.e("TAG", KakaoSdk.keyHash)
     }
-//    companion object{
-//        private lateinit var seSacApplication: ggriggriAplication
-//    }
+
+    override val workManagerConfiguration: Configuration
+        get() = Configuration.Builder()
+            .setMinimumLoggingLevel(android.util.Log.DEBUG)
+            .setWorkerFactory(customWorkerFactory) // 생성된 CustomWorkerFactory 인스턴스 사용
+            .build()
 
     override fun newImageLoader(context: PlatformContext): ImageLoader =
         ImageLoader.Builder(context)
@@ -103,13 +137,13 @@ class AppContainer(applicationContext: Context) {
     // 필요한 의존성들을 여기서 제공
     val moshi: Moshi get() = application.moshi
     val sessionManager: SessionManager get() = application.sessionManager
-    val userRepository: UserRepository get() = application.userRepository
-    val groupRepository: GroupRepository get() = application.groupRepository
-    // ... 기타 필요한 의존성 ...
+            val userRepository: UserRepository get() = application.userRepository
+        val groupRepository: GroupRepository get() = application.groupRepository
+        // ... 기타 필요한 의존성 ...
 
-    // ViewModel Factory 생성 메소드들을 AppContainer에 추가할 수도 있습니다.
-    fun provideOAuthViewModelFactory(): OAuthViewModelFactory {
-        return OAuthViewModelFactory(application, sessionManager,userRepository)
+        // ViewModel Factory 생성 메소드들을 AppContainer에 추가할 수도 있습니다.
+        fun provideOAuthViewModelFactory(): OAuthViewModelFactory {
+            return OAuthViewModelFactory(application, sessionManager,userRepository)
     }
 
     fun provideMyPageViewModelFactory(): MyPageViewModelFactory {

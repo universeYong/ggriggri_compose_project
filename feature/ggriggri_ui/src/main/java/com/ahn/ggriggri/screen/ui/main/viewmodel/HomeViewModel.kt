@@ -6,27 +6,40 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.ahn.domain.common.DataResourceResult
 import com.ahn.domain.common.SessionManager
+import com.ahn.domain.model.Question
+import com.ahn.domain.model.QuestionList
 import com.ahn.domain.repository.GroupRepository
+import com.ahn.domain.repository.QuestionListRepository
+import com.ahn.domain.repository.QuestionRepository
 import com.ahn.domain.repository.UserRepository
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.temporal.ChronoUnit
+import kotlinx.coroutines.flow.*
 
 data class Profile(
     val id: String, // 사용자 ID
     val name: String,
-    val profileImageUrl: String?
+    val profileImageUrl: String?,
 )
+
 
 class HomeViewModel(
     application: Application,
     private val sessionManager: SessionManager,
     private val userRepository: UserRepository,
-    private val groupRepository: GroupRepository
+    private val groupRepository: GroupRepository,
+    private val questionListRepository: QuestionListRepository,
+    private val questionRepository: QuestionRepository,
 ): AndroidViewModel(application) {
 
     private val _profiles = MutableStateFlow<List<Profile>>(emptyList())
@@ -34,6 +47,20 @@ class HomeViewModel(
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
+
+
+    // --- 오늘의 질문 관련 상태 ---
+    private val _isLoadingTodayQuestion = MutableStateFlow(true) // 초기에는 로딩 상태
+    /** 오늘의 질문 로딩 상태 */
+    val isLoadingTodayQuestion: StateFlow<Boolean> = _isLoadingTodayQuestion.asStateFlow()
+
+    // Firestore에서 가져온 오늘 날짜의 Question 레코드 (선정 기록)
+    // 이 값은 fetchOrGenerateTodayQuestionRecord() 함수를 통해 업데이트 됩니다.
+    private val _todayQuestionRecord = MutableStateFlow<Question?>(null)
+
+    // 모든 질문 후보 목록 (라이브러리)
+    // 이 값은 loadAllQuestionLists() 함수를 통해 업데이트 됩니다.
+    private val _allQuestionLists = MutableStateFlow<List<QuestionList>>(emptyList())
 
     init{
         viewModelScope.launch {
@@ -46,6 +73,7 @@ class HomeViewModel(
             }
         }
     }
+
 
     fun loadProfiles(groupId: String) {
         viewModelScope.launch {
@@ -119,11 +147,9 @@ class HomeViewModel(
     }
 
 
-    fun onSeeAllProfilesClicked() {
-        // 전체보기 화면으로 이동하거나 관련 로직을 수행합니다.
-    }
-
     fun clearError() {
         _error.value = null
     }
+
+
 }
