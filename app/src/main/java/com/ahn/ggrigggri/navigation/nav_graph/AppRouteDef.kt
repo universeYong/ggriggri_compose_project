@@ -144,5 +144,8 @@ sealed interface MainNavigationRoute {
 
     @Serializable
     data object Answer: MainNavigationRoute
+
+    @Serializable
+    data object QuestionList: MainNavigationRoute
 }
 

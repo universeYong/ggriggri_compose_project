@@ -11,4 +11,5 @@ interface QuestionRepository {
     suspend fun delete(questionId: String): Flow<DataResourceResult<Unit>>
     suspend fun getQuestionForGroupAndDate(groupId: String, dateTimestamp: Long): Flow<DataResourceResult<Question?>>
     fun getQuestionRecordById(documentId: String): Flow<DataResourceResult<Question?>>
+    fun getAllQuestionsForGroup(groupId: String): Flow<DataResourceResult<List<Question>>>
 }
