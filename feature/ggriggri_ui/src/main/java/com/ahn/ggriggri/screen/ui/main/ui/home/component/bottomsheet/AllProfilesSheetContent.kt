@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.ahn.common_ui.R
-import com.ahn.ggriggri.screen.ui.main.viewmodel.Profile
+import com.ahn.ggriggri.screen.ui.main.viewmodel.home.Profile
 import theme.NanumSquareRegular
 
 @Composable

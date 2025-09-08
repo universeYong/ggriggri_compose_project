@@ -21,6 +21,7 @@ coilNetworkOkhttp = "3.2.0"
 coilCompose = "3.2.0"
 apng = "3.0.5"
 glide = "4.16.0"
+penfeizhouGlidePluginVersion = "3.0.5"
 glidePlugin = "2.28.0'"
 jetbrainsKotlinJvm = "2.1.21"
 comGoogleGmsGoogleServicesGradlePlugin = "4.4.3"
@@ -43,6 +44,8 @@ orgJetbrainsKotlinKaptGradlePlugin = "2.2.0"
 moshiKotlinCodegen = "1.15.2"
 runtime = "1.9.0"
 workRuntimeKtx = "2.9.0"
+apngVersion = "3.0.5"
+glidePluginVersion = "3.0.5"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -77,9 +80,7 @@ ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
 coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coilNetworkOkhttp" }
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coilCompose" }
-apng = { group = "com.github.penfeizhou.android.animation", name = "apng", version.ref = "apng" }
 glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
-glide-plugin = { group = "'com.github.penfeizhou.android.animation", name = "glide-plugin", version.ref = "glidePlugin" }
 com-google-gms-google-services-gradle-plugin = { group = "com.google.gms.google-services", name = "com.google.gms.google-services.gradle.plugin", version.ref = "comGoogleGmsGoogleServicesGradlePlugin" }
 xcom-firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBomVersion" }
 v2-user = { group = "com.kakao.sdk", name = "v2-user", version.ref = "v2User" }
@@ -97,6 +98,8 @@ org-jetbrains-kotlin-kapt-gradle-plugin = { group = "org.jetbrains.kotlin.kapt",
 moshi-kotlin-codegen = { group = "com.squareup.moshi", name = "moshi-kotlin-codegen", version.ref = "moshiKotlinCodegen" }
 androidx-compose-runtime-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "runtime" }
 work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workRuntimeKtx" }
+animation-apng = { group = "com.github.penfeizhou.android.animation", name = "apng", version.ref = "apngVersion" }
+animation-glide-plugin = { group = "com.github.penfeizhou.android.animation", name = "glide-plugin", version.ref = "glidePluginVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -119,3 +122,4 @@ navigation-libraries = ["androidx-navigation-compose" ]
 moshi-libraries = ["moshi-kotlin","moshi-kotlin-codegen"]
 datastore-libraries = ["androidx-datastore-preferences"]
 work-libraries = ["work-runtime-ktx"]
+apng-libraries = ["animation-apng","animation-glide-plugin","glide"]

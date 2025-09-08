@@ -3,12 +3,9 @@ package com.ahn.ggriggri.screen.main.home
 import android.util.Log
 import android.widget.ImageView
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -25,23 +22,28 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import coil3.compose.AsyncImage
 import com.ahn.common_ui.R
+import com.ahn.domain.model.QuestionList
 import com.ahn.ggriggri.screen.ui.main.ui.home.component.bottomsheet.AllProfilesSheetContent
-import com.ahn.ggriggri.screen.ui.main.viewmodel.HomeViewModel
-import com.ahn.ggriggri.screen.ui.main.viewmodel.Profile
-import com.bumptech.glide.Glide
+import com.ahn.ggriggri.screen.ui.main.viewmodel.home.HomeViewModel
+import com.ahn.ggriggri.screen.ui.main.viewmodel.home.Profile
 import kotlinx.coroutines.launch
 import theme.GgriggriTheme
 import theme.NanumSquareBold
 import theme.NanumSquareRegular
+import androidx.core.graphics.toColorInt
+import com.github.penfeizhou.animation.apng.APNGDrawable
+import com.github.penfeizhou.animation.loader.Loader
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.io.ByteArrayInputStream
+import java.net.URL
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -50,6 +52,9 @@ fun HomeScreen(
     homeViewmodel: HomeViewModel,
 ) {
     val profiles by homeViewmodel.profiles.collectAsState()
+
+    val todayQuestion by homeViewmodel.todayQuestionContent.collectAsState() // 오늘의 질문 내용
+    val isLoadingTodayQuestion by homeViewmodel.isLoadingTodayQuestion.collectAsState() // 질문 로딩 상태
 
     // BottomSheet
     val sheetState = rememberModalBottomSheetState()
@@ -77,12 +82,40 @@ fun HomeScreen(
                         )
                     }
                 // 오늘의 질문 카드
-                item {
-                    TodayQuestionCard(
-                        question = question,
-                        onAnswerClick = {}
-                    )
-                }
+                    item {
+                        if (isLoadingTodayQuestion) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 50.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator()
+                            }
+                        } else {
+                            todayQuestion?.let { currentNonNullQuestion ->
+                                TodayQuestionCard(
+                                    question = currentNonNullQuestion,
+                                    onAnswerClick = {
+                                        Log.d("HomeScreen", "Answer button clicked for: ${currentNonNullQuestion.content}")
+                                    }
+                                )
+                            } ?: run {
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 20.dp)
+                                        .height(100.dp),
+                                    shape = RoundedCornerShape(15.dp),
+                                    colors = CardDefaults.cardColors(containerColor = Color(0xFFE0E0E0))
+                                ) {
+                                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                        Text("오늘의 질문을 불러오지 못했어요.", fontFamily = NanumSquareRegular)
+                                    }
+                                }
+                            }
+                        }
+                    }
 //                // 요청 카드
 //                item {
 //                    RequestCard(
@@ -180,20 +213,27 @@ fun ProfileSummaryCard(profiles: List<Profile>, onSeeAllClick: () -> Unit) {
  * 오늘의 질문 카드 (cvHomeQuestion)
  */
 @Composable
-fun TodayQuestionCard(question: Question, onAnswerClick: () -> Unit) {
+fun TodayQuestionCard(question: QuestionList, onAnswerClick: () -> Unit) {
+    if (question == null) return
+
+    val cardColor = runCatching {
+        Color(question.color.toColorInt())
+    }.getOrElse { Color(0xFFE0E0E0) }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp),
         shape = RoundedCornerShape(15.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFE0E0E0)) // 예시 색상
+        colors = CardDefaults.cardColors(containerColor = cardColor) // 예시 색상
     ) {
         Column(modifier = Modifier.padding(15.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.Top
+                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Column(modifier = Modifier.weight(1f)) {
+                Column(modifier = Modifier.weight(1f, fill = false)) {
                     Text(
                         text = "오늘의 질문",
                         fontSize = 16.sp,
@@ -203,30 +243,117 @@ fun TodayQuestionCard(question: Question, onAnswerClick: () -> Unit) {
                     Spacer(modifier = Modifier.height(20.dp))
                     Text(
                         text = question.content,
-                        modifier = Modifier.width(200.dp),
-                        textAlign = TextAlign.Center,
+                        modifier = Modifier.widthIn(max = 200.dp),
+                        textAlign = TextAlign.Start,
                         fontSize = 14.sp,
                         fontFamily = NanumSquareRegular,
-                        color = Color.Black
+                        color = Color.Black,
+                        lineHeight = 20.sp
                     )
                 }
-                LoadAnimatedApngFromUrl(imageUrl = question.emojiUrl)
+                if (!question.imgUrl.isNullOrEmpty()) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    LoadAnimatedApngFromUrlComposable(
+                        imageUrl = question.imgUrl,
+                        modifier = Modifier.size(80.dp)
+                    )
+                }
             }
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             Button(
                 onClick = onAnswerClick,
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White,
+                    containerColor = Color.White.copy(alpha = 0.8f),
                     contentColor = Color.Black
                 ),
                 shape = RoundedCornerShape(8.dp)
             ) {
-                Text(text = question.buttonText, fontSize = 16.sp, fontFamily = NanumSquareBold)
+                Text(text = "답변하기", fontSize = 16.sp, fontFamily = NanumSquareBold)
             }
         }
     }
 }
+// Apng
+@Composable
+fun LoadAnimatedApngFromUrlComposable(imageUrl: String, modifier: Modifier = Modifier) {
+    var apngDrawable by remember { mutableStateOf<APNGDrawable?>(null)}
+    var isLoading by remember { mutableStateOf(true) }
+    var errorOccurred by remember { mutableStateOf(false)}
+
+    LaunchedEffect(imageUrl) {
+        isLoading = true
+        errorOccurred = false
+        apngDrawable?.stop() // 이전 Drawable 정지
+        apngDrawable = null // 초기화
+
+        if (imageUrl.isBlank()) {
+            isLoading = false
+            errorOccurred = true
+            return@LaunchedEffect
+        }
+
+        launch(Dispatchers.IO) { // IO 스레드에서 네트워크 작업
+            runCatching {
+                val url = URL(imageUrl)
+                val connection = url.openConnection()
+                // 타임아웃 설정
+                // connection.connectTimeout = 5000 // 5초
+                connection.connect()
+                val inputStream = connection.getInputStream()
+                val bytes = inputStream.readBytes()
+                inputStream.close()
+                // StreamReader가 InputStream을 받는다고 가정
+                val customReader = com.github.penfeizhou.animation.io.StreamReader(ByteArrayInputStream(bytes))
+
+                val loader = object : Loader {
+                    override fun obtain(): com.github.penfeizhou.animation.io.Reader { // 반환 타입 일치
+                        return customReader
+                    }
+                }
+                // 또는, ByteBufferLoader가 아래와 같이 사용될 수 있다면:
+                // (라이브러리 버전에 따라 다를 수 있으니 확인 필요)
+                // val byteBuffer = ByteBuffer.wrap(bytes)
+                // val loader = SomeSpecificLoaderImplementation(byteBuffer) // <- 이부분이 문제였음
+
+                val drawable = APNGDrawable(loader)
+
+                withContext(Dispatchers.Main) { // UI 스레드에서 상태 업데이트
+                    apngDrawable = drawable
+                    drawable.start() // 애니메이션 시작
+                    isLoading = false
+                }
+            }.getOrElse {
+                Log.e("LoadAPNG", "Error loading APNG: $imageUrl", it)
+                withContext(Dispatchers.Main) {
+                    errorOccurred = true
+                    isLoading = false
+                }
+            }
+        }
+    }
+    Box(modifier = modifier, contentAlignment = Alignment.Center) {
+        if (isLoading) {
+            CircularProgressIndicator(modifier = Modifier.size(30.dp))
+        }else if (errorOccurred || apngDrawable == null) {
+            Image(
+                painter = painterResource(id = R.drawable.baseline_error_24),
+                contentDescription = "APNG ERROR",
+                modifier = Modifier.fillMaxSize()
+            )
+        }else {
+            AndroidView(
+                factory = { ImageView(it) },
+                modifier = Modifier.fillMaxSize(),
+                update = { imageView ->
+                    imageView.setImageDrawable(apngDrawable)
+                }
+            )
+        }
+    }
+}
+
+
 //
 ///**
 // * 요청 카드 (cvHomeRequest)
@@ -313,18 +440,5 @@ fun TodayQuestionCard(question: Question, onAnswerClick: () -> Unit) {
 //    }
 //}
 
-@Composable
-fun LoadAnimatedApngFromUrl(imageUrl: String) {
-    AndroidView(
-        modifier = Modifier.size(100.dp),
-        factory = { context ->
-            ImageView(context).apply {
-                // Glide를 사용해 URL로부터 APNG 이미지를 로드
-                Glide.with(context)
-                    .load(imageUrl)
-                    .into(this)
-            }
-        }
-    )
-}
+
 
