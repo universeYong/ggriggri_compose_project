@@ -41,4 +41,9 @@ class FirestoreQuestionRepositoryImpl(val questionDataSource: QuestionDataSource
         emit(DataResourceResult.Loading)
         emit(questionDataSource.getQuestionRecordById(documentId))
     }.catch { emit(DataResourceResult.Failure(it)) }
+
+    override fun getAllQuestionsForGroup(groupId: String): Flow<DataResourceResult<List<Question>>> = flow{
+        emit(DataResourceResult.Loading)
+        emit(questionDataSource.getAllQuestionsForGroup(groupId))
+    }.catch { emit(DataResourceResult.Failure(it)) }
 }

@@ -29,6 +29,7 @@ import com.ahn.domain.repository.GroupRepository
 import com.ahn.domain.repository.QuestionListRepository
 import com.ahn.domain.repository.QuestionRepository
 import com.ahn.domain.repository.UserRepository
+import com.ahn.ggriggri.screen.ui.archive.viewmodel.ArchiveViewModelFactory
 import com.ahn.ggriggri.screen.ui.auth.viewmodel.OAuthViewModelFactory
 import com.ahn.ggriggri.screen.ui.main.viewmodel.answer.AnswerViewModelFactory
 import com.ahn.ggriggri.screen.ui.main.viewmodel.home.HomeViewModelFactory
@@ -179,5 +180,10 @@ class AppContainer(applicationContext: Context) {
         return AnswerViewModelFactory(application,sessionManager,userRepository,
             groupRepository,questionRepository,questionListRepository,answerRepository,
             todayQuestionPreferencesImpl)
+    }
+
+    fun provideArchiveViewModelFactory(): ArchiveViewModelFactory {
+        return ArchiveViewModelFactory(application,sessionManager,questionRepository,
+            questionListRepository)
     }
 }

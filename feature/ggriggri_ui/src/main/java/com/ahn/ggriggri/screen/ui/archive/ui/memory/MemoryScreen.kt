@@ -13,6 +13,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import com.ahn.ggriggri.screen.archive.questionlist.QuestionListScreen
 import com.ahn.ggriggri.screen.archive.requestlist.RequestListScreen
+import com.ahn.ggriggri.screen.ui.archive.viewmodel.ArchiveViewModel
 import kotlinx.coroutines.launch
 import theme.BtnContentColor
 import theme.GgriggriTheme
@@ -21,7 +22,9 @@ import theme.NanumSquareExtraBold
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MemoryScreen() {
+fun MemoryScreen(
+    archiveViewModel: ArchiveViewModel
+) {
     val tabItems = listOf("요청","질문")
     val pagerState = rememberPagerState (pageCount = { tabItems.size })
     val coroutineScope = rememberCoroutineScope()
@@ -55,7 +58,7 @@ fun MemoryScreen() {
             ) { page ->
                 when(page) {
                     0 -> RequestListScreen()
-                    1 -> QuestionListScreen()
+                    1 -> QuestionListScreen(archiveViewModel = archiveViewModel)
                 }
             }
         }

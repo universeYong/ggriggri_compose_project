@@ -8,6 +8,7 @@ import com.ahn.data.remote.dto.QuestionDTO
 import com.ahn.domain.common.DataResourceResult
 import com.ahn.domain.model.Question
 import com.google.firebase.Firebase
+import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.firestore
 import com.google.firebase.firestore.toObject
 import kotlinx.coroutines.tasks.await
@@ -98,7 +99,7 @@ class FirestoreQuestionDataSourceImpl : QuestionDataSource {
                     DataResourceResult.Success(question)
                 } else {
                     Log.w("FirestoreQuestionDS_GetById", "QuestionDTO was null after conversion. Document ID: ${documentSnapshot.id}")
-                    DataResourceResult.Success(null) // DTO 변환 실패 시
+                    DataResourceResult.Success(null)
                 }
             } else {
                 Log.w("FirestoreQuestionDS_GetById", "Document with ID '$documentId' does not exist in question_data.")
@@ -107,5 +108,23 @@ class FirestoreQuestionDataSourceImpl : QuestionDataSource {
         }.getOrElse {
             Log.e("FirestoreQuestionDS_GetById", "Error getting QuestionRecord by ID: '$documentId'", it)
             DataResourceResult.Failure(it) }
+
+    override suspend fun getAllQuestionsForGroup(groupId: String): DataResourceResult<List<Question>> = runCatching{
+            val querySnapshot = db.collection("question_data")
+                .whereEqualTo("_questionGroupDocumentId", groupId)
+                .orderBy("_questionCreatedTime", Query.Direction.DESCENDING)
+                .get()
+                .await()
+
+            val questions = querySnapshot.documents.mapNotNull { document ->
+                try {
+                    document.toObject(QuestionDTO::class.java)?.toDomainQuestion(document.id)
+                } catch (e: Exception) {
+                    Log.e("FirestoreQuestionDS", "Error converting document in getAllQuestionsForGroup: ${document.id}", e)
+                    null
+                }
+            }
+            DataResourceResult.Success(questions)
+        }.getOrElse { DataResourceResult.Failure(it) }
 
 }

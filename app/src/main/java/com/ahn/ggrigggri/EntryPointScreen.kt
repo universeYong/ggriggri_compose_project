@@ -24,6 +24,7 @@ import com.ahn.ggrigggri.navigation.nav_graph.TopBarData
 import com.ahn.ggrigggri.navigation.nav_graph.topBarAsRouteName
 import com.ahn.ggriggri.screen.archive.memory.MemoryScreen
 import com.ahn.ggriggri.screen.archive.questionanswer.QuestionAnswerScreen
+import com.ahn.ggriggri.screen.archive.questionlist.QuestionListScreen
 import com.ahn.ggriggri.screen.auth.login.LoginScreen
 import com.ahn.ggriggri.screen.auth.resetpw.ResetPwScreen
 import com.ahn.ggriggri.screen.group.GroupScreen
@@ -107,7 +108,9 @@ fun EntryPointScreen() {
         ) {
 
             composable<MainNavigationRoute.MemoryTab> {
-                MemoryScreen()
+                MemoryScreen(
+                    archiveViewModel = viewModel(factory = appContainer.provideArchiveViewModelFactory())
+                )
             }
             composable<MainNavigationRoute.HomeTab> {
                 HomeScreen(homeViewmodel = viewModel(factory = appContainer.provideHomeViewModelFactory()),
@@ -123,6 +126,12 @@ fun EntryPointScreen() {
             composable<MainNavigationRoute.QuestionAnswer> {
                 QuestionAnswerScreen()
             }
+            composable<MainNavigationRoute.QuestionList>{
+                QuestionListScreen(
+                    archiveViewModel = viewModel(factory = appContainer.provideArchiveViewModelFactory())
+                )
+            }
+
 
             /********* auth *********************************************************/
             composable<MainNavigationRoute.PasswordReset> {
