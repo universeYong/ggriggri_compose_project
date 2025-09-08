@@ -3,6 +3,7 @@ package com.ahn.ggriggri.screen.ui.main.viewmodel.home
 import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.ahn.data.local.TodayQuestionPreferencesImpl
 import com.ahn.domain.common.SessionManager
 import com.ahn.domain.repository.GroupRepository
 import com.ahn.domain.repository.QuestionListRepository
@@ -16,11 +17,14 @@ class HomeViewModelFactory(
     private val groupRepository: GroupRepository,
     private val questionListRepository: QuestionListRepository,
     private val questionRepository: QuestionRepository,
+    private val todayQuestionPreferencesImpl: TodayQuestionPreferencesImpl
 ): ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(HomeViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return HomeViewModel(application, sessionManager, userRepository, groupRepository,questionListRepository,questionRepository) as T
+            return HomeViewModel(application, sessionManager, userRepository,
+                groupRepository,questionListRepository,questionRepository,
+                todayQuestionPreferencesImpl) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
     }

@@ -6,6 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.ahn.domain.common.DataResourceResult
 import com.ahn.domain.common.SessionManager
+import com.ahn.domain.common.TodayQuestionPreferences
 import com.ahn.domain.model.Question
 import com.ahn.domain.model.QuestionList
 import com.ahn.domain.repository.GroupRepository
@@ -41,6 +42,7 @@ class HomeViewModel(
     private val groupRepository: GroupRepository,
     private val questionListRepository: QuestionListRepository,
     private val questionRepository: QuestionRepository,
+    private val todayQuestionPreferences: TodayQuestionPreferences,
 ) : AndroidViewModel(application) {
 
     private val _profiles = MutableStateFlow<List<Profile>>(emptyList())
@@ -65,17 +67,6 @@ class HomeViewModel(
 
     private val baseDate = LocalDate.of(2025, 8, 15)
 
-    //    init{
-//        viewModelScope.launch {
-//            val initialGroupId = sessionManager.currentUserGroupIdFlow.first()
-//            Log.d("HomeViewModel", "Initial Group ID from session: $initialGroupId") // 로그 추가
-//            if (initialGroupId != null && initialGroupId.isNotEmpty()) {
-//                loadProfiles(initialGroupId)
-//            } else {
-//                Log.w("HomeViewModel", "Initial Group ID is null or empty. loadProfiles not called from init.")
-//            }
-//        }
-//    }
     init {
         viewModelScope.launch {
             // 1. 모든 질문 후보 목록 로드
@@ -107,7 +98,6 @@ class HomeViewModel(
                 }
         }
     }
-
 
 
     fun loadProfiles(groupId: String) {
@@ -197,8 +187,6 @@ class HomeViewModel(
     }
 
 
-
-
     fun setCurrentGroupIdAndLoad(newGroupId: String) {
         // TODO: SessionManager를 통해 현재 그룹 ID를 업데이트하는 로직 필요 (예: sessionManager.setCurrentGroupId(newGroupId))
         loadProfiles(newGroupId)
@@ -213,7 +201,6 @@ class HomeViewModel(
     }
 
 
-
     // 모든 질문 목록 로드 함수 (init에서 호출됨)
     private suspend fun loadAllQuestionLists() {
         questionListRepository.read()
@@ -223,21 +210,28 @@ class HomeViewModel(
                 when (result) {
                     is DataResourceResult.Success -> {
                         _allQuestionLists.value = result.data ?: emptyList()
-                        Log.d("HomeViewModel", "Loaded ${_allQuestionLists.value.size} question lists.")
+                        Log.d(
+                            "HomeViewModel",
+                            "Loaded ${_allQuestionLists.value.size} question lists."
+                        )
                     }
+
                     is DataResourceResult.Failure -> {
                         Log.e("HomeViewModel", "Failed to load question lists", result.exception)
                         _error.value = "질문 목록을 불러오는데 실패했습니다."
                     }
+
                     is DataResourceResult.DummyConstructor -> {
                         Log.w("HomeViewModel", "Received DummyConstructor for question lists.")
                         _allQuestionLists.value = emptyList()
                     }
+
                     null -> {
                         Log.w("HomeViewModel", "loadAllQuestionLists returned null.")
                         _error.value = "질문 목록 정보를 가져오지 못했습니다."
                         _allQuestionLists.value = emptyList()
                     }
+
                     else -> {
                         Log.w("HomeViewModel", "Unknown DataResourceResult type: $result")
                     }
@@ -261,51 +255,66 @@ class HomeViewModel(
             return
         }
 
-        val todayStartTimestamp = LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        val todayStartTimestamp =
+            LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
 
         val questionRecordResult = questionRepository
             .getQuestionForGroupAndDate(currentGroupId, todayStartTimestamp)
             .filter { it !is DataResourceResult.Loading }
             .firstOrNull()
 
-        var existingRecord: Question? = null
+        var finalQuestionRecord: Question? = null
         when (questionRecordResult) {
             is DataResourceResult.Success -> {
-                existingRecord = questionRecordResult.data
-                if (existingRecord != null) {
+                finalQuestionRecord = questionRecordResult.data
+                if (finalQuestionRecord != null) {
                     Log.d(
-                        "HomeViewModel",
-                        "Found existing question record for today: ${existingRecord.questionListDocumentId}"
+                        "HomeViewModel_Fetch",
+                        "Found existing question record for today. Firestore ID: ${finalQuestionRecord.questionId}, ListRefID: ${finalQuestionRecord.questionListDocumentId}"
                     )
                 } else {
-                    Log.d(
-                        "HomeViewModel",
-                        "No question record for today. Attempting to create new one."
-                    )
-                    existingRecord =
-                        createNewQuestionRecordForToday(currentGroupId, todayStartTimestamp)
+                    // 기존 기록이 없으면 새로 생성
+                    Log.d("HomeViewModel_Fetch", "No existing question record for today. Attempting to create new one.")
+                    finalQuestionRecord = createNewQuestionRecordForToday(currentGroupId, todayStartTimestamp)
                 }
             }
-
             is DataResourceResult.Failure -> {
-                Log.e(
-                    "HomeViewModel",
-                    "Error fetching today's question record",
-                    questionRecordResult.exception
-                )
-                _error.value = "오늘의 질문 정보를 가져오는데 실패했습니다."
+                Log.e("HomeViewModel_Fetch", "Error fetching today's question record, attempting to create new one.", questionRecordResult.exception)
+                // 가져오기 실패 시에도 새로 생성을 시도해볼 수 있음 (정책에 따라 다름)
+                finalQuestionRecord = createNewQuestionRecordForToday(currentGroupId, todayStartTimestamp)
+                if (finalQuestionRecord == null) { // 생성도 실패하면 에러 처리
+                    _error.value = "오늘의 질문 정보를 가져오거나 생성하는데 실패했습니다."
+                }
             }
-
+            null -> { // Flow에서 아무 값도 발행되지 않은 경우 (이론적으로는 firstOrNull 때문에 오기 어려움)
+                Log.w("HomeViewModel_Fetch", "getQuestionForGroupAndDate returned null result. Attempting to create new one.")
+                finalQuestionRecord = createNewQuestionRecordForToday(currentGroupId, todayStartTimestamp)
+                if (finalQuestionRecord == null) {
+                    _error.value = "오늘의 질문 정보를 가져오지 못했습니다(null result)."
+                }
+            }
+            // DataResourceResult.Loading, DataResourceResult.DummyConstructor 등은 이미 필터링되거나 처리됨
             else -> {
-                Log.w(
-                    "HomeViewModel",
-                    "Failed to fetch question record or loading/dummy: $questionRecordResult"
-                )
-                if (questionRecordResult == null) _error.value = "오늘의 질문 정보를 가져오지 못했습니다."
+                Log.w("HomeViewModel_Fetch", "Unhandled result type from getQuestionForGroupAndDate: $questionRecordResult. Attempting to create.")
+                finalQuestionRecord = createNewQuestionRecordForToday(currentGroupId, todayStartTimestamp)
             }
         }
-        _todayQuestionRecord.value = existingRecord
+
+        _todayQuestionRecord.value = finalQuestionRecord
         _isLoadingTodayQuestion.value = false
+
+        if (finalQuestionRecord != null) {
+            val firestoreDocumentId = finalQuestionRecord.questionId // Question 모델의 Firestore 문서 ID 필드
+            if (!firestoreDocumentId.isNullOrEmpty()) {
+                Log.d("HomeViewModel_DataStore", "fetchOrGenerate: Attempting to save Firestore Document ID to DataStore: '$firestoreDocumentId'")
+                todayQuestionPreferences.saveTodayQuestionId(firestoreDocumentId)
+                Log.d("HomeViewModel_DataStore", "fetchOrGenerate: Call to saveTodayQuestionId completed for Firestore Document ID: '$firestoreDocumentId'")
+            } else {
+                Log.w("HomeViewModel_DataStore", "fetchOrGenerate: Firestore Document ID from finalQuestionRecord is null or empty.")
+            }
+        } else {
+            Log.w("HomeViewModel_DataStore", "fetchOrGenerate: finalQuestionRecord is null. Cannot save to DataStore.")
+        }
     }
 
     private suspend fun createNewQuestionRecordForToday(
@@ -318,7 +327,10 @@ class HomeViewModel(
             return null
         }
         val selectedQuestionList = selectQuestionForTheDayLogic(allLists) ?: return null
-        Log.w("HomeViewModel", "Cannot create new question record: No question selected for the day.")
+        Log.w(
+            "HomeViewModel",
+            "Cannot create new question record: No question selected for the day."
+        )
 
         val questionListIdToStore = selectedQuestionList.number.toString()
 
@@ -337,18 +349,12 @@ class HomeViewModel(
 
         return when (creationResult) {
             is DataResourceResult.Success -> {
-                // create가 생성된 Question 객체를 반환한다면:
-                // val createdRecord = creationResult.data // 이 data가 Question 타입이거나,
-                //                                          // Unit이라면 newQuestionRecord를 그대로 사용 (ID가 아직 없을 수 있음)
+                val createdQuestionWithId = creationResult.data
                 Log.d(
-                    "HomeViewModel", "Successfully created new question record (ViewModel): $newQuestionRecord"
+                    "HomeViewModel",
+                    "Successfully created new question record (ViewModel): $newQuestionRecord"
                 )
-                // 만약 Firestore가 ID를 자동 생성하고 QuestionRepository.create가 Unit을 반환한다면,
-                // 이 newQuestionRecord에는 아직 Firestore ID가 없을 수 있습니다.
-                // 이 경우, Worker에서 생성하고 ViewModel은 조회만 하는 것이 더 깔끔합니다.
-                // 임시로, ID가 없더라도 newQuestionRecord를 반환합니다.
-                 newQuestionRecord // 이 레코드에는 아직 Firestore에서 자동 생성된 ID가 없을 수 있습니다.
-                // Question 모델에 questionId 필드가 자동 생성된 ID를 저장하도록 해야 합니다.
+                createdQuestionWithId
             }
 
             is DataResourceResult.Failure -> {
@@ -409,7 +415,7 @@ class HomeViewModel(
         }
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000L),
+            started = SharingStarted.Lazily,
             initialValue = null // 초기값은 null로 시작
         )
 

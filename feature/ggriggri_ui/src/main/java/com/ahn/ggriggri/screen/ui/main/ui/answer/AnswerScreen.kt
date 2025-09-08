@@ -1,35 +1,40 @@
 package com.ahn.ggriggri.screen.main.answer
 
 import androidx.compose.runtime.Composable
-import android.widget.ImageView
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.ahn.common_ui.components.CommonButton
+import com.ahn.common_ui.components.CommonOutlinedTextField
+import com.ahn.ggriggri.screen.main.home.LoadAnimatedApngFromUrlComposable
 import com.ahn.ggriggri.screen.ui.main.viewmodel.answer.AnswerViewModel
-import com.bumptech.glide.Glide
 import theme.GgriggriTheme
+import theme.NanumSquareBold
 
 
 @Composable
 fun AnswerScreen(
-    answerViewmodel: AnswerViewModel,
+    answerViewModel: AnswerViewModel,
+    onNavigateBack: () -> Unit
 ) {
     var answerText by remember { mutableStateOf("") }
-    val isButtonEnabled = answerText.isNotBlank()
+
+    val currentQuestionDetails by answerViewModel.currentQuestionDetails.collectAsStateWithLifecycle()
+    val isLoading by answerViewModel.isLoading.collectAsStateWithLifecycle()
+    val error by answerViewModel.error.collectAsStateWithLifecycle()
+
+    val isButtonEnabled = answerText.isNotBlank() && !isLoading && currentQuestionDetails != null
+
 
     GgriggriTheme {
-        Surface (
+        Surface(
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ) {
@@ -41,146 +46,98 @@ fun AnswerScreen(
             ) {
                 Spacer(modifier = Modifier.height(50.dp))
 
-                // 이전 대화에서 사용한 APNG 로딩 Composable
-                LoadAnimatedApngFromUrl(
-                    imageUrl = emojiUrl,
-                    modifier = Modifier.size(250.dp)
-                )
-
-                Spacer(modifier = Modifier.height(50.dp))
-
-                Text(
-                    text = questionText,
-                    modifier = Modifier.widthIn(max = 300.dp), // 최대 너비 제한
-                    color = Color.Black,
-                    fontSize = 16.sp,
-                    fontWeight = nanumSquareBold,
-                    textAlign = TextAlign.Center
-                )
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                AnswerInputField(
-                    value = answerText,
-                    onValueChange = { answerText = it },
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                // 버튼을 하단에 고정하기 위한 Spacer
-                Spacer(modifier = Modifier.weight(1f))
-
-                Button(
-                    onClick = { onSubmit(answerText) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 20.dp),
-                    enabled = isButtonEnabled,
-                    shape = MaterialTheme.shapes.medium, // custom_btn_background 대체
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFF0F0F0), // custom_btn_background 색상 예시
-                        contentColor = Color.Black, // custom_btn_text 색상 예시
-                        disabledContainerColor = Color.LightGray,
-                        disabledContentColor = Color.Gray
-                    )
-                ) {
+                // 로딩 상태 또는 질문 정보 부재 시 처리
+                if (currentQuestionDetails == null && isLoading) { // 초기 로딩 (질문 정보 로딩)
+                    Spacer(modifier = Modifier.height(50.dp))
+                    CircularProgressIndicator()
+                    Spacer(modifier = Modifier.height(20.dp))
+                    Text("질문 정보를 불러오는 중...")
+                } else if (currentQuestionDetails == null && error != null) { // 질문 정보 로드 실패
+                    Spacer(modifier = Modifier.height(50.dp))
                     Text(
-                        text = "답변하기",
-                        fontSize = 16.sp,
-                        fontWeight = nanumSquareBold
+                        text = error ?: "질문 정보를 불러올 수 없습니다.",
+                        color = MaterialTheme.colorScheme.error,
+                        textAlign = TextAlign.Center
                     )
+                } else if (currentQuestionDetails != null) {
+                    // 질문 정보가 있을 때 UI 표시
+                    Spacer(modifier = Modifier.height(30.dp))
+
+                    currentQuestionDetails?.imageUrl?.let {
+                        LoadAnimatedApngFromUrlComposable(
+                            imageUrl = it,
+                            modifier = Modifier.size(200.dp)
+                        )
+                    } ?: Box(
+                        modifier = Modifier.size(200.dp).padding(16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("이미지 없음") // 이미지가 없을 경우
+                    }
+
+                    Spacer(modifier = Modifier.height(50.dp))
+
+                    Text(
+                        text = currentQuestionDetails?.content ?: "질문 내용 없음",
+                        modifier = Modifier.widthIn(max = 300.dp), // 최대 너비 제한
+                        color = Color.Black,
+                        fontSize = 16.sp,
+                        fontFamily = NanumSquareBold,
+                        textAlign = TextAlign.Center
+                    )
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    // 답변 로딩 또는 제출 로딩 시 (TextField 아래에 표시)
+                    if (isLoading && answerText.isNotBlank()) { // 제출 시 isLoading
+                        CircularProgressIndicator(modifier = Modifier.padding(vertical = 16.dp))
+                    }
+
+                    // 에러 메시지 (답변 로딩/제출 관련)
+                    if (error != null && currentQuestionDetails != null) { // 질문 정보 로드 에러는 위에서 이미 처리
+                        Text(
+                            text = error!!, // non-null 보장 (위 조건에서)
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(vertical = 8.dp),
+                            textAlign = TextAlign.Center
+                        )
+                    }
+
+                    CommonOutlinedTextField(
+                        value = answerText,
+                        onValueChange = { answerText = it },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    // 버튼을 하단에 고정하기 위한 Spacer
+                    Spacer(modifier = Modifier.weight(1f))
+
+                    CommonButton(
+                        onClick = {
+                            if (currentQuestionDetails != null) { // null 체크
+                                answerViewModel.submitAnswer(answerText)
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 20.dp),
+                        enabled = isButtonEnabled,
+                    ) {
+                        Text(
+                            text = "답변하기",
+                            fontSize = 16.sp,
+                            fontFamily = NanumSquareBold
+                        )
+                    }
+                } else {
+                    // currentQuestionDetails가 null이고 로딩도 아니고 에러도 아닌 경우 (이론상 잘 안옴)
+                    Spacer(modifier = Modifier.height(50.dp))
+                    Text("질문 정보를 표시할 수 없습니다.")
                 }
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun AnswerTopBar(title: String, onNavigateBack: () -> Unit) {
-    CenterAlignedTopAppBar(
-        title = {
-            Text(
-                text = title,
-                // style = MaterialTheme.typography.titleLarge // CustomToolbarTitle 대체
-            )
-        },
-        navigationIcon = {
-            IconButton(onClick = onNavigateBack) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "뒤로 가기"
-                )
-            }
-        },
-        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-            containerColor = Color.Transparent
-        )
-    )
-}
 
-@Composable
-fun AnswerInputField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val maxChars = 100
-    Column(modifier = modifier, horizontalAlignment = Alignment.End) {
-        OutlinedTextField(
-            value = value,
-            onValueChange = {
-                if (it.length <= maxChars) {
-                    onValueChange(it)
-                }
-            },
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = {
-                Text(
-                    text = "답변을 입력하세요.",
-                    fontWeight = nanumSquareRegular,
-                    fontSize = 14.sp
-                )
-            },
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color.Black,
-                unfocusedBorderColor = Color.Gray,
-                cursorColor = Color(0xFFFFFDE7) // mainColor 예시
-            ),
-            singleLine = false // 여러 줄 입력 가능
-        )
-        Text(
-            text = "${value.length} / $maxChars",
-            modifier = Modifier.padding(top = 4.dp),
-            style = MaterialTheme.typography.bodySmall,
-            color = Color.Gray
-        )
-    }
-}
 
-// 이전 대화에서 사용한 Composable (재사용)
-@Composable
-fun LoadAnimatedApngFromUrl(imageUrl: String, modifier: Modifier = Modifier) {
-    AndroidView(
-        modifier = modifier,
-        factory = { context ->
-            ImageView(context).apply {
-                Glide.with(context)
-                    .load(imageUrl)
-                    .into(this)
-            }
-        }
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun AnswerScreenPreview() {
-    MaterialTheme {
-        AnswerScreen(
-            questionText = "이 그룹과 함께 하며 가장 화난 순간은?",
-            emojiUrl = "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Smilies/Angry%20Face.png",
-            onNavigateBack = {},
-            onSubmit = {}
-        )
-    }
-}

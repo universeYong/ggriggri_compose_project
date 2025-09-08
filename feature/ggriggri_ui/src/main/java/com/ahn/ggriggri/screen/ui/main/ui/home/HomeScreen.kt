@@ -50,6 +50,7 @@ import java.net.URL
 @Composable
 fun HomeScreen(
     homeViewmodel: HomeViewModel,
+    onNavigationToAnswer: () -> Unit
 ) {
     val profiles by homeViewmodel.profiles.collectAsState()
 
@@ -98,6 +99,7 @@ fun HomeScreen(
                                     question = currentNonNullQuestion,
                                     onAnswerClick = {
                                         Log.d("HomeScreen", "Answer button clicked for: ${currentNonNullQuestion.content}")
+                                        onNavigationToAnswer()
                                     }
                                 )
                             } ?: run {

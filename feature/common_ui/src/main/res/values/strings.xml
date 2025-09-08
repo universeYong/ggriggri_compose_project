@@ -105,6 +105,9 @@
 
     <!-- 홈 string -->
 
+    <!-- answer string -->
+    <string name="answer_title">답변하기</string>
+
     <!-- 질문 답변(archive) -->
     <string name="archive_question_answer_title">그룹 설정</string>
 

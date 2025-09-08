@@ -89,8 +89,7 @@ class SessionManagerImpl(
             }
         }
         .map { preferences ->
-            val USER_GROUP_ID_KEY_LOCAL = stringPreferencesKey("user_group_id") // 임시 로컬 키
-            preferences[USER_GROUP_ID_KEY_LOCAL]
+            preferences[DataStoreKeys.USER_GROUP_ID]
         }
 
     override suspend fun loginUser(user: User) {

@@ -42,6 +42,13 @@ val NavBackStackEntry.topBarAsRouteName: TopBarData
                 )
             }
 
+            routeName.contains("Answer") == true -> {
+                TopBarData(
+                    title = R.string.answer_title,
+                    titleLeftIcon = Icons.Outlined.ArrowBackIosNew
+                )
+            }
+
             routeName.contains("PasswordReset") == true -> {
                 TopBarData(
                     title = R.string.reset_password_title,
@@ -119,8 +126,6 @@ sealed interface MainNavigationRoute {
 
     @Serializable
     data object SettingGroup : MainNavigationRoute
-    @Serializable
-    data object ModifyUserPw : MainNavigationRoute
 
     @Serializable
     data object ModifyGroupPw : MainNavigationRoute
@@ -136,5 +141,8 @@ sealed interface MainNavigationRoute {
 
     @Serializable
     data object Group: MainNavigationRoute
+
+    @Serializable
+    data object Answer: MainNavigationRoute
 }
 
