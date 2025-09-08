@@ -1,24 +1,43 @@
 package com.ahn.data.repository
 
+import com.ahn.data.datasource.AnswerDataSource
 import com.ahn.domain.common.DataResourceResult
 import com.ahn.domain.model.Answer
 import com.ahn.domain.repository.AnswerRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flow
 
-class FirestoreAnswerRepositoryImpl: AnswerRepository {
-    override suspend fun create(answerInfo: Answer): Flow<DataResourceResult<String>> {
-        TODO("Not yet implemented")
-    }
+class FirestoreAnswerRepositoryImpl(val answerDataSource: AnswerDataSource) : AnswerRepository {
+    override suspend fun create(
+        questionId: String,
+        answerInfo: Answer,
+    ): Flow<DataResourceResult<String?>> = flow {
+        emit(DataResourceResult.Loading)
+        val result = answerDataSource.create(questionId, answerInfo)
+        emit(result)
+    }.catch { emit(DataResourceResult.Failure(it)) }
 
-    override suspend fun read(): Flow<DataResourceResult<List<Answer>>> {
-        TODO("Not yet implemented")
-    }
+    override suspend fun read(questionId: String): Flow<DataResourceResult<List<Answer>>> = flow {
+        emit(DataResourceResult.Loading)
+        emit(answerDataSource.read(questionId))
+    }.catch { emit(DataResourceResult.Failure(it)) }
 
-    override suspend fun update(answerInfo: Answer): Flow<DataResourceResult<Unit>> {
-        TODO("Not yet implemented")
-    }
+    override suspend fun update(
+        questionId: String,
+        answerInfo: Answer,
+    ): Flow<DataResourceResult<Unit>> = flow {
+        emit(DataResourceResult.Loading)
+        emit(answerDataSource.update(questionId, answerInfo))
+    }.catch { emit(DataResourceResult.Failure(it)) }
 
-    override suspend fun delete(answerId: String): Flow<DataResourceResult<Unit>> {
-        TODO("Not yet implemented")
-    }
+
+    override suspend fun delete(
+        questionId: String,
+        answerId: String,
+    ): Flow<DataResourceResult<Unit>> = flow{
+        emit(DataResourceResult.Loading)
+        emit(answerDataSource.delete(questionId, answerId))
+    }.catch { emit(DataResourceResult.Failure(it)) }
+
 }

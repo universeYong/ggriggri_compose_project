@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.compose.runtime.getValue
@@ -17,7 +16,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.ahn.domain.common.SessionManager
 import com.ahn.ggrigggri.common.GgriggriBottomBar
 import com.ahn.ggrigggri.common.GgriggriTopBar
 import com.ahn.ggrigggri.navigation.bottom.BottomAppBarItem
@@ -29,15 +27,14 @@ import com.ahn.ggriggri.screen.archive.questionanswer.QuestionAnswerScreen
 import com.ahn.ggriggri.screen.auth.login.LoginScreen
 import com.ahn.ggriggri.screen.auth.resetpw.ResetPwScreen
 import com.ahn.ggriggri.screen.group.GroupScreen
+import com.ahn.ggriggri.screen.main.answer.AnswerScreen
 import com.ahn.ggriggri.screen.main.home.HomeScreen
 import com.ahn.ggriggri.screen.setting.modifygroupname.ModifyGroupNameScreen
 import com.ahn.ggriggri.screen.setting.modifygrouppw.ModifyGroupPwScreen
-import com.ahn.ggriggri.screen.setting.modifyuserpw.ModifyUserPwScreen
 import com.ahn.ggriggri.screen.setting.mypage.MyPageScreen
 import com.ahn.ggriggri.screen.setting.settinggroup.SettingGroupScreen
 import com.ahn.ggriggri.screen.ui.auth.viewmodel.OAuthViewModel
 import com.ahn.ggriggri.screen.ui.auth.viewmodel.OAuthViewModelFactory
-import com.ahn.ggriggri.screen.ui.setting.viewmodel.factory.MyPageViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -113,7 +110,8 @@ fun EntryPointScreen() {
                 MemoryScreen()
             }
             composable<MainNavigationRoute.HomeTab> {
-                HomeScreen(homeViewmodel = viewModel(factory = appContainer.provideHomeViewModelFactory()))
+                HomeScreen(homeViewmodel = viewModel(factory = appContainer.provideHomeViewModelFactory()),
+                    onNavigationToAnswer = {navController.navigate(MainNavigationRoute.Answer)})
             }
             composable<MainNavigationRoute.MyPageTab> {
                 MyPageScreen(
@@ -153,14 +151,17 @@ fun EntryPointScreen() {
             }
 
             /********* main *********************************************************/
+            composable <MainNavigationRoute.Answer> {
+                AnswerScreen(
+                    answerViewModel = viewModel(factory = appContainer.provideAnswerViewModelFactory()),
+                    onNavigateBack = {navController.popBackStack()}
 
+                )
+            }
 
             /********* setting ******************************************************/
             composable<MainNavigationRoute.SettingGroup> {
                 SettingGroupScreen()
-            }
-            composable<MainNavigationRoute.ModifyUserPw> {
-                ModifyUserPwScreen()
             }
             composable<MainNavigationRoute.ModifyGroupPw> {
                 ModifyGroupPwScreen()

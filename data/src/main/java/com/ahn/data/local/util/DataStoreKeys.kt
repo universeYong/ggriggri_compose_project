@@ -11,4 +11,8 @@ object DataStoreKeys {
     val USER_NAME = stringPreferencesKey("user_name")
     val USER_PROFILE_URL = stringPreferencesKey("user_profile_url")
     val USER_GROUP_ID = stringPreferencesKey("user_group_id")
+
+    val TODAY_QUESTION_ID = stringPreferencesKey("today_question_id")
+    val TODAY_QUESTION_CONTENT = stringPreferencesKey("today_question_content")
+    val TODAY_QUESTION_URL = stringPreferencesKey("today_question_img_url")
 }

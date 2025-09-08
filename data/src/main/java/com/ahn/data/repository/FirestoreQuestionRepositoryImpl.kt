@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.flow
 
 class FirestoreQuestionRepositoryImpl(val questionDataSource: QuestionDataSource) :
     QuestionRepository {
-    override suspend fun create(question: Question): Flow<DataResourceResult<Unit>> = flow{
+    override suspend fun create(question: Question): Flow<DataResourceResult<Question>> = flow{
         emit(DataResourceResult.Loading)
         emit(questionDataSource.create(question))
     }.catch { emit(DataResourceResult.Failure(it)) }
@@ -36,4 +36,9 @@ class FirestoreQuestionRepositoryImpl(val questionDataSource: QuestionDataSource
     }.catch { exception ->
         emit(DataResourceResult.Failure(exception))
     }
+
+    override fun getQuestionRecordById(documentId: String): Flow<DataResourceResult<Question?>> = flow{
+        emit(DataResourceResult.Loading)
+        emit(questionDataSource.getQuestionRecordById(documentId))
+    }.catch { emit(DataResourceResult.Failure(it)) }
 }

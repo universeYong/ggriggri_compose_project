@@ -12,15 +12,19 @@ import coil3.memory.MemoryCache
 import com.ahn.data.datasource.GroupDataSource
 import com.ahn.data.datasource.UserDataSource
 import com.ahn.data.local.SessionManagerImpl
+import com.ahn.data.local.TodayQuestionPreferencesImpl
+import com.ahn.data.remote.firebase.FirestoreAnswerDataSourceImpl
 import com.ahn.data.remote.firebase.FirestoreGroupDataSourceImpl
 import com.ahn.data.remote.firebase.FirestoreQuestionDataSourceImpl
 import com.ahn.data.remote.firebase.FirestoreQuestionListDataSourceImpl
 import com.ahn.data.remote.firebase.FirestoreUserDataSourceImpl
+import com.ahn.data.repository.FirestoreAnswerRepositoryImpl
 import com.ahn.data.repository.FirestoreGroupRepositoryImpl
 import com.ahn.data.repository.FirestoreQuestionListRepositoryImpl
 import com.ahn.data.repository.FirestoreQuestionRepositoryImpl
 import com.ahn.data.repository.FirestoreUserRepositoryImpl
 import com.ahn.domain.common.SessionManager
+import com.ahn.domain.repository.AnswerRepository
 import com.ahn.domain.repository.GroupRepository
 import com.ahn.domain.repository.QuestionListRepository
 import com.ahn.domain.repository.QuestionRepository
@@ -86,6 +90,16 @@ class ggriggriAplication : Application(), SingletonImageLoader.Factory,
         FirestoreQuestionRepositoryImpl(questionDataSource)
     }
 
+    private val answerDataSource by lazy { FirestoreAnswerDataSourceImpl() }
+    val answerRepository: AnswerRepository by lazy {
+        FirestoreAnswerRepositoryImpl(answerDataSource)
+    }
+
+    val todayQuestionPreferencesImpl: TodayQuestionPreferencesImpl by lazy {
+        TodayQuestionPreferencesImpl(applicationContext)
+    }
+
+
     // WorkScheduler 인스턴스
     private lateinit var appWorkScheduler: AppWorkScheduler
 
@@ -142,6 +156,8 @@ class AppContainer(applicationContext: Context) {
     val groupRepository: GroupRepository get() = application.groupRepository
     val questionListRepository: QuestionListRepository get() = application.questionListRepository
     val questionRepository: QuestionRepository get() = application.questionRepository
+    val answerRepository: AnswerRepository get() = application.answerRepository
+    val todayQuestionPreferencesImpl: TodayQuestionPreferencesImpl get() = application.todayQuestionPreferencesImpl
         // ... 기타 필요한 의존성 ...
 
         // ViewModel Factory 생성 메소드들을 AppContainer에 추가할 수도 있습니다.
@@ -154,10 +170,14 @@ class AppContainer(applicationContext: Context) {
     }
 
     fun provideHomeViewModelFactory(): HomeViewModelFactory {
-        return HomeViewModelFactory(application,sessionManager,userRepository, groupRepository,questionListRepository,questionRepository)
+        return HomeViewModelFactory(application,sessionManager,userRepository,
+            groupRepository,questionListRepository,questionRepository,
+            todayQuestionPreferencesImpl)
     }
 
     fun provideAnswerViewModelFactory(): AnswerViewModelFactory {
-        return AnswerViewModelFactory(application,sessionManager,userRepository, groupRepository,questionRepository)
+        return AnswerViewModelFactory(application,sessionManager,userRepository,
+            groupRepository,questionRepository,questionListRepository,answerRepository,
+            todayQuestionPreferencesImpl)
     }
 }
