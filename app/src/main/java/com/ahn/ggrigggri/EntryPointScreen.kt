@@ -1,6 +1,7 @@
 package com.ahn.ggrigggri
 
 import android.util.Log
+import androidx.compose.animation.core.copy
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -69,13 +70,24 @@ fun EntryPointScreen() {
 
     val topBarData = navBackStackEntry?.topBarAsRouteName ?: TopBarData()
 
+    val finalTopBarData = remember(topBarData, navBackStackEntry?.destination?.route) {
+        val currentRouteName = navBackStackEntry?.destination?.route
+        // 왼쪽 아이콘이 있을때 뒤로가기 액션
+        if (topBarData.titleLeftIcon != null) {
+            topBarData.copy(IconOnClick = { navController.popBackStack() })
+        } else {
+            topBarData
+        }
+    }
+
+
     val topBarTitle = if (topBarData.title != 0) stringResource(topBarData.title) else ""
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
             GgriggriTopBar(
-                topBarData = topBarData,
+                topBarData = finalTopBarData,
             )
         },
         bottomBar = {
@@ -109,7 +121,25 @@ fun EntryPointScreen() {
 
             composable<MainNavigationRoute.MemoryTab> {
                 MemoryScreen(
-                    archiveViewModel = viewModel(factory = appContainer.provideArchiveViewModelFactory())
+                    archiveViewModel = viewModel(factory = appContainer.provideArchiveViewModelFactory()),
+                    onNavigateToQuestionAnswerActual = { questionId ->
+                        if (questionId.isNotBlank()) {
+                            Log.d(
+                                "EntryPointScreen",
+                                "From MemoryTab: Attempting to navigate to QuestionAnswer with ID: $questionId"
+                            )
+                            navController.navigate(MainNavigationRoute.QuestionAnswer(questionDataId = questionId))
+                            Log.d(
+                                "EntryPointScreen",
+                                "From MemoryTab: navController.navigate called for QuestionAnswer."
+                            )
+                        } else {
+                            Log.e(
+                                "EntryPointScreen",
+                                "From MemoryTab: Attempted to navigate to QuestionAnswer with blank ID."
+                            )
+                        }
+                    }
                 )
             }
             composable<MainNavigationRoute.HomeTab> {
@@ -124,11 +154,25 @@ fun EntryPointScreen() {
 
             /********* archive ******************************************************/
             composable<MainNavigationRoute.QuestionAnswer> {
-                QuestionAnswerScreen()
+                QuestionAnswerScreen(
+                    questionAnswerViewModel = viewModel(factory = appContainer.provideQuestionAnswerViewModelFactory()),
+                )
             }
             composable<MainNavigationRoute.QuestionList>{
                 QuestionListScreen(
-                    archiveViewModel = viewModel(factory = appContainer.provideArchiveViewModelFactory())
+                    archiveViewModel = viewModel(factory = appContainer.provideArchiveViewModelFactory()),
+                    onNavigateToQuestionAnswer = { questionId ->
+                        if (questionId.isNotBlank()) {
+                            Log.d("EntryPointScreen", "Attempting to navigate to QuestionAnswer with ID: $questionId") // ★★★ 로그 추가 ★★★
+                            navController.navigate(MainNavigationRoute.QuestionAnswer(questionDataId = questionId))
+                            Log.d("EntryPointScreen", "navController.navigate called for QuestionAnswer.") // ★★★ 로그 추가 ★★★
+                        } else {
+                            Log.e(
+                                "EntryPointScreen",
+                                "Attempted to navigate to QuestionAnswer with blank ID."
+                            )
+                        }
+                    }
                 )
             }
 
@@ -163,7 +207,7 @@ fun EntryPointScreen() {
             composable <MainNavigationRoute.Answer> {
                 AnswerScreen(
                     answerViewModel = viewModel(factory = appContainer.provideAnswerViewModelFactory()),
-                    onNavigateBack = {navController.popBackStack()}
+                    onNavigateBack = {navController.navigate(MainNavigationRoute.HomeTab)}
 
                 )
             }

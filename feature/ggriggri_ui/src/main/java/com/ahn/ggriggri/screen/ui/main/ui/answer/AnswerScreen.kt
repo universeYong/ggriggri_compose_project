@@ -116,6 +116,7 @@ fun AnswerScreen(
                         onClick = {
                             if (currentQuestionDetails != null) { // null 체크
                                 answerViewModel.submitAnswer(answerText)
+                                onNavigateBack()
                             }
                         },
                         modifier = Modifier

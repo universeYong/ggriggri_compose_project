@@ -14,6 +14,8 @@ data class TopBarData(
     @StringRes var title: Int = 0,
     var titleRightIcon: ImageVector? = null,
     var titleLeftIcon: ImageVector? = null,
+    var IconOnClick: () -> Unit = {},
+    var rightIconOnClick: () -> Unit = {}
 )
 
 // AutoMirrored.Filled.ArrowBack
@@ -87,7 +89,7 @@ val NavBackStackEntry.topBarAsRouteName: TopBarData
             routeName.contains("QuestionAnswer") == true -> {
                 TopBarData(
                     title = R.string.archive_question_answer_title,
-                    titleLeftIcon = Icons.Outlined.ArrowBackIosNew
+                    titleLeftIcon = Icons.Outlined.ArrowBackIosNew,
                 )
             }
 
@@ -134,7 +136,7 @@ sealed interface MainNavigationRoute {
     data object ModifyGroupName : MainNavigationRoute
 
     @Serializable
-    data object QuestionAnswer : MainNavigationRoute
+    data class QuestionAnswer(val questionDataId: String) : MainNavigationRoute
 
     @Serializable
     data object Login : MainNavigationRoute

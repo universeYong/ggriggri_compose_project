@@ -1,4 +1,4 @@
-package com.ahn.ggriggri.screen.ui.archive.viewmodel
+package com.ahn.ggriggri.screen.ui.archive.viewmodel.questionlist
 
 import android.app.Application
 import android.util.Log
@@ -31,7 +31,7 @@ data class ArchivedQuestionItem(
     val imgUrl: String? = null,
 )
 
-class ArchiveViewModel(
+class QuestionListViewModel(
     application: Application,
     private val sessionManager: SessionManager,
     private val questionRepository: QuestionRepository,

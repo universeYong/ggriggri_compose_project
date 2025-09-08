@@ -29,7 +29,8 @@ import com.ahn.domain.repository.GroupRepository
 import com.ahn.domain.repository.QuestionListRepository
 import com.ahn.domain.repository.QuestionRepository
 import com.ahn.domain.repository.UserRepository
-import com.ahn.ggriggri.screen.ui.archive.viewmodel.ArchiveViewModelFactory
+import com.ahn.ggriggri.screen.ui.archive.viewmodel.questionanswer.QuestionAnswerViewModelFactory
+import com.ahn.ggriggri.screen.ui.archive.viewmodel.questionlist.QuestionListViewModelFactory
 import com.ahn.ggriggri.screen.ui.auth.viewmodel.OAuthViewModelFactory
 import com.ahn.ggriggri.screen.ui.main.viewmodel.answer.AnswerViewModelFactory
 import com.ahn.ggriggri.screen.ui.main.viewmodel.home.HomeViewModelFactory
@@ -121,7 +122,6 @@ class ggriggriAplication : Application(), SingletonImageLoader.Factory,
 
         appWorkScheduler = WorkSchedulerImpl(applicationContext)
         appWorkScheduler.scheduleDailyTasks()
-
 //        Log.e("TAG", KakaoSdk.keyHash)
     }
 
@@ -182,8 +182,13 @@ class AppContainer(applicationContext: Context) {
             todayQuestionPreferencesImpl)
     }
 
-    fun provideArchiveViewModelFactory(): ArchiveViewModelFactory {
-        return ArchiveViewModelFactory(application,sessionManager,questionRepository,
+    fun provideArchiveViewModelFactory(): QuestionListViewModelFactory {
+        return QuestionListViewModelFactory(application,sessionManager,questionRepository,
             questionListRepository)
+    }
+
+    fun provideQuestionAnswerViewModelFactory(): QuestionAnswerViewModelFactory {
+        return QuestionAnswerViewModelFactory(application, questionRepository,
+            questionListRepository,answerRepository,userRepository)
     }
 }
