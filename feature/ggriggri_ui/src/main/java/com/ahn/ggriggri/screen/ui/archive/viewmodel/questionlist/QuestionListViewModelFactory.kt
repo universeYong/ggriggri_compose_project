@@ -1,4 +1,4 @@
-package com.ahn.ggriggri.screen.ui.archive.viewmodel
+package com.ahn.ggriggri.screen.ui.archive.viewmodel.questionlist
 
 import android.app.Application
 import androidx.lifecycle.ViewModel
@@ -8,16 +8,16 @@ import com.ahn.domain.repository.QuestionListRepository
 import com.ahn.domain.repository.QuestionRepository
 
 
-class ArchiveViewModelFactory(
+class QuestionListViewModelFactory(
     private val application: Application,
     private val sessionManager: SessionManager,
     private val questionRepository: QuestionRepository,
     private val questionListRepository: QuestionListRepository,
     ): ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(ArchiveViewModel::class.java)) {
+        if (modelClass.isAssignableFrom(QuestionListViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return ArchiveViewModel(application, sessionManager,questionRepository,
+            return QuestionListViewModel(application, sessionManager,questionRepository,
                 questionListRepository,) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")

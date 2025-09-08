@@ -13,8 +13,6 @@ import com.ahn.ggrigggri.navigation.nav_graph.TopBarData
 @Composable
 fun GgriggriTopBar(
     topBarData: TopBarData,
-    onRightIconClick: (() -> Unit)? = null,
-    onNavigationClick: (() -> Unit)? = null,
 ) {
     CenterAlignedTopAppBar(
         title = {
@@ -23,14 +21,14 @@ fun GgriggriTopBar(
                 },
         navigationIcon = {
             topBarData.titleLeftIcon?.let { icon ->
-                IconButton(onClick = { onNavigationClick?.invoke() }) {
+                IconButton(onClick = topBarData.IconOnClick ) {
                     Icon(imageVector = icon, contentDescription = null)
                 }
             }
         },
         actions = {
             topBarData.titleRightIcon?.let  { icon ->
-                IconButton(onClick = { onRightIconClick?.invoke() }) {
+                IconButton(onClick = topBarData.rightIconOnClick) {
                     Icon(imageVector = icon, contentDescription = null)
                 }
             }

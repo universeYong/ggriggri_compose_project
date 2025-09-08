@@ -40,4 +40,9 @@ class FirestoreAnswerRepositoryImpl(val answerDataSource: AnswerDataSource) : An
         emit(answerDataSource.delete(questionId, answerId))
     }.catch { emit(DataResourceResult.Failure(it)) }
 
+    override suspend fun getAllAnswersForQuestion(questionDataDocumentId: String): Flow<DataResourceResult<List<Answer>>> = flow{
+        emit(DataResourceResult.Loading)
+        emit(answerDataSource.getAllAnswersForQuestion(questionDataDocumentId))
+    }.catch { emit(DataResourceResult.Failure(it))  }
+
 }

@@ -8,6 +8,7 @@ import com.ahn.data.remote.dto.AnswerDTO
 import com.ahn.domain.common.DataResourceResult
 import com.ahn.domain.model.Answer
 import com.google.firebase.Firebase
+import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.tasks.await
@@ -84,4 +85,26 @@ class FirestoreAnswerDataSourceImpl : AnswerDataSource {
         }
         DataResourceResult.Success(answers)
     }.getOrElse { DataResourceResult.Failure(it) }
+
+    override suspend fun getAllAnswersForQuestion(questionDataDocumentId: String): DataResourceResult<List<Answer>> = runCatching {
+            val querySnapshot = db.collection("question_data").document(questionDataDocumentId)
+                .collection("answer_data")
+                .orderBy("_answerResponseTime", Query.Direction.ASCENDING)
+                .get()
+                .await()
+
+            val answers = querySnapshot.documents.mapNotNull { document ->
+                try {
+                    // Firestore 문서를 AnswerDTO로 변환 후 도메인 모델로 매핑
+                    document.toObject(AnswerDTO::class.java)?.toDomainAnswer(document.id) // DTO 및 매퍼 사용 가정
+                } catch (e: Exception) {
+                    Log.e("FirestoreAnswerDS", "Error converting answer document: ${document.id}", e)
+                    null
+                }
+            }
+            DataResourceResult.Success(answers)
+        }.getOrElse {
+            Log.e("FirestoreAnswerDS", "Error in getAllAnswersForQuestion for $questionDataDocumentId", it)
+            DataResourceResult.Failure(it)
+    }
 }
