@@ -26,7 +26,8 @@ import com.ahn.domain.repository.QuestionListRepository
 import com.ahn.domain.repository.QuestionRepository
 import com.ahn.domain.repository.UserRepository
 import com.ahn.ggriggri.screen.ui.auth.viewmodel.OAuthViewModelFactory
-import com.ahn.ggriggri.screen.ui.main.viewmodel.HomeViewModelFactory
+import com.ahn.ggriggri.screen.ui.main.viewmodel.answer.AnswerViewModelFactory
+import com.ahn.ggriggri.screen.ui.main.viewmodel.home.HomeViewModelFactory
 import com.ahn.ggriggri.screen.ui.main.worker.AppWorkScheduler
 import com.ahn.ggriggri.screen.ui.main.worker.CustomWorkerFactory
 import com.ahn.ggriggri.screen.ui.main.worker.WorkSchedulerImpl
@@ -137,8 +138,10 @@ class AppContainer(applicationContext: Context) {
     // 필요한 의존성들을 여기서 제공
     val moshi: Moshi get() = application.moshi
     val sessionManager: SessionManager get() = application.sessionManager
-            val userRepository: UserRepository get() = application.userRepository
-        val groupRepository: GroupRepository get() = application.groupRepository
+    val userRepository: UserRepository get() = application.userRepository
+    val groupRepository: GroupRepository get() = application.groupRepository
+    val questionListRepository: QuestionListRepository get() = application.questionListRepository
+    val questionRepository: QuestionRepository get() = application.questionRepository
         // ... 기타 필요한 의존성 ...
 
         // ViewModel Factory 생성 메소드들을 AppContainer에 추가할 수도 있습니다.
@@ -151,6 +154,10 @@ class AppContainer(applicationContext: Context) {
     }
 
     fun provideHomeViewModelFactory(): HomeViewModelFactory {
-        return HomeViewModelFactory(application,sessionManager,userRepository, groupRepository)
+        return HomeViewModelFactory(application,sessionManager,userRepository, groupRepository,questionListRepository,questionRepository)
+    }
+
+    fun provideAnswerViewModelFactory(): AnswerViewModelFactory {
+        return AnswerViewModelFactory(application,sessionManager,userRepository, groupRepository,questionRepository)
     }
 }

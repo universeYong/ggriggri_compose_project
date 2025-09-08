@@ -66,8 +66,9 @@ dependencies {
     implementation(libs.androidx.material.icons.extended)
 
     // APNG 라이브러리
-    implementation(libs.apng)
-    implementation(libs.glide)
+
+    implementation(libs.bundles.apng.libraries)
+
 
     implementation(libs.bundles.kakao.libraries)
     implementation(libs.bundles.navigation.libraries)

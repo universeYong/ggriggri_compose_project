@@ -16,87 +16,79 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import com.ahn.ggriggri.screen.ui.main.viewmodel.answer.AnswerViewModel
 import com.bumptech.glide.Glide
+import theme.GgriggriTheme
 
-// XML의 폰트 스타일을 대체하기 위한 변수 (실제 프로젝트의 FontFamily로 교체 필요)
-val nanumSquareRegular = FontWeight.Normal
-val nanumSquareBold = FontWeight.Bold
 
 @Composable
 fun AnswerScreen(
-    questionText: String,
-    emojiUrl: String,
-    onNavigateBack: () -> Unit,
-    onSubmit: (String) -> Unit
+    answerViewmodel: AnswerViewModel,
 ) {
     var answerText by remember { mutableStateOf("") }
     val isButtonEnabled = answerText.isNotBlank()
 
-    Scaffold(
-        topBar = {
-            AnswerTopBar(
-                title = "답변하기",
-                onNavigateBack = onNavigateBack
-            )
-        },
-        containerColor = Color.White
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 20.dp), // 좌우 공통 여백
-            horizontalAlignment = Alignment.CenterHorizontally
+    GgriggriTheme {
+        Surface (
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
         ) {
-            Spacer(modifier = Modifier.height(50.dp))
-
-            // 이전 대화에서 사용한 APNG 로딩 Composable
-            LoadAnimatedApngFromUrl(
-                imageUrl = emojiUrl,
-                modifier = Modifier.size(250.dp)
-            )
-
-            Spacer(modifier = Modifier.height(50.dp))
-
-            Text(
-                text = questionText,
-                modifier = Modifier.widthIn(max = 300.dp), // 최대 너비 제한
-                color = Color.Black,
-                fontSize = 16.sp,
-                fontWeight = nanumSquareBold,
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            AnswerInputField(
-                value = answerText,
-                onValueChange = { answerText = it },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            // 버튼을 하단에 고정하기 위한 Spacer
-            Spacer(modifier = Modifier.weight(1f))
-
-            Button(
-                onClick = { onSubmit(answerText) },
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 20.dp),
-                enabled = isButtonEnabled,
-                shape = MaterialTheme.shapes.medium, // custom_btn_background 대체
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFF0F0F0), // custom_btn_background 색상 예시
-                    contentColor = Color.Black, // custom_btn_text 색상 예시
-                    disabledContainerColor = Color.LightGray,
-                    disabledContentColor = Color.Gray
-                )
+                    .fillMaxSize()
+                    .padding(horizontal = 20.dp), // 좌우 공통 여백
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    text = "답변하기",
-                    fontSize = 16.sp,
-                    fontWeight = nanumSquareBold
+                Spacer(modifier = Modifier.height(50.dp))
+
+                // 이전 대화에서 사용한 APNG 로딩 Composable
+                LoadAnimatedApngFromUrl(
+                    imageUrl = emojiUrl,
+                    modifier = Modifier.size(250.dp)
                 )
+
+                Spacer(modifier = Modifier.height(50.dp))
+
+                Text(
+                    text = questionText,
+                    modifier = Modifier.widthIn(max = 300.dp), // 최대 너비 제한
+                    color = Color.Black,
+                    fontSize = 16.sp,
+                    fontWeight = nanumSquareBold,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                AnswerInputField(
+                    value = answerText,
+                    onValueChange = { answerText = it },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                // 버튼을 하단에 고정하기 위한 Spacer
+                Spacer(modifier = Modifier.weight(1f))
+
+                Button(
+                    onClick = { onSubmit(answerText) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 20.dp),
+                    enabled = isButtonEnabled,
+                    shape = MaterialTheme.shapes.medium, // custom_btn_background 대체
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFF0F0F0), // custom_btn_background 색상 예시
+                        contentColor = Color.Black, // custom_btn_text 색상 예시
+                        disabledContainerColor = Color.LightGray,
+                        disabledContentColor = Color.Gray
+                    )
+                ) {
+                    Text(
+                        text = "답변하기",
+                        fontSize = 16.sp,
+                        fontWeight = nanumSquareBold
+                    )
+                }
             }
         }
     }
