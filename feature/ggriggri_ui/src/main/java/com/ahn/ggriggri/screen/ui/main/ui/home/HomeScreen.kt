@@ -50,7 +50,7 @@ import java.net.URL
 @Composable
 fun HomeScreen(
     homeViewmodel: HomeViewModel,
-    onNavigationToAnswer: () -> Unit
+    onNavigationToAnswer: () -> Unit,
 ) {
     val profiles by homeViewmodel.profiles.collectAsState()
 
@@ -76,14 +76,14 @@ fun HomeScreen(
                     verticalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
                     // 프로필 목록 카드
-                    item {
+                    item(key = "profile_summary_card_key") { // 고유한 문자열 키
                         ProfileSummaryCard(
                             profiles = profiles,
                             onSeeAllClick = { showBottomSheet = true }
                         )
                     }
                 // 오늘의 질문 카드
-                    item {
+                    item(key = todayQuestion?.number?.toString() ?: "today_question_empty_key") {                      
                         if (isLoadingTodayQuestion) {
                             Box(
                                 modifier = Modifier
@@ -216,7 +216,7 @@ fun ProfileSummaryCard(profiles: List<Profile>, onSeeAllClick: () -> Unit) {
  */
 @Composable
 fun TodayQuestionCard(question: QuestionList, onAnswerClick: () -> Unit) {
-    if (question == null) return
+    val stableImageUrl = remember(question.imgUrl) { question.imgUrl }
 
     val cardColor = runCatching {
         Color(question.color.toColorInt())
@@ -253,10 +253,10 @@ fun TodayQuestionCard(question: QuestionList, onAnswerClick: () -> Unit) {
                         lineHeight = 20.sp
                     )
                 }
-                if (!question.imgUrl.isNullOrEmpty()) {
+                if (!stableImageUrl.isNullOrEmpty()) {
                     Spacer(modifier = Modifier.width(8.dp))
                     LoadAnimatedApngFromUrlComposable(
-                        imageUrl = question.imgUrl,
+                        imageUrl = stableImageUrl,
                         modifier = Modifier.size(80.dp)
                     )
                 }
@@ -276,6 +276,7 @@ fun TodayQuestionCard(question: QuestionList, onAnswerClick: () -> Unit) {
         }
     }
 }
+
 // Apng
 @Composable
 fun LoadAnimatedApngFromUrlComposable(imageUrl: String, modifier: Modifier = Modifier) {
@@ -283,7 +284,17 @@ fun LoadAnimatedApngFromUrlComposable(imageUrl: String, modifier: Modifier = Mod
     var isLoading by remember { mutableStateOf(true) }
     var errorOccurred by remember { mutableStateOf(false)}
 
+    Log.d(
+        "LoadAPNG_Lifecycle",
+        "Composable recomposing or initial composition. Current imageUrl: $imageUrl, Time: ${System.currentTimeMillis()}"
+    )
+
+
     LaunchedEffect(imageUrl) {
+        Log.d(
+            "LoadAPNG_Lifecycle",
+            "LaunchedEffect TRIGGERED. imageUrl: $imageUrl, Time: ${System.currentTimeMillis()}"
+        )
         isLoading = true
         errorOccurred = false
         apngDrawable?.stop() // 이전 Drawable 정지
@@ -306,23 +317,24 @@ fun LoadAnimatedApngFromUrlComposable(imageUrl: String, modifier: Modifier = Mod
                 val bytes = inputStream.readBytes()
                 inputStream.close()
                 // StreamReader가 InputStream을 받는다고 가정
-                val customReader = com.github.penfeizhou.animation.io.StreamReader(ByteArrayInputStream(bytes))
+                val customReader = com.github.penfeizhou.animation.io.StreamReader(
+                    ByteArrayInputStream(bytes)
+                )
 
                 val loader = object : Loader {
                     override fun obtain(): com.github.penfeizhou.animation.io.Reader { // 반환 타입 일치
                         return customReader
                     }
                 }
-                // 또는, ByteBufferLoader가 아래와 같이 사용될 수 있다면:
-                // (라이브러리 버전에 따라 다를 수 있으니 확인 필요)
-                // val byteBuffer = ByteBuffer.wrap(bytes)
-                // val loader = SomeSpecificLoaderImplementation(byteBuffer) // <- 이부분이 문제였음
 
                 val drawable = APNGDrawable(loader)
+                val decoder = drawable.frameSeqDecoder
+                Log.d("LoadAPNG", "APNGDrawable created. PreferredLoopCount: ${decoder}")
 
                 withContext(Dispatchers.Main) { // UI 스레드에서 상태 업데이트
                     apngDrawable = drawable
                     drawable.start() // 애니메이션 시작
+                    Log.d("LoadAPNG", "drawable.start() called. isRunning: ${drawable.isRunning}") // ★★★ 로그 추가 ★★★
                     isLoading = false
                 }
             }.getOrElse {
@@ -336,18 +348,31 @@ fun LoadAnimatedApngFromUrlComposable(imageUrl: String, modifier: Modifier = Mod
     }
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
         if (isLoading) {
+            Log.d("LoadAPNG_UI", "UI State: isLoading for $imageUrl")
             CircularProgressIndicator(modifier = Modifier.size(30.dp))
         }else if (errorOccurred || apngDrawable == null) {
+            Log.d(
+                "LoadAPNG_UI",
+                "UI State: errorOccurred ($errorOccurred) or apngDrawable is null (${apngDrawable == null}) for $imageUrl"
+            )
             Image(
                 painter = painterResource(id = R.drawable.baseline_error_24),
                 contentDescription = "APNG ERROR",
                 modifier = Modifier.fillMaxSize()
             )
         }else {
+            Log.d(
+                "LoadAPNG_UI",
+                "UI State: Displaying AndroidView for $imageUrl. apngDrawable isNull: false, isRunning: ${apngDrawable?.isRunning}"
+            )
+            Log.d("LoadAPNG_AndroidView", "AndroidView update block. apngDrawable isNull: ${apngDrawable == null}, isRunning: ${apngDrawable?.isRunning}") // ★★★ 로그 추가 ★★★
             AndroidView(
-                factory = { ImageView(it) },
+                factory = {
+                    Log.d("LoadAPNG_AndroidView", "AndroidView factory block.") // ★★★ 로그 추가 ★★★
+                    ImageView(it) },
                 modifier = Modifier.fillMaxSize(),
                 update = { imageView ->
+                    Log.d("LoadAPNG_AndroidView", "AndroidView update - Setting drawable. isRunning: ${apngDrawable?.isRunning}") // ★★★ 로그 추가 ★★★
                     imageView.setImageDrawable(apngDrawable)
                 }
             )
