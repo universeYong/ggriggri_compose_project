@@ -27,7 +27,9 @@ import com.ahn.ggriggri.screen.auth.resetpw.ResetPwScreen
 import com.ahn.ggriggri.screen.group.GroupScreen
 import com.ahn.ggriggri.screen.main.answer.AnswerScreen
 import com.ahn.ggriggri.screen.main.home.HomeScreen
+import com.ahn.ggriggri.screen.navigation.GgriggriNavigationGraph
 import com.ahn.ggriggri.screen.navigation.GgriggriNavigationRouteUi
+import com.ahn.ggriggri.screen.navigation.MainFactories
 import com.ahn.ggriggri.screen.navigation.TopBarData
 import com.ahn.ggriggri.screen.navigation.topBarAsRouteName
 import com.ahn.ggriggri.screen.setting.modifygroupname.ModifyGroupNameScreen
@@ -46,14 +48,14 @@ fun EntryPointScreen() {
     val application = context.applicationContext as ggriggriAplication
     val appContainer = application.appContainer // AppContainer 가져오기
 
-    // Factory 생성
-    val oauthViewModelFactory = OAuthViewModelFactory(
-        application,
-        application.sessionManager,
-        application.userRepository,
+    val factories = MainFactories(
+        home = appContainer.provideHomeViewModelFactory(),
+        answer = appContainer.provideAnswerViewModelFactory(),
+        archive = appContainer.provideArchiveViewModelFactory(),
+        questionAnswer = appContainer.provideQuestionAnswerViewModelFactory(),
+        myPage = appContainer.provideMyPageViewModelFactory(),
+        auth = appContainer.provideOAuthViewModelFactory()
     )
-    // ViewModel 생성
-    val authViewModel: OAuthViewModel = viewModel(factory = oauthViewModelFactory)
 
     //Bottom App Bar items
     val bottomAppBarItems = remember {
@@ -116,112 +118,8 @@ fun EntryPointScreen() {
             navController = navController,
             startDestination = GgriggriNavigationRouteUi.Login,
             modifier = Modifier.padding(paddingValues = paddingValues)
-        ) {
-
-            composable<GgriggriNavigationRouteUi.MemoryTab> {
-                MemoryScreen(
-                    archiveViewModel = viewModel(factory = appContainer.provideArchiveViewModelFactory()),
-                    onNavigateToQuestionAnswerActual = { questionId ->
-                        if (questionId.isNotBlank()) {
-                            Log.d(
-                                "EntryPointScreen",
-                                "From MemoryTab: Attempting to navigate to QuestionAnswer with ID: $questionId"
-                            )
-                            navController.navigate(GgriggriNavigationRouteUi.QuestionAnswer(questionDataId = questionId))
-                            Log.d(
-                                "EntryPointScreen",
-                                "From MemoryTab: navController.navigate called for QuestionAnswer."
-                            )
-                        } else {
-                            Log.e(
-                                "EntryPointScreen",
-                                "From MemoryTab: Attempted to navigate to QuestionAnswer with blank ID."
-                            )
-                        }
-                    }
-                )
-            }
-            composable<GgriggriNavigationRouteUi.HomeTab> {
-                HomeScreen(homeViewmodel = viewModel(factory = appContainer.provideHomeViewModelFactory()),
-                    onNavigationToAnswer = {navController.navigate(GgriggriNavigationRouteUi.Answer)})
-            }
-            composable<GgriggriNavigationRouteUi.MyPageTab> {
-                MyPageScreen(
-                    myPageviewModel = viewModel(factory = appContainer.provideMyPageViewModelFactory())
-                )
-            }
-
-            /********* archive ******************************************************/
-            composable<GgriggriNavigationRouteUi.QuestionAnswer> {
-                QuestionAnswerScreen(
-                    questionAnswerViewModel = viewModel(factory = appContainer.provideQuestionAnswerViewModelFactory()),
-                )
-            }
-            composable<GgriggriNavigationRouteUi.QuestionList>{
-                QuestionListScreen(
-                    archiveViewModel = viewModel(factory = appContainer.provideArchiveViewModelFactory()),
-                    onNavigateToQuestionAnswer = { questionId ->
-                        if (questionId.isNotBlank()) {
-                            Log.d("EntryPointScreen", "Attempting to navigate to QuestionAnswer with ID: $questionId") // ★★★ 로그 추가 ★★★
-                            navController.navigate(GgriggriNavigationRouteUi.QuestionAnswer(questionDataId = questionId))
-                            Log.d("EntryPointScreen", "navController.navigate called for QuestionAnswer.") // ★★★ 로그 추가 ★★★
-                        } else {
-                            Log.e(
-                                "EntryPointScreen",
-                                "Attempted to navigate to QuestionAnswer with blank ID."
-                            )
-                        }
-                    }
-                )
-            }
-
-
-            /********* auth *********************************************************/
-            composable<GgriggriNavigationRouteUi.PasswordReset> {
-                ResetPwScreen()
-            }
-
-            composable<GgriggriNavigationRouteUi.Login> {
-                LoginScreen(
-                    authViewModel = authViewModel,
-                   onNavigationToGroup = {
-                       Log.d("AppNavigation", "onNavigationToGroup called") // 로그 추가
-                       navController.navigate(GgriggriNavigationRouteUi.Group)
-                   },
-                    onNavigationToHome = {
-                        Log.d("AppNavigation", "onNavigationToHome called") // 로그 추가
-                        navController.navigate(GgriggriNavigationRouteUi.HomeTab) {
-                            popUpTo(GgriggriNavigationRouteUi.Login) {inclusive = true}
-                        }
-                    }
-                )
-            }
-
-            /********* group ********************************************************/
-            composable<GgriggriNavigationRouteUi.Group> {
-                GroupScreen(authViewModel = authViewModel)
-            }
-
-            /********* main *********************************************************/
-            composable <GgriggriNavigationRouteUi.Answer> {
-                AnswerScreen(
-                    answerViewModel = viewModel(factory = appContainer.provideAnswerViewModelFactory()),
-                    onNavigateBack = {navController.navigate(GgriggriNavigationRouteUi.HomeTab)}
-
-                )
-            }
-
-            /********* setting ******************************************************/
-            composable<GgriggriNavigationRouteUi.SettingGroup> {
-                SettingGroupScreen()
-            }
-            composable<GgriggriNavigationRouteUi.ModifyGroupPw> {
-                ModifyGroupPwScreen()
-            }
-            composable<GgriggriNavigationRouteUi.ModifyGroupName> {
-                ModifyGroupNameScreen()
-            }
-
+        ){
+            GgriggriNavigationGraph(navController, factories)
         }
     }
 }

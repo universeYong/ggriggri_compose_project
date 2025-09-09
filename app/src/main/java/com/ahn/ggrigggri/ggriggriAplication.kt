@@ -161,7 +161,6 @@ class AppContainer(applicationContext: Context) {
     val todayQuestionPreferencesImpl: TodayQuestionPreferencesImpl get() = application.todayQuestionPreferencesImpl
         // ... 기타 필요한 의존성 ...
 
-        // ViewModel Factory 생성 메소드들을 AppContainer에 추가할 수도 있습니다.
         fun provideOAuthViewModelFactory(): OAuthViewModelFactory {
             return OAuthViewModelFactory(application, sessionManager,userRepository)
     }
