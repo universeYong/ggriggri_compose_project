@@ -1,4 +1,4 @@
-package com.ahn.ggrigggri.navigation.nav_graph
+package com.ahn.ggriggri.screen.navigation
 
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
@@ -7,8 +7,6 @@ import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavBackStackEntry
 import com.ahn.common_ui.R
-import kotlinx.serialization.Serializable
-import java.io.Serial
 
 data class TopBarData(
     @StringRes var title: Int = 0,
@@ -22,29 +20,30 @@ data class TopBarData(
 val NavBackStackEntry.topBarAsRouteName: TopBarData
     get() {
         val routeName = destination.route ?: return TopBarData()
+
         return when {
-            routeName.contains("HomeTab") == true -> {
+            routeName.contains("HomeTab") -> {
                 TopBarData(
                     title = R.string.home_tab,
                     titleRightIcon = Icons.Outlined.Notifications
                 )
             }
 
-            routeName.contains("MemoryTab") == true -> {
+            routeName.contains("MemoryTab") -> {
                 TopBarData(
                     title = R.string.memory_tab,
                     titleRightIcon = Icons.Outlined.Notifications
                 )
             }
 
-            routeName.contains("MyPageTab") == true -> {
+            routeName.contains("MyPageTab") -> {
                 TopBarData(
                     title = R.string.myPage_tab,
                     titleRightIcon = Icons.Outlined.Notifications
                 )
             }
 
-            routeName.contains("Answer") == true -> {
+            routeName.contains("Answer") -> {
                 TopBarData(
                     title = R.string.answer_title,
                     titleLeftIcon = Icons.Outlined.ArrowBackIosNew
@@ -58,96 +57,52 @@ val NavBackStackEntry.topBarAsRouteName: TopBarData
                 )
             }
 
-            routeName.contains("SettingGroup") == true -> {
+            routeName.contains("SettingGroup") -> {
                 TopBarData(
                     title = R.string.setting_group_title,
                     titleLeftIcon = Icons.Outlined.ArrowBackIosNew
                 )
             }
 
-            routeName.contains("ModifyUserPw") == true -> {
+            routeName.contains("ModifyUserPw") -> {
                 TopBarData(
                     title = R.string.modify_user_pw_title,
                     titleLeftIcon = Icons.Outlined.ArrowBackIosNew
                 )
             }
 
-            routeName.contains("ModifyGroupPw") == true -> {
+            routeName.contains("ModifyGroupPw") -> {
                 TopBarData(
                     title = R.string.modify_group_pw_title,
                     titleLeftIcon = Icons.Outlined.ArrowBackIosNew
                 )
             }
 
-            routeName.contains("ModifyGroupName") == true -> {
+            routeName.contains("ModifyGroupName") -> {
                 TopBarData(
                     title = R.string.modify_group_name_title,
                     titleLeftIcon = Icons.Outlined.ArrowBackIosNew
                 )
             }
 
-            routeName.contains("QuestionAnswer") == true -> {
+            routeName.contains("QuestionAnswer") -> {
                 TopBarData(
                     title = R.string.archive_question_answer_title,
                     titleLeftIcon = Icons.Outlined.ArrowBackIosNew,
                 )
             }
 
-            routeName.contains("Group") == true -> {
+            routeName.contains("Group") -> {
                 TopBarData(
                     title = R.string.app_name,
                     titleLeftIcon = Icons.Outlined.ArrowBackIosNew
                 )
             }
 
-            routeName.contains("Login") == true -> {
+            routeName.contains("Login") -> {
                 TopBarData()
             }
 
             else -> throw IllegalArgumentException("???")
         }
     }
-
-@Serializable
-sealed interface MainNavigationRoute {
-    /**
-    //     * 인자가 없는 화면이라면 object로 선언 인자가 있다면 dataClass
-    //     */
-
-    @Serializable
-    data object HomeTab : MainNavigationRoute
-
-    @Serializable
-    data object MemoryTab : MainNavigationRoute
-
-    @Serializable
-    data object MyPageTab : MainNavigationRoute
-
-    @Serializable
-    data object PasswordReset : MainNavigationRoute
-
-    @Serializable
-    data object SettingGroup : MainNavigationRoute
-
-    @Serializable
-    data object ModifyGroupPw : MainNavigationRoute
-
-    @Serializable
-    data object ModifyGroupName : MainNavigationRoute
-
-    @Serializable
-    data class QuestionAnswer(val questionDataId: String) : MainNavigationRoute
-
-    @Serializable
-    data object Login : MainNavigationRoute
-
-    @Serializable
-    data object Group: MainNavigationRoute
-
-    @Serializable
-    data object Answer: MainNavigationRoute
-
-    @Serializable
-    data object QuestionList: MainNavigationRoute
-}
-

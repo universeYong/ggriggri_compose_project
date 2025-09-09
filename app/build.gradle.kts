@@ -3,8 +3,6 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.gms.google.services)
-    alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.kotlin.parcelize)
     alias(libs.plugins.secrets.gradle.plugin)
 }
 
@@ -77,7 +75,6 @@ dependencies {
 
     implementation(libs.firebase.firestore.ktx)
     implementation(platform(libs.firebase.bom))
-    implementation(libs.kotlinx.serialization.json)
     implementation(libs.bundles.moshi.libraries)
     implementation(libs.bundles.work.libraries)
 

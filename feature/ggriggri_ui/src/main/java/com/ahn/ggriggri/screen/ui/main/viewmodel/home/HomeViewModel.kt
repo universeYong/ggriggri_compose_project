@@ -88,11 +88,13 @@ class HomeViewModel(
 
             // 3. DateChangeNotifier를 구독하여 날짜 변경 또는 새로고침 시 오늘의 질문 로직 트리거
             DateChangeNotifier.dateChangedEvents
-                .onStart { emit(Unit) } // 초기 실행을 위해 Unit 발행
+                .onStart {
+                    Log.d("HomeViewModel_DateChange", "DateChangeNotifier: onStart emitting Unit.")
+                    emit(Unit) } // 초기 실행을 위해 Unit 발행
                 .collectLatest { // 이전 로직이 있다면 취소하고 새로 시작
                     Log.d(
-                        "HomeViewModel",
-                        "Date changed or initial load/refresh event received. Fetching today's question."
+                        "HomeViewModel_DateChange", // ★★★ 이 로그 확인 ★★★
+                        "DateChangeNotifier: Event received. Fetching today's question. Time: ${System.currentTimeMillis()}"
                     )
                     fetchOrGenerateTodayQuestionRecord()
                 }
@@ -190,7 +192,7 @@ class HomeViewModel(
     fun setCurrentGroupIdAndLoad(newGroupId: String) {
         // TODO: SessionManager를 통해 현재 그룹 ID를 업데이트하는 로직 필요 (예: sessionManager.setCurrentGroupId(newGroupId))
         loadProfiles(newGroupId)
-        viewModelScope.launch { // 오늘의 질문도 그룹 변경에 따라 새로고침
+        viewModelScope.launch {
             fetchOrGenerateTodayQuestionRecord()
         }
     }
@@ -201,7 +203,7 @@ class HomeViewModel(
     }
 
 
-    // 모든 질문 목록 로드 함수 (init에서 호출됨)
+    // 모든 질문 목록 로드 함수
     private suspend fun loadAllQuestionLists() {
         questionListRepository.read()
             .filter { it !is DataResourceResult.Loading }
@@ -382,6 +384,7 @@ class HomeViewModel(
         _todayQuestionRecord,
         _allQuestionLists
     ) { record, allLists ->
+
         if (record == null || allLists.isEmpty()) {
             Log.d(
                 "HomeViewModel_Today",
@@ -399,7 +402,6 @@ class HomeViewModel(
                     "List item id: ${it.number}, content: ${it.content}"
                 )
             }
-            // ★★★ 수정: QuestionList의 id 필드와 Question의 questionListDocumentId를 비교 ★★★
             allLists.find { it.number.toString() == record.questionListDocumentId }
         }
     }

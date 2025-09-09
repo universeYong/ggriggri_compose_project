@@ -1,7 +1,6 @@
 package com.ahn.ggrigggri
 
 import android.util.Log
-import androidx.compose.animation.core.copy
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -17,12 +16,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.ahn.ggrigggri.common.GgriggriBottomBar
-import com.ahn.ggrigggri.common.GgriggriTopBar
-import com.ahn.ggrigggri.navigation.bottom.BottomAppBarItem
-import com.ahn.ggrigggri.navigation.nav_graph.MainNavigationRoute
-import com.ahn.ggrigggri.navigation.nav_graph.TopBarData
-import com.ahn.ggrigggri.navigation.nav_graph.topBarAsRouteName
+import com.ahn.ggriggri.screen.navigation.GgriggriBottomBar
+import com.ahn.ggriggri.screen.navigation.GgriggriTopBar
+import com.ahn.ggriggri.screen.navigation.BottomAppBarItem
 import com.ahn.ggriggri.screen.archive.memory.MemoryScreen
 import com.ahn.ggriggri.screen.archive.questionanswer.QuestionAnswerScreen
 import com.ahn.ggriggri.screen.archive.questionlist.QuestionListScreen
@@ -31,6 +27,9 @@ import com.ahn.ggriggri.screen.auth.resetpw.ResetPwScreen
 import com.ahn.ggriggri.screen.group.GroupScreen
 import com.ahn.ggriggri.screen.main.answer.AnswerScreen
 import com.ahn.ggriggri.screen.main.home.HomeScreen
+import com.ahn.ggriggri.screen.navigation.GgriggriNavigationRouteUi
+import com.ahn.ggriggri.screen.navigation.TopBarData
+import com.ahn.ggriggri.screen.navigation.topBarAsRouteName
 import com.ahn.ggriggri.screen.setting.modifygroupname.ModifyGroupNameScreen
 import com.ahn.ggriggri.screen.setting.modifygrouppw.ModifyGroupPwScreen
 import com.ahn.ggriggri.screen.setting.mypage.MyPageScreen
@@ -115,11 +114,11 @@ fun EntryPointScreen() {
     ) { paddingValues ->
         NavHost(
             navController = navController,
-            startDestination = MainNavigationRoute.Login,
+            startDestination = GgriggriNavigationRouteUi.Login,
             modifier = Modifier.padding(paddingValues = paddingValues)
         ) {
 
-            composable<MainNavigationRoute.MemoryTab> {
+            composable<GgriggriNavigationRouteUi.MemoryTab> {
                 MemoryScreen(
                     archiveViewModel = viewModel(factory = appContainer.provideArchiveViewModelFactory()),
                     onNavigateToQuestionAnswerActual = { questionId ->
@@ -128,7 +127,7 @@ fun EntryPointScreen() {
                                 "EntryPointScreen",
                                 "From MemoryTab: Attempting to navigate to QuestionAnswer with ID: $questionId"
                             )
-                            navController.navigate(MainNavigationRoute.QuestionAnswer(questionDataId = questionId))
+                            navController.navigate(GgriggriNavigationRouteUi.QuestionAnswer(questionDataId = questionId))
                             Log.d(
                                 "EntryPointScreen",
                                 "From MemoryTab: navController.navigate called for QuestionAnswer."
@@ -142,29 +141,29 @@ fun EntryPointScreen() {
                     }
                 )
             }
-            composable<MainNavigationRoute.HomeTab> {
+            composable<GgriggriNavigationRouteUi.HomeTab> {
                 HomeScreen(homeViewmodel = viewModel(factory = appContainer.provideHomeViewModelFactory()),
-                    onNavigationToAnswer = {navController.navigate(MainNavigationRoute.Answer)})
+                    onNavigationToAnswer = {navController.navigate(GgriggriNavigationRouteUi.Answer)})
             }
-            composable<MainNavigationRoute.MyPageTab> {
+            composable<GgriggriNavigationRouteUi.MyPageTab> {
                 MyPageScreen(
                     myPageviewModel = viewModel(factory = appContainer.provideMyPageViewModelFactory())
                 )
             }
 
             /********* archive ******************************************************/
-            composable<MainNavigationRoute.QuestionAnswer> {
+            composable<GgriggriNavigationRouteUi.QuestionAnswer> {
                 QuestionAnswerScreen(
                     questionAnswerViewModel = viewModel(factory = appContainer.provideQuestionAnswerViewModelFactory()),
                 )
             }
-            composable<MainNavigationRoute.QuestionList>{
+            composable<GgriggriNavigationRouteUi.QuestionList>{
                 QuestionListScreen(
                     archiveViewModel = viewModel(factory = appContainer.provideArchiveViewModelFactory()),
                     onNavigateToQuestionAnswer = { questionId ->
                         if (questionId.isNotBlank()) {
                             Log.d("EntryPointScreen", "Attempting to navigate to QuestionAnswer with ID: $questionId") // ★★★ 로그 추가 ★★★
-                            navController.navigate(MainNavigationRoute.QuestionAnswer(questionDataId = questionId))
+                            navController.navigate(GgriggriNavigationRouteUi.QuestionAnswer(questionDataId = questionId))
                             Log.d("EntryPointScreen", "navController.navigate called for QuestionAnswer.") // ★★★ 로그 추가 ★★★
                         } else {
                             Log.e(
@@ -178,48 +177,48 @@ fun EntryPointScreen() {
 
 
             /********* auth *********************************************************/
-            composable<MainNavigationRoute.PasswordReset> {
+            composable<GgriggriNavigationRouteUi.PasswordReset> {
                 ResetPwScreen()
             }
 
-            composable<MainNavigationRoute.Login> {
+            composable<GgriggriNavigationRouteUi.Login> {
                 LoginScreen(
                     authViewModel = authViewModel,
                    onNavigationToGroup = {
                        Log.d("AppNavigation", "onNavigationToGroup called") // 로그 추가
-                       navController.navigate(MainNavigationRoute.Group)
+                       navController.navigate(GgriggriNavigationRouteUi.Group)
                    },
                     onNavigationToHome = {
                         Log.d("AppNavigation", "onNavigationToHome called") // 로그 추가
-                        navController.navigate(MainNavigationRoute.HomeTab) {
-                            popUpTo(MainNavigationRoute.Login) {inclusive = true}
+                        navController.navigate(GgriggriNavigationRouteUi.HomeTab) {
+                            popUpTo(GgriggriNavigationRouteUi.Login) {inclusive = true}
                         }
                     }
                 )
             }
 
             /********* group ********************************************************/
-            composable<MainNavigationRoute.Group> {
+            composable<GgriggriNavigationRouteUi.Group> {
                 GroupScreen(authViewModel = authViewModel)
             }
 
             /********* main *********************************************************/
-            composable <MainNavigationRoute.Answer> {
+            composable <GgriggriNavigationRouteUi.Answer> {
                 AnswerScreen(
                     answerViewModel = viewModel(factory = appContainer.provideAnswerViewModelFactory()),
-                    onNavigateBack = {navController.navigate(MainNavigationRoute.HomeTab)}
+                    onNavigateBack = {navController.navigate(GgriggriNavigationRouteUi.HomeTab)}
 
                 )
             }
 
             /********* setting ******************************************************/
-            composable<MainNavigationRoute.SettingGroup> {
+            composable<GgriggriNavigationRouteUi.SettingGroup> {
                 SettingGroupScreen()
             }
-            composable<MainNavigationRoute.ModifyGroupPw> {
+            composable<GgriggriNavigationRouteUi.ModifyGroupPw> {
                 ModifyGroupPwScreen()
             }
-            composable<MainNavigationRoute.ModifyGroupName> {
+            composable<GgriggriNavigationRouteUi.ModifyGroupName> {
                 ModifyGroupNameScreen()
             }
 
