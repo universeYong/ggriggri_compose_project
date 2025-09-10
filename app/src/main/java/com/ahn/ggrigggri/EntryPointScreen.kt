@@ -12,32 +12,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.ahn.ggriggri.screen.navigation.GgriggriBottomBar
 import com.ahn.ggriggri.screen.navigation.GgriggriTopBar
 import com.ahn.ggriggri.screen.navigation.BottomAppBarItem
-import com.ahn.ggriggri.screen.archive.memory.MemoryScreen
-import com.ahn.ggriggri.screen.archive.questionanswer.QuestionAnswerScreen
-import com.ahn.ggriggri.screen.archive.questionlist.QuestionListScreen
-import com.ahn.ggriggri.screen.auth.login.LoginScreen
-import com.ahn.ggriggri.screen.auth.resetpw.ResetPwScreen
-import com.ahn.ggriggri.screen.group.GroupScreen
-import com.ahn.ggriggri.screen.main.answer.AnswerScreen
-import com.ahn.ggriggri.screen.main.home.HomeScreen
 import com.ahn.ggriggri.screen.navigation.GgriggriNavigationGraph
 import com.ahn.ggriggri.screen.navigation.GgriggriNavigationRouteUi
-import com.ahn.ggriggri.screen.navigation.MainFactories
 import com.ahn.ggriggri.screen.navigation.TopBarData
 import com.ahn.ggriggri.screen.navigation.topBarAsRouteName
-import com.ahn.ggriggri.screen.setting.modifygroupname.ModifyGroupNameScreen
-import com.ahn.ggriggri.screen.setting.modifygrouppw.ModifyGroupPwScreen
-import com.ahn.ggriggri.screen.setting.mypage.MyPageScreen
-import com.ahn.ggriggri.screen.setting.settinggroup.SettingGroupScreen
-import com.ahn.ggriggri.screen.ui.auth.viewmodel.OAuthViewModel
-import com.ahn.ggriggri.screen.ui.auth.viewmodel.OAuthViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,17 +28,6 @@ fun EntryPointScreen() {
 
     val navController = rememberNavController()
     val context = LocalContext.current
-    val application = context.applicationContext as ggriggriAplication
-    val appContainer = application.appContainer // AppContainer 가져오기
-
-    val factories = MainFactories(
-        home = appContainer.provideHomeViewModelFactory(),
-        answer = appContainer.provideAnswerViewModelFactory(),
-        archive = appContainer.provideArchiveViewModelFactory(),
-        questionAnswer = appContainer.provideQuestionAnswerViewModelFactory(),
-        myPage = appContainer.provideMyPageViewModelFactory(),
-        auth = appContainer.provideOAuthViewModelFactory()
-    )
 
     //Bottom App Bar items
     val bottomAppBarItems = remember {
@@ -119,7 +91,7 @@ fun EntryPointScreen() {
             startDestination = GgriggriNavigationRouteUi.Login,
             modifier = Modifier.padding(paddingValues = paddingValues)
         ){
-            GgriggriNavigationGraph(navController, factories)
+            GgriggriNavigationGraph(navController)
         }
     }
 }

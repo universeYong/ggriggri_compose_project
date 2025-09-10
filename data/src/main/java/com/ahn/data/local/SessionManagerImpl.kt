@@ -21,20 +21,6 @@ class SessionManagerImpl(
     private val context: Context,
     private val moshi: Moshi,
 ) : SessionManager {
-    companion object {
-
-        // Singleton 인스턴스 관리 (수동)
-        @Volatile
-        private var INSTANCE: SessionManager? = null
-
-        fun getInstance(context: Context, moshi: Moshi): SessionManager {
-            return INSTANCE ?: synchronized(this) {
-                INSTANCE ?: SessionManagerImpl(context.applicationContext, moshi).also {
-                    INSTANCE = it
-                }
-            }
-        }
-    }
 
     private val userJsonAdapter: JsonAdapter<User> = moshi.adapter(User::class.java)
 

@@ -7,8 +7,9 @@ import com.ahn.data.datasource.UserDataSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
+import javax.inject.Inject
 
-class FirestoreUserRepositoryImpl(val userDataSource: UserDataSource) : UserRepository {
+class FirestoreUserRepositoryImpl @Inject constructor(val userDataSource: UserDataSource) : UserRepository {
     override suspend fun create(userInfo: User): Flow<DataResourceResult<Unit>> = flow {
         emit(DataResourceResult.Loading)
         emit(userDataSource.create(userInfo))

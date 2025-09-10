@@ -14,6 +14,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
@@ -32,9 +33,9 @@ import theme.NanumSquareRegular
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun QuestionAnswerScreen(
-    questionAnswerViewModel: QuestionAnswerViewModel,
-) {
+fun QuestionAnswerScreen() {
+
+    val  questionAnswerViewModel: QuestionAnswerViewModel = hiltViewModel()
     val uiState by questionAnswerViewModel.uiState.collectAsState()
 
     GgriggriTheme {

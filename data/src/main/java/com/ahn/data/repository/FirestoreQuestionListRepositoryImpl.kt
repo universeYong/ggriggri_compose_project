@@ -4,11 +4,13 @@ import com.ahn.data.datasource.QuestionListDataSource
 import com.ahn.domain.common.DataResourceResult
 import com.ahn.domain.model.QuestionList
 import com.ahn.domain.repository.QuestionListRepository
+import jakarta.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 
-class FirestoreQuestionListRepositoryImpl(val questionListDataSource: QuestionListDataSource):
+class FirestoreQuestionListRepositoryImpl @Inject constructor
+    (val questionListDataSource: QuestionListDataSource):
     QuestionListRepository {
     override suspend fun create(question: QuestionList): Flow<DataResourceResult<Unit>> {
         TODO("Not yet implemented")

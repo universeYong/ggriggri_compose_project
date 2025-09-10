@@ -1,5 +1,7 @@
 package com.ahn.ggriggri.screen.group
 
+import theme.BtnContentColor
+import theme.MainColor
 import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -16,22 +18,22 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ahn.ggriggri.screen.group.joingroup.JoinGroupScreen
 import com.ahn.ggriggri.screen.group.makegroup.MakeGroupScreen
 import com.ahn.ggriggri.screen.ui.auth.viewmodel.OAuthViewModel
 import kotlinx.coroutines.launch
-import theme.BtnContentColor
 import theme.GgriggriTheme
-import theme.MainColor
 import theme.NanumSquareExtraBold
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GroupScreen(
-    authViewModel: OAuthViewModel = viewModel()
-) {
+fun GroupScreen() {
+
+    val authViewModel: OAuthViewModel = hiltViewModel()
+
     val tabItems = listOf("그룹 만들기", "그룹 들어가기")
     val pagerState = rememberPagerState(pageCount = { tabItems.size })
     val coroutineScope = rememberCoroutineScope()

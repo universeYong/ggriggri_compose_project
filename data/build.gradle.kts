@@ -1,8 +1,8 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
-    id("com.google.gms.google-services")
-    alias(libs.plugins.kotlinKapt)
+    alias(libs.plugins.google.gms.google.services)
+    alias(libs.plugins.google.ksp)
 }
 
 android {
@@ -47,6 +47,9 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
     implementation(libs.converter.scalars)
+
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
 
     implementation(libs.bundles.moshi.libraries)
     implementation(libs.bundles.datastore.libraries)

@@ -1,7 +1,8 @@
 package com.ahn.ggrigggri
 
 import android.app.Application
-import android.content.Context
+import android.util.Log
+import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import coil3.ImageLoader
 import coil3.PlatformContext
@@ -9,39 +10,9 @@ import coil3.SingletonImageLoader
 import coil3.disk.DiskCache
 import coil3.disk.directory
 import coil3.memory.MemoryCache
-import com.ahn.data.datasource.GroupDataSource
-import com.ahn.data.datasource.UserDataSource
-import com.ahn.data.local.SessionManagerImpl
-import com.ahn.data.local.TodayQuestionPreferencesImpl
-import com.ahn.data.remote.firebase.FirestoreAnswerDataSourceImpl
-import com.ahn.data.remote.firebase.FirestoreGroupDataSourceImpl
-import com.ahn.data.remote.firebase.FirestoreQuestionDataSourceImpl
-import com.ahn.data.remote.firebase.FirestoreQuestionListDataSourceImpl
-import com.ahn.data.remote.firebase.FirestoreUserDataSourceImpl
-import com.ahn.data.repository.FirestoreAnswerRepositoryImpl
-import com.ahn.data.repository.FirestoreGroupRepositoryImpl
-import com.ahn.data.repository.FirestoreQuestionListRepositoryImpl
-import com.ahn.data.repository.FirestoreQuestionRepositoryImpl
-import com.ahn.data.repository.FirestoreUserRepositoryImpl
-import com.ahn.domain.common.SessionManager
-import com.ahn.domain.repository.AnswerRepository
-import com.ahn.domain.repository.GroupRepository
-import com.ahn.domain.repository.QuestionListRepository
-import com.ahn.domain.repository.QuestionRepository
-import com.ahn.domain.repository.UserRepository
-import com.ahn.ggriggri.screen.ui.archive.viewmodel.questionanswer.QuestionAnswerViewModelFactory
-import com.ahn.ggriggri.screen.ui.archive.viewmodel.questionlist.QuestionListViewModelFactory
-import com.ahn.ggriggri.screen.ui.auth.viewmodel.OAuthViewModelFactory
-import com.ahn.ggriggri.screen.ui.main.viewmodel.answer.AnswerViewModelFactory
-import com.ahn.ggriggri.screen.ui.main.viewmodel.home.HomeViewModelFactory
-import com.ahn.ggriggri.screen.ui.main.worker.AppWorkScheduler
-import com.ahn.ggriggri.screen.ui.main.worker.CustomWorkerFactory
-import com.ahn.ggriggri.screen.ui.main.worker.WorkSchedulerImpl
-import com.ahn.ggriggri.screen.ui.setting.viewmodel.factory.MyPageViewModelFactory
-import com.kakao.sdk.common.KakaoSdk
-import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
-import kotlin.getValue
+import dagger.hilt.android.HiltAndroidApp
+import jakarta.inject.Inject
+
 
 //Default Memory Size = 0.15 ~ 0.2
 const val COIL_MEMORY_CACHE_SIZE_PRECENT = 0.1 // 10% 사용량 많으면 25%~30%사용
@@ -50,86 +21,24 @@ const val COIL_MEMORY_CACHE_SIZE_PRECENT = 0.1 // 10% 사용량 많으면 25%~30
 const val COIL_DISK_CACHE_DIR_NAME = "coil_file_cache"
 const val COIL_DISK_CACHE_MAX_SIZE = 1024 * 1024 * 30
 
+@HiltAndroidApp
 class ggriggriAplication : Application(), SingletonImageLoader.Factory,
     Configuration.Provider{
 
-    val appContainer by lazy { AppContainer(this) }
-
-    // Moshi 인스턴스 (앱 전체에서 공유)
-    val moshi: Moshi by lazy {
-        Moshi.Builder()
-            .add(KotlinJsonAdapterFactory())
-            .build()
-    }
-
-    // SessionManager 인스턴스 (앱 전체에서 공유)
-    val sessionManager: SessionManager by lazy {
-        SessionManagerImpl.getInstance(applicationContext, moshi) // SessionManager 생성자에 context와 moshi 전달
-    }
-
-    // UserDataSource 구현체
-    private val userDataSource: UserDataSource by lazy {
-        FirestoreUserDataSourceImpl()
-    }
-
-    // UserRepository 구현체 (앱 전체에서 공유 가능)
-    val userRepository: UserRepository by lazy {
-        FirestoreUserRepositoryImpl(userDataSource)
-    }
-
-    private val groupDataSource: GroupDataSource by lazy { FirestoreGroupDataSourceImpl() }
-    val groupRepository: GroupRepository by lazy {
-        FirestoreGroupRepositoryImpl(groupDataSource)
-    }
-
-    private val questionListDataSource by lazy { FirestoreQuestionListDataSourceImpl() }
-    val questionListRepository: QuestionListRepository by lazy {
-        FirestoreQuestionListRepositoryImpl(questionListDataSource)
-    }
-
-    private val questionDataSource by lazy { FirestoreQuestionDataSourceImpl() }
-    val questionRepository: QuestionRepository by lazy {
-        FirestoreQuestionRepositoryImpl(questionDataSource)
-    }
-
-    private val answerDataSource by lazy { FirestoreAnswerDataSourceImpl() }
-    val answerRepository: AnswerRepository by lazy {
-        FirestoreAnswerRepositoryImpl(answerDataSource)
-    }
-
-    val todayQuestionPreferencesImpl: TodayQuestionPreferencesImpl by lazy {
-        TodayQuestionPreferencesImpl(applicationContext)
-    }
-
-
-    // WorkScheduler 인스턴스
-    private lateinit var appWorkScheduler: AppWorkScheduler
-
-    // CustomWorkerFactory 인스턴스 (lazy 초기화)
-    private val customWorkerFactory: CustomWorkerFactory by lazy {
-        CustomWorkerFactory(
-            sessionManager,
-            questionListRepository,
-            questionRepository
-        )
-    }
-
-    override fun onCreate() {
-        super.onCreate()
-//        seSacApplication = this
-//        sessionManager = SessionManager(applicationContext)
-
-
-        appWorkScheduler = WorkSchedulerImpl(applicationContext)
-        appWorkScheduler.scheduleDailyTasks()
-//        Log.e("TAG", KakaoSdk.keyHash)
-    }
+    @Inject
+    lateinit var workerFactory: HiltWorkerFactory
 
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()
-            .setMinimumLoggingLevel(android.util.Log.DEBUG)
-            .setWorkerFactory(customWorkerFactory) // 생성된 CustomWorkerFactory 인스턴스 사용
+            .setWorkerFactory(workerFactory) // 주입받은 HiltWorkerFactory 사용
+            .setMinimumLoggingLevel(Log.DEBUG) // 최소 로깅 레벨 설정 유지
             .build()
+
+    override fun onCreate() {
+        super.onCreate()
+
+//        Log.e("TAG", KakaoSdk.keyHash)
+    }
 
     override fun newImageLoader(context: PlatformContext): ImageLoader =
         ImageLoader.Builder(context)
@@ -144,50 +53,4 @@ class ggriggriAplication : Application(), SingletonImageLoader.Factory,
                     .maximumMaxSizeBytes(COIL_DISK_CACHE_MAX_SIZE.toLong())
                     .build()
             }.build()
-}
-
-// 별도의 파일 또는 Application 클래스 내부에 정의 가능
-class AppContainer(applicationContext: Context) {
-    private val application = applicationContext as ggriggriAplication
-
-    // 필요한 의존성들을 여기서 제공
-    val moshi: Moshi get() = application.moshi
-    val sessionManager: SessionManager get() = application.sessionManager
-    val userRepository: UserRepository get() = application.userRepository
-    val groupRepository: GroupRepository get() = application.groupRepository
-    val questionListRepository: QuestionListRepository get() = application.questionListRepository
-    val questionRepository: QuestionRepository get() = application.questionRepository
-    val answerRepository: AnswerRepository get() = application.answerRepository
-    val todayQuestionPreferencesImpl: TodayQuestionPreferencesImpl get() = application.todayQuestionPreferencesImpl
-        // ... 기타 필요한 의존성 ...
-
-        fun provideOAuthViewModelFactory(): OAuthViewModelFactory {
-            return OAuthViewModelFactory(application, sessionManager,userRepository)
-    }
-
-    fun provideMyPageViewModelFactory(): MyPageViewModelFactory {
-        return MyPageViewModelFactory(application, sessionManager, userRepository)
-    }
-
-    fun provideHomeViewModelFactory(): HomeViewModelFactory {
-        return HomeViewModelFactory(application,sessionManager,userRepository,
-            groupRepository,questionListRepository,questionRepository,
-            todayQuestionPreferencesImpl)
-    }
-
-    fun provideAnswerViewModelFactory(): AnswerViewModelFactory {
-        return AnswerViewModelFactory(application,sessionManager,userRepository,
-            groupRepository,questionRepository,questionListRepository,answerRepository,
-            todayQuestionPreferencesImpl)
-    }
-
-    fun provideArchiveViewModelFactory(): QuestionListViewModelFactory {
-        return QuestionListViewModelFactory(application,sessionManager,questionRepository,
-            questionListRepository)
-    }
-
-    fun provideQuestionAnswerViewModelFactory(): QuestionAnswerViewModelFactory {
-        return QuestionAnswerViewModelFactory(application, questionRepository,
-            questionListRepository,answerRepository,userRepository)
-    }
 }

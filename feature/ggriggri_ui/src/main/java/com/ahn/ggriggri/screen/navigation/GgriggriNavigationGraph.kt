@@ -10,7 +10,6 @@ import com.ahn.ggriggri.screen.archive.memory.MemoryScreen
 import com.ahn.ggriggri.screen.archive.questionanswer.QuestionAnswerScreen
 import com.ahn.ggriggri.screen.archive.questionlist.QuestionListScreen
 import com.ahn.ggriggri.screen.auth.login.LoginScreen
-import com.ahn.ggriggri.screen.auth.resetpw.ResetPwScreen
 import com.ahn.ggriggri.screen.group.GroupScreen
 import com.ahn.ggriggri.screen.main.answer.AnswerScreen
 import com.ahn.ggriggri.screen.main.home.HomeScreen
@@ -18,25 +17,13 @@ import com.ahn.ggriggri.screen.setting.modifygroupname.ModifyGroupNameScreen
 import com.ahn.ggriggri.screen.setting.modifygrouppw.ModifyGroupPwScreen
 import com.ahn.ggriggri.screen.setting.mypage.MyPageScreen
 import com.ahn.ggriggri.screen.setting.settinggroup.SettingGroupScreen
-import com.ahn.ggriggri.screen.ui.auth.viewmodel.OAuthViewModel
-
-data class MainFactories(
-    val home: ViewModelProvider.Factory,
-    val answer: ViewModelProvider.Factory,
-    val archive: ViewModelProvider.Factory,
-    val questionAnswer: ViewModelProvider.Factory,
-    val myPage: ViewModelProvider.Factory,
-    val auth: ViewModelProvider.Factory
-)
 
 fun NavGraphBuilder.GgriggriNavigationGraph(
     navController: NavController,
-    factories: MainFactories
 ) {
 
     composable<GgriggriNavigationRouteUi.MemoryTab> {
         MemoryScreen(
-            archiveViewModel = viewModel(factory = factories.archive),
             onNavigateToQuestionAnswerActual = { questionId ->
                 if (questionId.isNotBlank()) {
                     Log.d(
@@ -58,24 +45,19 @@ fun NavGraphBuilder.GgriggriNavigationGraph(
         )
     }
     composable<GgriggriNavigationRouteUi.HomeTab> {
-        HomeScreen(homeViewmodel = viewModel(factory = factories.home),
+        HomeScreen(
             onNavigationToAnswer = {navController.navigate(GgriggriNavigationRouteUi.Answer)})
     }
     composable<GgriggriNavigationRouteUi.MyPageTab> {
-        MyPageScreen(
-            myPageviewModel = viewModel(factory = factories.myPage)
-        )
+        MyPageScreen()
     }
 
     /********* archive ******************************************************/
     composable<GgriggriNavigationRouteUi.QuestionAnswer> {
-        QuestionAnswerScreen(
-            questionAnswerViewModel = viewModel(factory = factories.questionAnswer),
-        )
+        QuestionAnswerScreen()
     }
     composable<GgriggriNavigationRouteUi.QuestionList>{
         QuestionListScreen(
-            archiveViewModel = viewModel(factory = factories.archive),
             onNavigateToQuestionAnswer = { questionId ->
                 if (questionId.isNotBlank()) {
                     Log.d("EntryPointScreen", "Attempting to navigate to QuestionAnswer with ID: $questionId") // ★★★ 로그 추가 ★★★
@@ -93,13 +75,9 @@ fun NavGraphBuilder.GgriggriNavigationGraph(
 
 
     /********* auth *********************************************************/
-    composable<GgriggriNavigationRouteUi.PasswordReset> {
-        ResetPwScreen()
-    }
 
     composable<GgriggriNavigationRouteUi.Login> {
         LoginScreen(
-            authViewModel = viewModel(factory = factories.auth),
             onNavigationToGroup = {
                 Log.d("AppNavigation", "onNavigationToGroup called") // 로그 추가
                 navController.navigate(GgriggriNavigationRouteUi.Group)
@@ -115,15 +93,13 @@ fun NavGraphBuilder.GgriggriNavigationGraph(
 
     /********* group ********************************************************/
     composable<GgriggriNavigationRouteUi.Group> {
-        GroupScreen(authViewModel = viewModel(factory = factories.auth))
+        GroupScreen()
     }
 
     /********* main *********************************************************/
     composable <GgriggriNavigationRouteUi.Answer> {
         AnswerScreen(
-            answerViewModel = viewModel(factory = factories.answer),
             onNavigateBack = {navController.navigate(GgriggriNavigationRouteUi.HomeTab)}
-
         )
     }
 

@@ -1,8 +1,6 @@
 package com.ahn.ggriggri.screen.ui.group.viewmodel
 
-import android.provider.ContactsContract
 import android.util.Log
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ahn.common_ui.components.SnackBarViewModel
 import com.ahn.data.datasource.GroupDataSource
@@ -13,17 +11,18 @@ import com.ahn.data.repository.FirestoreGroupRepositoryImpl
 import com.ahn.data.repository.FirestoreUserRepositoryImpl
 import com.ahn.domain.common.DataResourceResult
 import com.ahn.domain.model.Group
-import com.ahn.domain.model.User
-
 import com.ahn.domain.repository.GroupRepository
 import com.ahn.domain.repository.UserRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 
-
-class GroupViewModel() : SnackBarViewModel() {
+@HiltViewModel
+class GroupViewModel @Inject constructor()
+    : SnackBarViewModel() {
 
     private val _createResult = MutableStateFlow<DataResourceResult<Unit>?>(null)
     val createResult: StateFlow<DataResourceResult<Unit>?> = _createResult

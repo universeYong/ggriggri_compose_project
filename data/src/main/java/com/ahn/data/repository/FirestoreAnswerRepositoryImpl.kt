@@ -4,11 +4,13 @@ import com.ahn.data.datasource.AnswerDataSource
 import com.ahn.domain.common.DataResourceResult
 import com.ahn.domain.model.Answer
 import com.ahn.domain.repository.AnswerRepository
+import jakarta.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 
-class FirestoreAnswerRepositoryImpl(val answerDataSource: AnswerDataSource) : AnswerRepository {
+class FirestoreAnswerRepositoryImpl @Inject constructor(val answerDataSource: AnswerDataSource)
+    : AnswerRepository {
     override suspend fun create(
         questionId: String,
         answerInfo: Answer,

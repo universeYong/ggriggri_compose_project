@@ -19,6 +19,7 @@ import com.kakao.sdk.auth.model.OAuthToken
 import com.kakao.sdk.common.model.ClientError
 import com.kakao.sdk.common.model.ClientErrorCause
 import com.kakao.sdk.user.UserApiClient
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -28,18 +29,16 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class OAuthViewModel(
-    application: Application,
+@HiltViewModel
+class OAuthViewModel @Inject constructor(
     private val sessionManager: SessionManager,
     private val userRepository: UserRepository,
-) : AndroidViewModel(application) {
+) : ViewModel() {
 
     private val _loginStatus = MutableStateFlow("")
     val loginStatus: StateFlow<String> = _loginStatus
-
-//    private val remoteDataSource: UserDataSource = FirestoreUserDataSourceImpl()
-//    private val userRepository: UserRepository = FirestoreUserRepositoryImpl(remoteDataSource)
 
     val currentUserId: StateFlow<String?> = sessionManager.currentUserFlow
         .map{ it?.userId }
@@ -80,7 +79,7 @@ class OAuthViewModel(
         }
     }
 
-    // 로그인시 read로 읽어와서 없으면 create 있으면 update
+
     private fun fetchKakaoUserInfoAndProcessLogin(kakaoOAuthToken: OAuthToken) {
         UserApiClient.instance.me { kakaoUser, error ->
             if (error != null) {
@@ -98,11 +97,10 @@ class OAuthViewModel(
             val profile = kakaoUser.kakaoAccount?.profile
 
             viewModelScope.launch {
-                // 1) Firestore에서 사용자 존재 여부 확인
                 val userReadResult =
-                    userRepository.read()// read() 함수 구현에 따라 userId로 필터링하거나 전체 목록 조회
-                        .filter { it !is DataResourceResult.Loading } // Loading 상태 제외
-                        .first() // Success 또는 Failure 중 첫 번째 결과
+                    userRepository.read()
+                        .filter { it !is DataResourceResult.Loading }
+                        .first()
                 Log.d(
                     "OAuthViewModel",
                     "Firestore read result (after filtering Loading): $userReadResult"
@@ -188,7 +186,6 @@ class OAuthViewModel(
             val currentUser = sessionManager.currentUserFlow.first()
             if (currentUser == null){
                 Log.d("OAuthViewModel", "No user logged in, cannot check group.")
-                // 필요시 로그인 화면으로 보내거나 다른 처리
                 return@launch
             }
 

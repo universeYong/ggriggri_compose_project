@@ -38,6 +38,7 @@ import theme.GgriggriTheme
 import theme.NanumSquareBold
 import theme.NanumSquareRegular
 import androidx.core.graphics.toColorInt
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.github.penfeizhou.animation.apng.APNGDrawable
 import com.github.penfeizhou.animation.loader.Loader
 import kotlinx.coroutines.Dispatchers
@@ -49,9 +50,9 @@ import java.net.URL
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    homeViewmodel: HomeViewModel,
     onNavigationToAnswer: () -> Unit,
 ) {
+    val homeViewmodel: HomeViewModel = hiltViewModel()
     val profiles by homeViewmodel.profiles.collectAsState()
 
     val todayQuestion by homeViewmodel.todayQuestionContent.collectAsState() // 오늘의 질문 내용

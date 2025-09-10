@@ -1,7 +1,6 @@
 plugins {
     id("java-library")
     alias(libs.plugins.jetbrains.kotlin.jvm)
-    alias(libs.plugins.kotlinKapt)
 }
 java {
     sourceCompatibility = JavaVersion.VERSION_21

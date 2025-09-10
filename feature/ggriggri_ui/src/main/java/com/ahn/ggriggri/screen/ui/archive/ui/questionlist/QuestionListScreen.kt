@@ -19,14 +19,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.ahn.ggriggri.screen.ui.archive.viewmodel.questionlist.QuestionListViewModel
 import com.ahn.ggriggri.screen.ui.archive.viewmodel.questionlist.ArchivedQuestionItem
 
 @Composable
 fun QuestionListScreen(
-    archiveViewModel: QuestionListViewModel,
     onNavigateToQuestionAnswer: (questionDataId: String) -> Unit = {}
 ) {
+    val archiveViewModel: QuestionListViewModel = hiltViewModel()
+
     val archivedQuestions by archiveViewModel.archivedQuestions.collectAsState()
     val isLoading by archiveViewModel.isLoading.collectAsState()
     val error by archiveViewModel.error.collectAsState()

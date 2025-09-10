@@ -3,6 +3,7 @@ package com.ahn.ggriggri.screen.ui.main.viewmodel.home
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ahn.domain.common.DataResourceResult
 import com.ahn.domain.common.SessionManager
@@ -14,6 +15,7 @@ import com.ahn.domain.repository.QuestionListRepository
 import com.ahn.domain.repository.QuestionRepository
 import com.ahn.domain.repository.UserRepository
 import com.ahn.ggriggri.screen.ui.main.worker.DateChangeNotifier
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -27,6 +29,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import kotlinx.coroutines.flow.*
+import javax.inject.Inject
 
 data class Profile(
     val id: String, // 사용자 ID
@@ -34,16 +37,15 @@ data class Profile(
     val profileImageUrl: String?,
 )
 
-
-class HomeViewModel(
-    application: Application,
+@HiltViewModel
+class HomeViewModel @Inject constructor(
     private val sessionManager: SessionManager,
     private val userRepository: UserRepository,
     private val groupRepository: GroupRepository,
     private val questionListRepository: QuestionListRepository,
     private val questionRepository: QuestionRepository,
     private val todayQuestionPreferences: TodayQuestionPreferences,
-) : AndroidViewModel(application) {
+) : ViewModel(){
 
     private val _profiles = MutableStateFlow<List<Profile>>(emptyList())
     val profiles: StateFlow<List<Profile>> = _profiles

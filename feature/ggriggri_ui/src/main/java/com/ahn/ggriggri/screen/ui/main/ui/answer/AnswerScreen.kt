@@ -10,6 +10,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ahn.common_ui.components.CommonButton
 import com.ahn.common_ui.components.CommonOutlinedTextField
@@ -21,9 +22,9 @@ import theme.NanumSquareBold
 
 @Composable
 fun AnswerScreen(
-    answerViewModel: AnswerViewModel,
     onNavigateBack: () -> Unit
 ) {
+    val answerViewModel: AnswerViewModel = hiltViewModel()
     var answerText by remember { mutableStateOf("") }
 
     val currentQuestionDetails by answerViewModel.currentQuestionDetails.collectAsStateWithLifecycle()

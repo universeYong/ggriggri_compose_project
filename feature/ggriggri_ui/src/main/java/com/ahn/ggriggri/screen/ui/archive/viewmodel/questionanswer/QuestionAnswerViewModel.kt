@@ -12,6 +12,8 @@ import com.ahn.domain.repository.AnswerRepository
 import com.ahn.domain.repository.QuestionListRepository
 import com.ahn.domain.repository.QuestionRepository
 import com.ahn.domain.repository.UserRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import jakarta.inject.Inject
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -41,15 +43,14 @@ data class QuestionAnswerDetails(
     val answers: List<DisplayableAnswerItem> = emptyList(),
 )
 
-
-class QuestionAnswerViewModel(
-    application: Application,
+@HiltViewModel
+class QuestionAnswerViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val questionRepository: QuestionRepository,
     private val questionListRepository: QuestionListRepository,
     private val answerRepository: AnswerRepository,
     private val userRepository: UserRepository,
-) : AndroidViewModel(application) {
+) : ViewModel() {
 
     // QuestionListScreen에서 전달받은 question_data 문서 ID
     private val questionDataId: String = savedStateHandle.get<String>("questionDataId")
