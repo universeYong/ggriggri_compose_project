@@ -4,11 +4,12 @@ import com.ahn.data.datasource.QuestionDataSource
 import com.ahn.domain.common.DataResourceResult
 import com.ahn.domain.model.Question
 import com.ahn.domain.repository.QuestionRepository
+import jakarta.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 
-class FirestoreQuestionRepositoryImpl(val questionDataSource: QuestionDataSource) :
+class FirestoreQuestionRepositoryImpl @Inject constructor(val questionDataSource: QuestionDataSource) :
     QuestionRepository {
     override suspend fun create(question: Question): Flow<DataResourceResult<Question>> = flow{
         emit(DataResourceResult.Loading)

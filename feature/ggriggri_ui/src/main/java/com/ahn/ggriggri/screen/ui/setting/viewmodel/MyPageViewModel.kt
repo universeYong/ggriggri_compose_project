@@ -7,6 +7,8 @@ import androidx.lifecycle.viewModelScope
 import com.ahn.domain.common.SessionManager
 import com.ahn.domain.model.User
 import com.ahn.domain.repository.UserRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import jakarta.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -20,11 +22,10 @@ data class MyPageUiState(
     val errorMessage: String? = null,
 )
 
-class MyPageViewModel(
-    application: Application,
+@HiltViewModel
+class MyPageViewModel @Inject constructor(
     private val sessionManager: SessionManager,
-    private val userRepository: UserRepository
-): AndroidViewModel(application){
+): ViewModel(){
 
     val uiState: StateFlow<MyPageUiState> = sessionManager.currentUserFlow
         .map{ user ->

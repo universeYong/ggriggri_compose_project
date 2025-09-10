@@ -1,5 +1,7 @@
 package com.ahn.ggriggri.screen.archive.memory
 
+import theme.BtnContentColor
+import theme.MainColor
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.pager.HorizontalPager
@@ -15,15 +17,12 @@ import com.ahn.ggriggri.screen.archive.questionlist.QuestionListScreen
 import com.ahn.ggriggri.screen.archive.requestlist.RequestListScreen
 import com.ahn.ggriggri.screen.ui.archive.viewmodel.questionlist.QuestionListViewModel
 import kotlinx.coroutines.launch
-import theme.BtnContentColor
 import theme.GgriggriTheme
-import theme.MainColor
 import theme.NanumSquareExtraBold
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MemoryScreen(
-    archiveViewModel: QuestionListViewModel,
     onNavigateToQuestionAnswerActual: (questionDataId: String) -> Unit
 ) {
     val tabItems = listOf("요청","질문")
@@ -60,7 +59,6 @@ fun MemoryScreen(
                 when(page) {
                     0 -> RequestListScreen()
                     1 -> QuestionListScreen(
-                        archiveViewModel = archiveViewModel,
                         onNavigateToQuestionAnswer = onNavigateToQuestionAnswerActual
                     )
                 }

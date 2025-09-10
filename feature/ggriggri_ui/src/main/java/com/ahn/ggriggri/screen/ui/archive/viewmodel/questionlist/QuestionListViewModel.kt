@@ -3,11 +3,14 @@ package com.ahn.ggriggri.screen.ui.archive.viewmodel.questionlist
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ahn.domain.common.DataResourceResult
 import com.ahn.domain.common.SessionManager
 import com.ahn.domain.repository.QuestionListRepository
 import com.ahn.domain.repository.QuestionRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -31,12 +34,12 @@ data class ArchivedQuestionItem(
     val imgUrl: String? = null,
 )
 
-class QuestionListViewModel(
-    application: Application,
+@HiltViewModel
+class QuestionListViewModel @Inject constructor(
     private val sessionManager: SessionManager,
     private val questionRepository: QuestionRepository,
     private val questionListRepository: QuestionListRepository,
-) : AndroidViewModel(application) {
+) : ViewModel() {
 
     private val _archivedQuestions = MutableStateFlow<List<ArchivedQuestionItem>>(emptyList())
     val archivedQuestions: StateFlow<List<ArchivedQuestionItem>> = _archivedQuestions.asStateFlow()

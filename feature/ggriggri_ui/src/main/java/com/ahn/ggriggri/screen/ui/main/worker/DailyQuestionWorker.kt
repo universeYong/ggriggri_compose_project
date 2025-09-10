@@ -2,6 +2,7 @@ package com.ahn.ggriggri.screen.ui.main.worker
 
 import android.content.Context
 import android.util.Log
+import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.ListenableWorker
 import androidx.work.WorkerParameters
@@ -11,15 +12,18 @@ import com.ahn.domain.model.Question
 import com.ahn.domain.model.QuestionList
 import com.ahn.domain.repository.QuestionListRepository
 import com.ahn.domain.repository.QuestionRepository
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 
-class DailyQuestionWorker(
-    appContext: Context,
-    workerParams: WorkerParameters,
+@HiltWorker
+class DailyQuestionWorker @AssistedInject constructor(
+    @Assisted appContext: Context,
+    @Assisted workerParams: WorkerParameters,
     private val sessionManager: SessionManager, // 실제로는 의존성 주입 필요
     private val questionListRepository: QuestionListRepository, // 실제로는 의존성 주입 필요
     private val questionRepository: QuestionRepository, // 실제로는 의존성 주입 필요
@@ -31,7 +35,6 @@ class DailyQuestionWorker(
     }
 
     override suspend fun doWork(): ListenableWorker.Result { // 반환 타입 명시
-        Log.d(TAG, "DailyQuestionWorker started.")
 
         // runCatching의 결과는 kotlin.Result<ListenableWorker.Result>가 됩니다.
         // 이를 최종적으로 ListenableWorker.Result로 변환해야 합니다.
@@ -139,18 +142,12 @@ class DailyQuestionWorker(
                     ListenableWorker.Result.failure()
                 }
             }
-        } // runCatching 블록 끝
+        }
 
-        // operationResult (kotlin.Result)를 ListenableWorker.Result로 변환
         return operationResult.fold(
-            onSuccess = { workerResult ->
-                // runCatching 내부에서 이미 ListenableWorker.Result를 반환했으므로 그대로 사용
-                workerResult
-            },
+            onSuccess = { workerResult -> workerResult },
             onFailure = { exception ->
-                // runCatching 블록 내부에서 발생한 예외 처리 (예: Flow가 취소되거나 예상치 못한 예외)
                 Log.e(TAG, "Error in DailyQuestionWorker's runCatching block", exception)
-                // 기본적으로 실패로 처리, 특정 예외에 따라 retry도 가능
                 ListenableWorker.Result.failure()
             }
         )

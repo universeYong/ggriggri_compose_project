@@ -26,6 +26,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ahn.common_ui.R
 import com.ahn.common_ui.components.CommonButton
@@ -35,10 +36,10 @@ import theme.GgriggriTheme
 
 @Composable
 fun JoinGroupScreen(
-    groupViewModel: GroupViewModel = viewModel(),
     userId: String,
 ) {
 
+    val groupViewModel: GroupViewModel = hiltViewModel()
     var groupCode by remember { mutableStateOf("") }
     var groupPw by remember { mutableStateOf("") }
 

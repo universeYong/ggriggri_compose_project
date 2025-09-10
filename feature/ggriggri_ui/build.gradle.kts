@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.google.ksp)
 }
 
 android {
@@ -76,6 +77,11 @@ dependencies {
     implementation(libs.bundles.kakao.libraries)
     implementation(libs.bundles.navigation.libraries)
 
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
+    // Hilt Navigation (ViewModel 주입에 필요)
+    implementation(libs.hilt.navigation.compose)
+    implementation(libs.hilt.work)
 
     implementation(libs.coil.network.okhttp)
     implementation(libs.coil.compose)

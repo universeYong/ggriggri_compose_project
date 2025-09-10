@@ -3,6 +3,7 @@ package com.ahn.ggriggri.screen.ui.main.viewmodel.answer
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ahn.domain.common.DataResourceResult
 import com.ahn.domain.common.SessionManager
@@ -13,6 +14,8 @@ import com.ahn.domain.repository.GroupRepository
 import com.ahn.domain.repository.QuestionListRepository
 import com.ahn.domain.repository.QuestionRepository
 import com.ahn.domain.repository.UserRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,16 +30,14 @@ data class CurrentQuestionDetails(
     val imageUrl: String?
 )
 
-class AnswerViewModel(
-    application: Application,
+@HiltViewModel
+class AnswerViewModel @Inject constructor(
     private val sessionManager: SessionManager,
-    private val userRepository: UserRepository,
-    private val groupRepository: GroupRepository,
     private val questionRepository: QuestionRepository,
     private val questionListRepository: QuestionListRepository,
     private val answerRepository: AnswerRepository,
     private val todayQuestionPreferences: TodayQuestionPreferences
-) : AndroidViewModel(application) {
+) : ViewModel() {
 
     private val _answers = MutableStateFlow<List<Answer>>(emptyList())
     val answers: StateFlow<List<Answer>> = _answers.asStateFlow()

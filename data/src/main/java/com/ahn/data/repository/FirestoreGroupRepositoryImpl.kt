@@ -4,11 +4,13 @@ import com.ahn.data.datasource.GroupDataSource
 import com.ahn.domain.common.DataResourceResult
 import com.ahn.domain.model.Group
 import com.ahn.domain.repository.GroupRepository
+import jakarta.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 
-class FirestoreGroupRepositoryImpl(val groupDataSource: GroupDataSource): GroupRepository  {
+class FirestoreGroupRepositoryImpl @Inject constructor(val groupDataSource: GroupDataSource):
+    GroupRepository  {
     override suspend fun create(groupInfo: Group): Flow<DataResourceResult<String>> = flow {
         emit(DataResourceResult.Loading)
         emit(groupDataSource.create(groupInfo))

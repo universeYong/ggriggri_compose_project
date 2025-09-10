@@ -1,6 +1,5 @@
 package com.ahn.ggriggri.screen.auth.login
 
-import android.app.Application
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -22,24 +21,24 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ahn.common_ui.R
 import com.ahn.common_ui.components.AppLogo
-import com.ahn.domain.repository.UserRepository
 import com.ahn.ggriggri.screen.auth.login.components.LoginText
 import com.ahn.ggriggri.screen.auth.login.components.SocialLoginDivider
 import com.ahn.ggriggri.screen.ui.auth.viewmodel.OAuthViewModel
-import com.ahn.ggriggri.screen.ui.auth.viewmodel.OAuthViewModelFactory
 import theme.GgriggriTheme
 import theme.NanumSquareBold
 
 @Composable
 fun LoginScreen(
-    authViewModel: OAuthViewModel,
     onNavigationToGroup: () -> Unit,
     onNavigationToHome: () -> Unit,
 ) {
+
+    val authViewModel: OAuthViewModel = hiltViewModel()
+
     val context = LocalContext.current
 
     val loginStatus by authViewModel.loginStatus.collectAsStateWithLifecycle()

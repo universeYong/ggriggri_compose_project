@@ -4,6 +4,8 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.gms.google.services)
     alias(libs.plugins.secrets.gradle.plugin)
+    alias(libs.plugins.hilt.gradle)
+    alias(libs.plugins.google.ksp)
 }
 
 android {
@@ -80,6 +82,10 @@ dependencies {
 
     implementation(libs.v2.user)
     implementation(libs.bundles.coil.libraries)
+
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
+    implementation(libs.hilt.work)
 
 
     testImplementation(libs.junit)

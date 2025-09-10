@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.android.library) apply false
     alias(libs.plugins.jetbrains.kotlin.jvm) apply false
     alias(libs.plugins.secrets.gradle.plugin) apply false
-    id("com.google.gms.google-services") version "4.4.3" apply false
-    alias(libs.plugins.kotlinKapt) apply false
+    alias(libs.plugins.hilt.gradle) apply false
+    alias(libs.plugins.google.gms.google.services) apply false
+    alias(libs.plugins.google.ksp) apply false
 }

@@ -2,11 +2,18 @@ package com.ahn.ggriggri.screen.ui.main.worker
 
 import android.content.Context
 import android.util.Log
+import androidx.hilt.work.HiltWorker
 import androidx.work.*
+import dagger.assisted.AssistedInject
+import dagger.hilt.android.qualifiers.ApplicationContext
+import jakarta.inject.Singleton
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-class WorkSchedulerImpl(private val context: Context) : AppWorkScheduler {
+@HiltWorker
+class WorkSchedulerImpl @AssistedInject constructor(
+    @ApplicationContext private val context: Context
+) : AppWorkScheduler {
 
     companion object {
         private const val TAG = "WorkSchedulerImpl"

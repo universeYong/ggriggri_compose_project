@@ -26,15 +26,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import com.ahn.common_ui.R
 import com.ahn.ggriggri.screen.ui.setting.viewmodel.MyPageViewModel
 
 @Composable
-fun MyPageScreen(
-    myPageviewModel: MyPageViewModel,
-) {
+fun MyPageScreen() {
 
+    val myPageviewModel: MyPageViewModel = hiltViewModel()
     val uiState by myPageviewModel.uiState.collectAsState()
 
     if (uiState.isLoading) {
