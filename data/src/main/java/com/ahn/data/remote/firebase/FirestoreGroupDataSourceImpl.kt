@@ -10,9 +10,10 @@ import com.ahn.domain.model.Group
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.firestore
+import jakarta.inject.Inject
 import kotlinx.coroutines.tasks.await
 
-class FirestoreGroupDataSourceImpl: GroupDataSource {
+class FirestoreGroupDataSourceImpl @Inject constructor(): GroupDataSource {
     override suspend fun delete(groupId: String): DataResourceResult<Unit> {
         TODO("Not yet implemented")
     }

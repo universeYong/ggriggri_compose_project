@@ -9,10 +9,13 @@ import androidx.navigation.compose.composable
 import com.ahn.ggriggri.screen.archive.memory.MemoryScreen
 import com.ahn.ggriggri.screen.archive.questionanswer.QuestionAnswerScreen
 import com.ahn.ggriggri.screen.archive.questionlist.QuestionListScreen
+import com.ahn.ggriggri.screen.archive.requestdetail.RequestDetailScreen
+import com.ahn.ggriggri.screen.archive.requestlist.RequestListScreen
 import com.ahn.ggriggri.screen.auth.login.LoginScreen
 import com.ahn.ggriggri.screen.group.GroupScreen
 import com.ahn.ggriggri.screen.main.answer.AnswerScreen
 import com.ahn.ggriggri.screen.main.home.HomeScreen
+import com.ahn.ggriggri.screen.main.request.RequestScreen
 import com.ahn.ggriggri.screen.setting.modifygroupname.ModifyGroupNameScreen
 import com.ahn.ggriggri.screen.setting.modifygrouppw.ModifyGroupPwScreen
 import com.ahn.ggriggri.screen.setting.mypage.MyPageScreen
@@ -26,27 +29,27 @@ fun NavGraphBuilder.GgriggriNavigationGraph(
         MemoryScreen(
             onNavigateToQuestionAnswerActual = { questionId ->
                 if (questionId.isNotBlank()) {
-                    Log.d(
-                        "EntryPointScreen",
-                        "From MemoryTab: Attempting to navigate to QuestionAnswer with ID: $questionId"
-                    )
                     navController.navigate(GgriggriNavigationRouteUi.QuestionAnswer(questionDataId = questionId))
-                    Log.d(
-                        "EntryPointScreen",
-                        "From MemoryTab: navController.navigate called for QuestionAnswer."
-                    )
-                } else {
-                    Log.e(
-                        "EntryPointScreen",
-                        "From MemoryTab: Attempted to navigate to QuestionAnswer with blank ID."
-                    )
+                }
+            },
+            onNavigateToRequestDetailActual = { requestId ->
+                if(requestId.isNotBlank()){
+                    navController.navigate(GgriggriNavigationRouteUi.RequestDetail(requestId = requestId))
                 }
             }
         )
     }
     composable<GgriggriNavigationRouteUi.HomeTab> {
         HomeScreen(
-            onNavigationToAnswer = {navController.navigate(GgriggriNavigationRouteUi.Answer)})
+            onNavigationToAnswer = {navController.navigate(GgriggriNavigationRouteUi.Answer)},
+            onNavigateToRequest = {navController.navigate(GgriggriNavigationRouteUi.Request)},
+            onNavigateToResponse = {navController.navigate(GgriggriNavigationRouteUi.Response)},
+            onNavigateToRequestDetail = { request -> 
+                if (request.requestId.isNotBlank()) {
+                    navController.navigate(GgriggriNavigationRouteUi.RequestDetail(requestId = request.requestId))
+                }
+            }
+        )
     }
     composable<GgriggriNavigationRouteUi.MyPageTab> {
         MyPageScreen()
@@ -60,14 +63,23 @@ fun NavGraphBuilder.GgriggriNavigationGraph(
         QuestionListScreen(
             onNavigateToQuestionAnswer = { questionId ->
                 if (questionId.isNotBlank()) {
-                    Log.d("EntryPointScreen", "Attempting to navigate to QuestionAnswer with ID: $questionId") // ★★★ 로그 추가 ★★★
                     navController.navigate(GgriggriNavigationRouteUi.QuestionAnswer(questionDataId = questionId))
-                    Log.d("EntryPointScreen", "navController.navigate called for QuestionAnswer.") // ★★★ 로그 추가 ★★★
-                } else {
-                    Log.e(
-                        "EntryPointScreen",
-                        "Attempted to navigate to QuestionAnswer with blank ID."
-                    )
+                }
+            }
+        )
+    }
+    composable<GgriggriNavigationRouteUi.RequestDetail> { backStackEntry ->
+        val requestId = backStackEntry.arguments?.getString("requestId") ?: ""
+        RequestDetailScreen(
+            requestId = requestId,
+            onNavigateBack = { navController.popBackStack() }
+        )
+    }
+    composable<GgriggriNavigationRouteUi.RequestList>{
+        RequestListScreen(
+            onNavigateToRequestDetail = { requestId ->
+                if(requestId.isNotBlank()){
+                    navController.navigate(GgriggriNavigationRouteUi.RequestDetail(requestId = requestId))
                 }
             }
         )
@@ -102,6 +114,18 @@ fun NavGraphBuilder.GgriggriNavigationGraph(
             onNavigateBack = {navController.navigate(GgriggriNavigationRouteUi.HomeTab)}
         )
     }
+
+    composable <GgriggriNavigationRouteUi.Request> {
+        RequestScreen(
+            onNavigateBack = {navController.navigate(GgriggriNavigationRouteUi.HomeTab)}
+        )
+    }
+
+//    composable <GgriggriNavigationRouteUi.Response> {
+//        ResponseScreen(
+//            onNavigateBack = {navController.navigate(GgriggriNavigationRouteUi.HomeTab)}
+//        )
+//    }
 
     /********* setting ******************************************************/
     composable<GgriggriNavigationRouteUi.SettingGroup> {

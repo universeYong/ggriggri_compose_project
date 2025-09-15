@@ -40,4 +40,16 @@ sealed interface GgriggriNavigationRouteUi {
 
     @Serializable
     data object QuestionList: GgriggriNavigationRouteUi
+
+    @Serializable
+    data object RequestList: GgriggriNavigationRouteUi
+
+    @Serializable
+    data class RequestDetail(val requestId: String): GgriggriNavigationRouteUi
+
+    @Serializable
+    data object Request: GgriggriNavigationRouteUi
+
+    @Serializable
+    data object Response: GgriggriNavigationRouteUi
 }

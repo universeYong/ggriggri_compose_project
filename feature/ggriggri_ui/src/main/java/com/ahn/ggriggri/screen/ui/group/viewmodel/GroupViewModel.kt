@@ -3,12 +3,6 @@ package com.ahn.ggriggri.screen.ui.group.viewmodel
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.ahn.common_ui.components.SnackBarViewModel
-import com.ahn.data.datasource.GroupDataSource
-import com.ahn.data.datasource.UserDataSource
-import com.ahn.data.remote.firebase.FirestoreGroupDataSourceImpl
-import com.ahn.data.remote.firebase.FirestoreUserDataSourceImpl
-import com.ahn.data.repository.FirestoreGroupRepositoryImpl
-import com.ahn.data.repository.FirestoreUserRepositoryImpl
 import com.ahn.domain.common.DataResourceResult
 import com.ahn.domain.model.Group
 import com.ahn.domain.repository.GroupRepository
@@ -21,18 +15,13 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 
 @HiltViewModel
-class GroupViewModel @Inject constructor()
-    : SnackBarViewModel() {
+class GroupViewModel @Inject constructor(
+    private val groupRepository: GroupRepository,
+    private val userRepository: UserRepository
+) : SnackBarViewModel() {
 
     private val _createResult = MutableStateFlow<DataResourceResult<Unit>?>(null)
     val createResult: StateFlow<DataResourceResult<Unit>?> = _createResult
-
-    private val remoteGroupDataSource: GroupDataSource = FirestoreGroupDataSourceImpl()
-    private val groupRepository: GroupRepository =
-        FirestoreGroupRepositoryImpl(remoteGroupDataSource)
-
-    private val remoteUserDataSource: UserDataSource = FirestoreUserDataSourceImpl()
-    private val userRepository: UserRepository = FirestoreUserRepositoryImpl(remoteUserDataSource)
 
     private val _isGroupCodeDuplicate = MutableStateFlow<DataResourceResult<Boolean>?>(null)
     val isGroupCodeDuplicate: StateFlow<DataResourceResult<Boolean>?> = _isGroupCodeDuplicate

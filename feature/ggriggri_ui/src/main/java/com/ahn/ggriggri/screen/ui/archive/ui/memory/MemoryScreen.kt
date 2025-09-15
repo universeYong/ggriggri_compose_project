@@ -23,7 +23,8 @@ import theme.NanumSquareExtraBold
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MemoryScreen(
-    onNavigateToQuestionAnswerActual: (questionDataId: String) -> Unit
+    onNavigateToQuestionAnswerActual: (questionDataId: String) -> Unit,
+    onNavigateToRequestDetailActual: (requestDocumentId: String) -> Unit
 ) {
     val tabItems = listOf("요청","질문")
     val pagerState = rememberPagerState (pageCount = { tabItems.size })
@@ -57,7 +58,9 @@ fun MemoryScreen(
                 modifier = Modifier.fillMaxSize()
             ) { page ->
                 when(page) {
-                    0 -> RequestListScreen()
+                    0 -> RequestListScreen(
+                        onNavigateToRequestDetail = onNavigateToRequestDetailActual
+                    )
                     1 -> QuestionListScreen(
                         onNavigateToQuestionAnswer = onNavigateToQuestionAnswerActual
                     )

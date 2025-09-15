@@ -6,7 +6,7 @@ import com.ahn.domain.model.Answer
 import com.ahn.domain.model.Group
 
 
-fun AnswerDTO.toDomainAnswer(documentId: String): Answer = Answer(
+fun AnswerDTO.toDomainAnswer(documentId: String): Answer = Answer( // 지금 의존성 역전이 일어남 매핑은 usecase에서 하는게 좋음
     answerId = documentId,
     answerMessage = _answerMessage,
     answerResponseTime = _answerResponseTime,

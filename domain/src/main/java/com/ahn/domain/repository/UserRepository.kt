@@ -14,5 +14,6 @@ interface UserRepository {
     suspend fun updateUserGroupDocumentId(userId: String, groupDocumentId: String):
             Flow<DataResourceResult<Unit>>
     suspend fun getUserById(userId: String): Flow<DataResourceResult<User?>>
+    suspend fun getUserByIdSync(userId: String): DataResourceResult<User?>
 
 }

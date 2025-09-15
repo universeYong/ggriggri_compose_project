@@ -1,42 +1,66 @@
 package com.ahn.ggriggri.screen.archive.requestlist
 
+import android.util.Log
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.ahn.ggriggri.screen.ui.archive.viewmodel.requestlist.RequestListViewModel
+import com.ahn.ggriggri.screen.ui.archive.viewmodel.requestlist.ArchivedRequestItem
 
 @Composable
-fun RequestListScreen() {
-    // 샘플 데이터
-    val requestList = listOf(
-        Triple("오늘 점심 뭐 먹음?", "차승범님", "2025.02.07 12:20"),
-        Triple("얘들아 하늘 사진 좀 찍어봐", "안성원님", "2025.02.07 09:54"),
-        Triple("지금 뭐하는지 인증 고고", "차승범님", "2025.02.06 23:40"),
-        Triple("집에 있는 강아지 사진 실시간으로 올려봐", "정재현님", "2025.02.06 19:22"),
-        Triple("다들 어디? 뭐해?", "차승범님", "2025.02.06 15:20")
-    )
+fun RequestListScreen(
+    onNavigateToRequestDetail: (requestId: String) -> Unit = {}
+) {
+    val requestListViewModel: RequestListViewModel = hiltViewModel()
 
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
-        itemsIndexed(requestList) { index, (title, user, data) ->
-            ListItem(
-                headlineContent = {Text(title)},
-                supportingContent = {Text(user)},
-                trailingContent = {Text(data)},
-                modifier = Modifier.clickable{}
-            )
-            if (index < requestList.size - 1) {
-                HorizontalDivider(
-                    thickness = 1.dp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
-                )
+    val archivedRequests by requestListViewModel.archivedRequests.collectAsState()
+    val isLoading by requestListViewModel.isLoading.collectAsState()
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        if (isLoading) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        } else {
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                itemsIndexed(archivedRequests) { index, item: ArchivedRequestItem ->
+                    ListItem(
+                        headlineContent = { Text(item.content) }, // 요청 내용
+                        supportingContent = { Text("${item.userName}님") }, // 사용자명
+                        trailingContent = { Text(item.date) }, // 날짜
+                        modifier = Modifier.clickable {
+                            Log.d("RequestListScreen", "Navigating with ID: ${item.requestId}")
+                            if (item.requestId.isNotBlank()) {
+                                onNavigateToRequestDetail(item.requestId) // 클릭된 아이템의 ID 전달
+                            } else {
+                                Log.e("RequestListScreen", "requestId is blank for item: ${item.content}")
+                                // 사용자에게 알림 또는 다른 처리 (예: Toast 메시지)
+                            }
+                        },
+                    )
+                    if (index < archivedRequests.size - 1) {
+                        HorizontalDivider(
+                            thickness = 1.dp,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
+                        )
+                    }
+                }
             }
         }
     }

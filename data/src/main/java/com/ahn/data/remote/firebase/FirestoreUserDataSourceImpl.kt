@@ -12,9 +12,10 @@ import com.google.firebase.Firebase
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.firestore
+import jakarta.inject.Inject
 import kotlinx.coroutines.tasks.await
 
-class FirestoreUserDataSourceImpl() : UserDataSource {
+class FirestoreUserDataSourceImpl @Inject constructor() : UserDataSource {
     override suspend fun delete(userId: String): DataResourceResult<Unit> {
         TODO("Not yet implemented")
     }
@@ -59,16 +60,32 @@ class FirestoreUserDataSourceImpl() : UserDataSource {
         if (documentSnapshot.exists()) {
             val userDTO = documentSnapshot.toObject(UserDTO::class.java)
             if (userDTO != null) {
-                Log.i("FirestoreDataSource", "User found by ID: $userId, Data: $userDTO")
                 DataResourceResult.Success(userDTO.toDomainUser())
             } else {
-                Log.w("FirestoreDataSource", "User document exists but failed to convert for ID: $userId")
-                // 이 경우는 User 클래스와 Firestore 문서 구조가 맞지 않을 때 발생 가능
-                DataResourceResult.Failure(Exception("Failed to convert Firestore document to User object for ID: $userId"))
+                DataResourceResult.Failure(Exception())
             }
         } else {
-            Log.i("FirestoreDataSource", "User not found by ID: $userId")
-            DataResourceResult.Success(null) // 사용자가 없는 것은 성공적인 결과 (데이터가 null)
+            DataResourceResult.Success(null)
+        }
+    }.getOrElse {
+        DataResourceResult.Failure(it)
+    }
+
+    override suspend fun getUserByIdSync(userId: String): DataResourceResult<User?> = runCatching {
+        Log.d("FirestoreDataSource", "Attempting to get user by ID (sync): $userId")
+        val documentSnapshot = Firebase.firestore.collection("user_data")
+            .document(userId)
+            .get()
+            .await()
+        if (documentSnapshot.exists()) {
+            val userDTO = documentSnapshot.toObject(UserDTO::class.java)
+            if (userDTO != null) {
+                DataResourceResult.Success(userDTO.toDomainUser())
+            } else {
+                DataResourceResult.Failure(Exception())
+            }
+        } else {
+            DataResourceResult.Success(null)
         }
     }.getOrElse {
         DataResourceResult.Failure(it)

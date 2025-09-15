@@ -41,7 +41,7 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
 
-    implementation(platform(libs.xcom.firebase.bom))
+    implementation(platform(libs.firebase.bom))
     implementation(libs.bundles.firebase.libraries)
 
     implementation(libs.retrofit)
