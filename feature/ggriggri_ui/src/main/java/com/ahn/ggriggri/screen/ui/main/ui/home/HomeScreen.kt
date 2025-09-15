@@ -1,12 +1,7 @@
 package com.ahn.ggriggri.screen.main.home
 
-import android.util.Log
-import android.widget.ImageView
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -19,49 +14,60 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
-import coil3.compose.AsyncImage
-import com.ahn.common_ui.R
-import com.ahn.domain.model.QuestionList
 import com.ahn.ggriggri.screen.ui.main.ui.home.component.bottomsheet.AllProfilesSheetContent
-import com.ahn.ggriggri.screen.ui.main.viewmodel.home.HomeViewModel
-import com.ahn.ggriggri.screen.ui.main.viewmodel.home.Profile
+import com.ahn.ggriggri.screen.ui.main.viewmodel.HomeViewModel
 import kotlinx.coroutines.launch
 import theme.GgriggriTheme
-import theme.NanumSquareBold
 import theme.NanumSquareRegular
-import androidx.core.graphics.toColorInt
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.github.penfeizhou.animation.apng.APNGDrawable
-import com.github.penfeizhou.animation.loader.Loader
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import java.io.ByteArrayInputStream
-import java.net.URL
+import com.ahn.domain.model.Request
+import com.ahn.ggriggri.screen.ui.main.ui.home.component.cardview.ProfileSummaryCard
+import com.ahn.ggriggri.screen.ui.main.ui.home.component.cardview.TodayQuestionCard
+import com.ahn.ggriggri.screen.ui.main.ui.home.component.requestcard.ActiveRequestCard
+import com.ahn.ggriggri.screen.ui.main.ui.home.component.requestcard.DefaultRequestCard
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     onNavigationToAnswer: () -> Unit,
+    onNavigateToRequest: () -> Unit = {},
+    onNavigateToResponse: (Request) -> Unit = {},
+    onNavigateToRequestDetail: (Request) -> Unit = {},
+    homeViewModel: HomeViewModel = hiltViewModel()
 ) {
-    val homeViewmodel: HomeViewModel = hiltViewModel()
-    val profiles by homeViewmodel.profiles.collectAsState()
 
-    val todayQuestion by homeViewmodel.todayQuestionContent.collectAsState() // 오늘의 질문 내용
-    val isLoadingTodayQuestion by homeViewmodel.isLoadingTodayQuestion.collectAsState() // 질문 로딩 상태
+    val profiles by homeViewModel.profiles.collectAsState()
+    val todayQuestion by homeViewModel.todayQuestionContent.collectAsState()
+    val isLoadingTodayQuestion by homeViewModel.isLoading.collectAsState()
 
-    // BottomSheet
     val sheetState = rememberModalBottomSheetState()
     var showBottomSheet by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+
+    val requests by homeViewModel.requests.collectAsState()
+    val hasActiveRequest = requests.any { it.isAnswerable() }
+    val activeRequest = requests.firstOrNull { it.isAnswerable() }
+    
+    // 디버깅을 위한 로그
+    LaunchedEffect(requests) {
+        android.util.Log.d("HomeScreen", "요청 목록 업데이트: ${requests.size}개")
+        requests.forEach { request ->
+            android.util.Log.d("HomeScreen", "요청: ${request.requestMessage}, 답변 가능: ${request.isAnswerable()}, 마감 시간: ${request.answerDeadline}, 현재 시간: ${System.currentTimeMillis()}")
+        }
+        android.util.Log.d("HomeScreen", "활성 요청 있음: $hasActiveRequest, 활성 요청: $activeRequest")
+    }
+
+    LaunchedEffect(true) {
+        homeViewModel.loadRequests()
+    }
+    
+//    // 화면이 다시 포커스될 때 요청 목록 새로고침
+//    LaunchedEffect(true) {
+//        homeViewModel.refreshRequests()
+//    }
 
     GgriggriTheme {
         Surface(
@@ -77,14 +83,16 @@ fun HomeScreen(
                     verticalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
                     // 프로필 목록 카드
-                    item(key = "profile_summary_card_key") { // 고유한 문자열 키
+                    item(key = "profile_summary_card_key") {
                         ProfileSummaryCard(
                             profiles = profiles,
                             onSeeAllClick = { showBottomSheet = true }
                         )
                     }
-                // 오늘의 질문 카드
-                    item(key = todayQuestion?.number?.toString() ?: "today_question_empty_key") {                      
+                    // 오늘의 질문 카드
+                    item(
+                        key = todayQuestion?.number?.toString() ?: "today_question_empty_key"
+                    ) {
                         if (isLoadingTodayQuestion) {
                             Box(
                                 modifier = Modifier
@@ -99,7 +107,6 @@ fun HomeScreen(
                                 TodayQuestionCard(
                                     question = currentNonNullQuestion,
                                     onAnswerClick = {
-                                        Log.d("HomeScreen", "Answer button clicked for: ${currentNonNullQuestion.content}")
                                         onNavigationToAnswer()
                                     }
                                 )
@@ -110,27 +117,53 @@ fun HomeScreen(
                                         .padding(horizontal = 20.dp)
                                         .height(100.dp),
                                     shape = RoundedCornerShape(15.dp),
-                                    colors = CardDefaults.cardColors(containerColor = Color(0xFFE0E0E0))
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = Color(
+                                            0xFFE0E0E0
+                                        )
+                                    )
                                 ) {
-                                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                        Text("오늘의 질문을 불러오지 못했어요.", fontFamily = NanumSquareRegular)
+                                    Box(
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            "오늘의 질문을 불러오지 못했어요.",
+                                            fontFamily = NanumSquareRegular
+                                        )
                                     }
                                 }
                             }
                         }
                     }
-//                // 요청 카드
-//                item {
-//                    RequestCard(
-//                        request = request,
-//                        onRespondClick = {}
-//                    )
-//                }
+                    item(key = "request_card_key") {
+                        // 디버깅을 위한 로그
+                        LaunchedEffect(hasActiveRequest, activeRequest) {
+                            android.util.Log.d("HomeScreen", "UI 업데이트 - hasActiveRequest: $hasActiveRequest, activeRequest: $activeRequest")
+                        }
+                        
+                        if (hasActiveRequest && activeRequest != null) {
+                        // 활성화된 질문
+                        ActiveRequestCard(
+                            request = activeRequest,
+                            viewModel = homeViewModel,
+                            onNavigateToResponse = onNavigateToResponse,
+                            onNavigateToRequestDetail = onNavigateToRequestDetail
+                        )
+                    } else {
+                        // 비활성화된 질문
+                        DefaultRequestCard(
+                            viewModel = homeViewModel,
+                            onNavigateToRequest = onNavigateToRequest
+                        )
+                    }
+                    }
+                }
 //                // 추억 캐러셀
 //                item {
 //                    MemoriesCarousel(memories = memories)
 //                }
-                }
+//                }
                 // ModalBottomSheet
                 if (showBottomSheet) {
                     ModalBottomSheet(
@@ -156,288 +189,7 @@ fun HomeScreen(
     }
 }
 
-/**
- * 프로필 목록을 보여주는 카드 (cvHomeProfileList)
- */
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-fun ProfileSummaryCard(profiles: List<Profile>, onSeeAllClick: () -> Unit) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp),
-        shape = RoundedCornerShape(15.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFDE7)) // mainColor 예시
-    ) {
-        Row(
-            modifier = Modifier.padding(15.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            FlowRow(
-                modifier = Modifier.weight(1f),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                profiles.take(profiles.size).forEach { profile ->
-                    Log.d(
-                        "ProfileSummaryCard",
-                        "Profile: ${profile.name}, URL: ${profile.profileImageUrl}"
-                    ) // 로그 추가
-                    AsyncImage(
-                        model = profile.profileImageUrl,
-                        contentDescription = "프로필 ${profile.name}",
-                        modifier = Modifier
-                            .size(50.dp)
-                            .clip(CircleShape),
-                        contentScale = ContentScale.Crop,
-                        placeholder = painterResource(id = R.drawable.outline_account_circle_24),
-                        error = painterResource(id = R.drawable.outline_account_circle_24),
-                        onError = { errorResult ->
-                            Log.e(
-                                "AsyncImageError",
-                                "Failed to load image: ${profile.profileImageUrl}",
-                                errorResult.result.throwable
-                            )
-                        }
-                    )
-                }
-            }
-            Text(
-                text = "전체보기",
-                modifier = Modifier.clickable(onClick = onSeeAllClick),
-                fontFamily = NanumSquareRegular,
-                fontSize = 14.sp,
-                color = Color.Black
-            )
-        }
-    }
-}
 
-/**
- * 오늘의 질문 카드 (cvHomeQuestion)
- */
-@Composable
-fun TodayQuestionCard(question: QuestionList, onAnswerClick: () -> Unit) {
-    val stableImageUrl = remember(question.imgUrl) { question.imgUrl }
-
-    val cardColor = runCatching {
-        Color(question.color.toColorInt())
-    }.getOrElse { Color(0xFFE0E0E0) }
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp),
-        shape = RoundedCornerShape(15.dp),
-        colors = CardDefaults.cardColors(containerColor = cardColor) // 예시 색상
-    ) {
-        Column(modifier = Modifier.padding(15.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column(modifier = Modifier.weight(1f, fill = false)) {
-                    Text(
-                        text = "오늘의 질문",
-                        fontSize = 16.sp,
-                        fontFamily = NanumSquareBold,
-                        color = Color.Black
-                    )
-                    Spacer(modifier = Modifier.height(20.dp))
-                    Text(
-                        text = question.content,
-                        modifier = Modifier.widthIn(max = 200.dp),
-                        textAlign = TextAlign.Start,
-                        fontSize = 14.sp,
-                        fontFamily = NanumSquareRegular,
-                        color = Color.Black,
-                        lineHeight = 20.sp
-                    )
-                }
-                if (!stableImageUrl.isNullOrEmpty()) {
-                    Spacer(modifier = Modifier.width(8.dp))
-                    LoadAnimatedApngFromUrlComposable(
-                        imageUrl = stableImageUrl,
-                        modifier = Modifier.size(80.dp)
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(
-                onClick = onAnswerClick,
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White.copy(alpha = 0.8f),
-                    contentColor = Color.Black
-                ),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Text(text = "답변하기", fontSize = 16.sp, fontFamily = NanumSquareBold)
-            }
-        }
-    }
-}
-
-// Apng
-@Composable
-fun LoadAnimatedApngFromUrlComposable(imageUrl: String, modifier: Modifier = Modifier) {
-    var apngDrawable by remember { mutableStateOf<APNGDrawable?>(null)}
-    var isLoading by remember { mutableStateOf(true) }
-    var errorOccurred by remember { mutableStateOf(false)}
-
-    Log.d(
-        "LoadAPNG_Lifecycle",
-        "Composable recomposing or initial composition. Current imageUrl: $imageUrl, Time: ${System.currentTimeMillis()}"
-    )
-
-
-    LaunchedEffect(imageUrl) {
-        Log.d(
-            "LoadAPNG_Lifecycle",
-            "LaunchedEffect TRIGGERED. imageUrl: $imageUrl, Time: ${System.currentTimeMillis()}"
-        )
-        isLoading = true
-        errorOccurred = false
-        apngDrawable?.stop() // 이전 Drawable 정지
-        apngDrawable = null // 초기화
-
-        if (imageUrl.isBlank()) {
-            isLoading = false
-            errorOccurred = true
-            return@LaunchedEffect
-        }
-
-        launch(Dispatchers.IO) { // IO 스레드에서 네트워크 작업
-            runCatching {
-                val url = URL(imageUrl)
-                val connection = url.openConnection()
-                // 타임아웃 설정
-                // connection.connectTimeout = 5000 // 5초
-                connection.connect()
-                val inputStream = connection.getInputStream()
-                val bytes = inputStream.readBytes()
-                inputStream.close()
-                // StreamReader가 InputStream을 받는다고 가정
-                val customReader = com.github.penfeizhou.animation.io.StreamReader(
-                    ByteArrayInputStream(bytes)
-                )
-
-                val loader = object : Loader {
-                    override fun obtain(): com.github.penfeizhou.animation.io.Reader { // 반환 타입 일치
-                        return customReader
-                    }
-                }
-
-                val drawable = APNGDrawable(loader)
-                val decoder = drawable.frameSeqDecoder
-                Log.d("LoadAPNG", "APNGDrawable created. PreferredLoopCount: ${decoder}")
-
-                withContext(Dispatchers.Main) { // UI 스레드에서 상태 업데이트
-                    apngDrawable = drawable
-                    drawable.start() // 애니메이션 시작
-                    Log.d("LoadAPNG", "drawable.start() called. isRunning: ${drawable.isRunning}") // ★★★ 로그 추가 ★★★
-                    isLoading = false
-                }
-            }.getOrElse {
-                Log.e("LoadAPNG", "Error loading APNG: $imageUrl", it)
-                withContext(Dispatchers.Main) {
-                    errorOccurred = true
-                    isLoading = false
-                }
-            }
-        }
-    }
-    Box(modifier = modifier, contentAlignment = Alignment.Center) {
-        if (isLoading) {
-            Log.d("LoadAPNG_UI", "UI State: isLoading for $imageUrl")
-            CircularProgressIndicator(modifier = Modifier.size(30.dp))
-        }else if (errorOccurred || apngDrawable == null) {
-            Log.d(
-                "LoadAPNG_UI",
-                "UI State: errorOccurred ($errorOccurred) or apngDrawable is null (${apngDrawable == null}) for $imageUrl"
-            )
-            Image(
-                painter = painterResource(id = R.drawable.baseline_error_24),
-                contentDescription = "APNG ERROR",
-                modifier = Modifier.fillMaxSize()
-            )
-        }else {
-            Log.d(
-                "LoadAPNG_UI",
-                "UI State: Displaying AndroidView for $imageUrl. apngDrawable isNull: false, isRunning: ${apngDrawable?.isRunning}"
-            )
-            Log.d("LoadAPNG_AndroidView", "AndroidView update block. apngDrawable isNull: ${apngDrawable == null}, isRunning: ${apngDrawable?.isRunning}") // ★★★ 로그 추가 ★★★
-            AndroidView(
-                factory = {
-                    Log.d("LoadAPNG_AndroidView", "AndroidView factory block.") // ★★★ 로그 추가 ★★★
-                    ImageView(it) },
-                modifier = Modifier.fillMaxSize(),
-                update = { imageView ->
-                    Log.d("LoadAPNG_AndroidView", "AndroidView update - Setting drawable. isRunning: ${apngDrawable?.isRunning}") // ★★★ 로그 추가 ★★★
-                    imageView.setImageDrawable(apngDrawable)
-                }
-            )
-        }
-    }
-}
-
-
-//
-///**
-// * 요청 카드 (cvHomeRequest)
-// */
-//@Composable
-//fun RequestCard(request: Request, onRespondClick: () -> Unit) {
-//    Card(
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .padding(horizontal = 20.dp),
-//        shape = RoundedCornerShape(15.dp),
-//        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFDE7)) // mainColor 예시
-//    ) {
-//        Column(
-//            modifier = Modifier.padding(15.dp),
-//            horizontalAlignment = Alignment.CenterHorizontally
-//        ) {
-//            Box(modifier = Modifier.fillMaxWidth()) {
-//                if(request.isActive) {
-//                    Box(
-//                        modifier = Modifier
-//                            .size(10.dp)
-//                            .background(Color.Green, CircleShape)
-//                            .align(Alignment.TopStart)
-//                    )
-//                }
-//                Text(
-//                    text = "요청",
-//                    modifier = Modifier.align(Alignment.TopCenter),
-//                    fontSize = 16.sp,
-//                    fontFamily = NanumSquareBold,
-//                    color = Color.Black
-//                )
-//            }
-//            Spacer(modifier = Modifier.height(28.dp))
-//            Text(
-//                text = request.content,
-//                fontSize = 14.sp,
-//                fontFamily = NanumSquareRegular,
-//                color = Color.Black
-//            )
-//            Spacer(modifier = Modifier.height(30.dp))
-//            Button(
-//                onClick = onRespondClick,
-//                modifier = Modifier.fillMaxWidth(),
-//                colors = ButtonDefaults.buttonColors(
-//                    containerColor = Color.White,
-//                    contentColor = Color.Black
-//                ),
-//                shape = RoundedCornerShape(8.dp)
-//            ) {
-//                Text(text = request.buttonText, fontSize = 16.sp, fontFamily = NanumSquareBold)
-//            }
-//        }
-//    }
-//}
 //
 ///**
 // * 추억 캐러셀 (recyclerViewCarousel)

@@ -11,9 +11,11 @@ import com.google.firebase.Firebase
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.firestore
+import jakarta.inject.Inject
 import kotlinx.coroutines.tasks.await
 
-class FirestoreAnswerDataSourceImpl : AnswerDataSource {
+class FirestoreAnswerDataSourceImpl @Inject constructor(): AnswerDataSource {
+
     private val db = Firebase.firestore
     override suspend fun delete(
         questionId: String,
@@ -30,29 +32,12 @@ class FirestoreAnswerDataSourceImpl : AnswerDataSource {
         questionId: String,
         answer: Answer,
     ): DataResourceResult<String?> = runCatching {
-        Log.d(
-            "FirestoreAnswerDS_Create",
-            "Function called. questionId: '$questionId', Answer User ID: ${answer.answerUserDocumentID}, Message: '${answer.answerMessage}'"
-        )
-
-        val targetCollectionPath = "question_data/${questionId}/answer_data"
-        Log.d("FirestoreAnswerDS_Create", "Target Firestore Collection Path: '$targetCollectionPath'")
-
-        if (!answer.answerId.isNullOrEmpty()) {
-            Log.w("FirestoreAnswerDS", "Attempting to create an answer that already has an ID: ${answer.answerId}")
-        }
-
         val documentReference = db.collection("question_data").document(questionId)
                 .collection("answer_data")
                 .add(answer.toFirestoreAnswerDTO())
                 .await()
-
-        Log.d("FirestoreAnswerDS_Create", "Firestore add/set successful. Generated Answer Document ID: ${documentReference.id}")
         DataResourceResult.Success(documentReference.id)
-    }.getOrElse {
-        Log.e("FirestoreAnswerDS_Create", "Error in create Answer: ${it.message}", it)
-        DataResourceResult.Failure(it)
-    }
+    }.getOrElse { DataResourceResult.Failure(it) }
 
     override suspend fun update(
         questionId: String,

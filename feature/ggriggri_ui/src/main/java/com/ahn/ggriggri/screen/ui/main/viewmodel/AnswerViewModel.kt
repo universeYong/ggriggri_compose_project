@@ -1,8 +1,6 @@
-package com.ahn.ggriggri.screen.ui.main.viewmodel.answer
+package com.ahn.ggriggri.screen.ui.main.viewmodel
 
-import android.app.Application
 import android.util.Log
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ahn.domain.common.DataResourceResult
@@ -10,10 +8,8 @@ import com.ahn.domain.common.SessionManager
 import com.ahn.domain.common.TodayQuestionPreferences
 import com.ahn.domain.model.Answer
 import com.ahn.domain.repository.AnswerRepository
-import com.ahn.domain.repository.GroupRepository
 import com.ahn.domain.repository.QuestionListRepository
 import com.ahn.domain.repository.QuestionRepository
-import com.ahn.domain.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -79,8 +75,7 @@ class AnswerViewModel @Inject constructor(
         }
     }
 
-    // 화면 진입 시 호출될 함수 (questionId는 NavArgs로 전달받음)
-    fun loadQuestionDetailsAndAnswers(questionDataDocumentId: String) { // 파라미터 이름 명확화
+    fun loadQuestionDetailsAndAnswers(questionDataDocumentId: String) {
         Log.d(
             "AnswerViewModel_Load",
             "loadQuestionDetailsAndAnswers called with QuestionData_DocumentID: '$questionDataDocumentId'"

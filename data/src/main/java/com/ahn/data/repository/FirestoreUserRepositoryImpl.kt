@@ -34,7 +34,7 @@ class FirestoreUserRepositoryImpl @Inject constructor(val userDataSource: UserDa
             Flow<DataResourceResult<String?>> = flow {
         emit(DataResourceResult.Loading)
         emit(userDataSource.getUserGroupDocumentId(userId))
-    }
+    }.catch { emit(DataResourceResult.Failure(it)) }
 
     override suspend fun updateUserGroupDocumentId(
         userId: String,
@@ -42,13 +42,15 @@ class FirestoreUserRepositoryImpl @Inject constructor(val userDataSource: UserDa
     ): Flow<DataResourceResult<Unit>> = flow{
         emit(DataResourceResult.Loading)
         emit(userDataSource.updateUserGroupDocumentId(userId,groupDocumentId))
-    }
+    }.catch { emit(DataResourceResult.Failure(it)) }
 
     override suspend fun getUserById(userId: String): Flow<DataResourceResult<User?>> = flow{
         emit(DataResourceResult.Loading)
         val result = userDataSource.getUserById(userId)
         emit(result)
-    }.catch { exception ->
-        emit(DataResourceResult.Failure(exception))
+    }.catch { emit(DataResourceResult.Failure(it)) }
+
+    override suspend fun getUserByIdSync(userId: String): DataResourceResult<User?> {
+        return userDataSource.getUserByIdSync(userId)
     }
 }

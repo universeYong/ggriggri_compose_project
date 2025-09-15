@@ -105,6 +105,9 @@
 
     <!-- 홈 string -->
 
+    <!-- REQUEST stri   ng -->
+    <string name="request_title">요청하기</string>
+
     <!-- answer string -->
     <string name="answer_title">답변하기</string>
 

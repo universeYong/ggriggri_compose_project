@@ -2,7 +2,7 @@ package com.ahn.ggriggri.screen.archive.questionanswer
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items // itemsIndexed 대신 items 사용 가능
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -21,11 +21,11 @@ import coil3.request.crossfade
 import coil3.request.error
 import coil3.request.placeholder
 import com.ahn.common_ui.R
-import com.ahn.ggriggri.screen.main.home.LoadAnimatedApngFromUrlComposable
 import com.ahn.ggriggri.screen.ui.archive.viewmodel.questionanswer.DisplayableAnswerItem
 import com.ahn.ggriggri.screen.ui.archive.viewmodel.questionanswer.QuestionAnswerDetails
 import com.ahn.ggriggri.screen.ui.archive.viewmodel.questionanswer.QuestionAnswerUiState
 import com.ahn.ggriggri.screen.ui.archive.viewmodel.questionanswer.QuestionAnswerViewModel
+import com.ahn.ggriggri.screen.ui.main.ui.home.component.Apng.LoadAnimatedApngFromUrlComposable
 import theme.GgriggriTheme
 import theme.NanumSquareBold
 import theme.NanumSquareRegular

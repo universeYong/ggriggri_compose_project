@@ -14,8 +14,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ahn.common_ui.components.CommonButton
 import com.ahn.common_ui.components.CommonOutlinedTextField
-import com.ahn.ggriggri.screen.main.home.LoadAnimatedApngFromUrlComposable
-import com.ahn.ggriggri.screen.ui.main.viewmodel.answer.AnswerViewModel
+import com.ahn.ggriggri.screen.ui.main.ui.home.component.Apng.LoadAnimatedApngFromUrlComposable
+import com.ahn.ggriggri.screen.ui.main.viewmodel.AnswerViewModel
 import theme.GgriggriTheme
 import theme.NanumSquareBold
 

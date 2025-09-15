@@ -8,9 +8,10 @@ import com.ahn.domain.common.DataResourceResult
 import com.ahn.domain.model.QuestionList
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
+import jakarta.inject.Inject
 import kotlinx.coroutines.tasks.await
 
-class FirestoreQuestionListDataSourceImpl: QuestionListDataSource {
+class FirestoreQuestionListDataSourceImpl @Inject constructor(): QuestionListDataSource {
 
     private val db = Firebase.firestore
 

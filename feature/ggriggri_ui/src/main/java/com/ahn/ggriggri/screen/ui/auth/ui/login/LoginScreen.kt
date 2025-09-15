@@ -39,7 +39,7 @@ fun LoginScreen(
 
     val authViewModel: OAuthViewModel = hiltViewModel()
 
-    val context = LocalContext.current
+    val context = LocalContext.current // 이것도 여기서 쓰면 안됨
 
     val loginStatus by authViewModel.loginStatus.collectAsStateWithLifecycle()
     val currentUserId by authViewModel.currentUserId.collectAsStateWithLifecycle()

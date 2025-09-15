@@ -11,9 +11,10 @@ import com.google.firebase.Firebase
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.firestore
 import com.google.firebase.firestore.toObject
+import jakarta.inject.Inject
 import kotlinx.coroutines.tasks.await
 
-class FirestoreQuestionDataSourceImpl : QuestionDataSource {
+class FirestoreQuestionDataSourceImpl @Inject constructor(): QuestionDataSource {
     private val db = Firebase.firestore
 
     override suspend fun delete(questionId: String): DataResourceResult<Unit> {

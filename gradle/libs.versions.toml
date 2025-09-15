@@ -20,9 +20,9 @@ coilCompose = "3.2.0"
 glide = "4.16.0"
 jetbrainsKotlinJvm = "2.1.21"
 comGoogleGmsGoogleServicesGradlePlugin = "4.4.3"
-firebaseBomVersion = "34.0.0"
 
 firebaseFirestoreKtx = "25.1.4"
+firebaseStorageKtx = "21.0.0"
 firebaseBom = "34.2.0"
 googleGmsServices = "4.4.3"
 
@@ -52,6 +52,7 @@ hiltNavigationCompose = "1.2.0"
 
 # ksp
 ksp = "2.2.10-2.0.2"
+firebaseStorage = "22.0.0"
 
 
 [libraries]
@@ -76,8 +77,11 @@ androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 androidx-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended", version.ref = "materialIconsExtended" }
+
 firebase-firestore-ktx = { group = "com.google.firebase", name = "firebase-firestore-ktx", version.ref = "firebaseFirestoreKtx" }
+firebase-storage-ktx = { group = "com.google.firebase", name = "firebase-storage-ktx", version.ref = "firebaseStorageKtx" }
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
+
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
@@ -89,7 +93,7 @@ coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp"
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coilCompose" }
 glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
 com-google-gms-google-services-gradle-plugin = { group = "com.google.gms.google-services", name = "com.google.gms.google-services.gradle.plugin", version.ref = "comGoogleGmsGoogleServicesGradlePlugin" }
-xcom-firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBomVersion" }
+xcom-firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
 v2-user = { group = "com.kakao.sdk", name = "v2-user", version.ref = "v2User" }
 retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
 converter-gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "converterGson" }
@@ -130,7 +134,7 @@ hilt-gradle = { id = "com.google.dagger.hilt.android", version.ref = "hiltAndroi
 
 [bundles]
 compose-libraries = ["androidx-activity-compose", "androidx-ui"]
-firebase-libraries = ["firebase-firestore-ktx"]
+firebase-libraries = ["firebase-firestore-ktx", "firebase-storage-ktx"]
 kakao-libraries = ["v2-user"]
 coil-libraries =["coil-network-okhttp","coil-compose"]
 navigation-libraries = ["androidx-navigation-compose" ]
