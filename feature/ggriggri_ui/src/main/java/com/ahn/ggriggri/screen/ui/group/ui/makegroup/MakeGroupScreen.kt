@@ -17,6 +17,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -29,17 +30,19 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.ahn.common_ui.R
 import com.ahn.common_ui.components.CommonButton
 import com.ahn.common_ui.components.CommonOutlinedTextField
+import com.ahn.domain.common.DataResourceResult
 import com.ahn.ggriggri.screen.ui.group.viewmodel.GroupViewModel
 import theme.GgriggriTheme
 
 @Composable
 fun MakeGroupScreen(
-    groupViewModel: GroupViewModel = viewModel(),
-    userId: String
+    groupViewModel: GroupViewModel = hiltViewModel(),
+    userId: String,
+    onNavigateToHome: () -> Unit = {}
 ) {
 
     var groupName by remember { mutableStateOf("") }
@@ -56,6 +59,13 @@ fun MakeGroupScreen(
 
 
     val createResult by groupViewModel.createResult.collectAsState()
+
+    // 성공 시 화면 이동
+    LaunchedEffect(createResult) {
+        if (createResult is DataResourceResult.Success) {
+            onNavigateToHome()
+        }
+    }
 
     GgriggriTheme {
         Surface(

@@ -16,6 +16,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -27,24 +29,32 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ahn.common_ui.R
 import com.ahn.common_ui.components.CommonButton
 import com.ahn.common_ui.components.CommonOutlinedTextField
+import com.ahn.domain.common.DataResourceResult
 import com.ahn.ggriggri.screen.ui.group.viewmodel.GroupViewModel
 import theme.GgriggriTheme
 
 @Composable
 fun JoinGroupScreen(
+    groupViewModel: GroupViewModel = hiltViewModel(),
     userId: String,
+    onNavigateToHome: () -> Unit = {}
 ) {
-
-    val groupViewModel: GroupViewModel = hiltViewModel()
     var groupCode by remember { mutableStateOf("") }
     var groupPw by remember { mutableStateOf("") }
 
     var passwordVisible by remember { mutableStateOf(false) }
 
+    val createResult by groupViewModel.createResult.collectAsState()
+
+    // 성공 시 화면 이동
+    LaunchedEffect(createResult) {
+        if (createResult is DataResourceResult.Success) {
+            onNavigateToHome()
+        }
+    }
 
     GgriggriTheme {
         Surface(
