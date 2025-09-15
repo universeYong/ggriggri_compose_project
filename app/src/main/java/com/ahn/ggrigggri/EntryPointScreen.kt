@@ -44,7 +44,7 @@ fun EntryPointScreen() {
     val topBarData = navBackStackEntry?.topBarAsRouteName ?: TopBarData()
 
     val finalTopBarData = remember(topBarData, navBackStackEntry?.destination?.route) {
-        val currentRouteName = navBackStackEntry?.destination?.route
+
         // 왼쪽 아이콘이 있을때 뒤로가기 액션
         if (topBarData.titleLeftIcon != null) {
             topBarData.copy(IconOnClick = { navController.popBackStack() })

@@ -14,8 +14,12 @@ import jakarta.inject.Inject
 import kotlinx.coroutines.tasks.await
 
 class FirestoreGroupDataSourceImpl @Inject constructor(): GroupDataSource {
-    override suspend fun delete(groupId: String): DataResourceResult<Unit> {
-        TODO("Not yet implemented")
+    override suspend fun delete(groupId: String): DataResourceResult<Unit> = runCatching {
+        Firebase.firestore.collection("group_data").document(groupId).delete().await()
+        DataResourceResult.Success(Unit)
+    }.getOrElse {
+        Log.e("FirestoreGroupDS", "Error in delete for group: $groupId", it)
+        DataResourceResult.Failure(it)
     }
 
     override suspend fun create(group: Group): DataResourceResult<String> = runCatching{
@@ -27,12 +31,48 @@ class FirestoreGroupDataSourceImpl @Inject constructor(): GroupDataSource {
         DataResourceResult.Failure(it)
     }
 
-    override suspend fun update(group: Group): DataResourceResult<Unit> {
-        TODO("Not yet implemented")
+    override suspend fun update(group: Group): DataResourceResult<Unit> = runCatching {
+        val groupRef = Firebase.firestore.collection("group_data").document(group.groupDocumentId)
+        groupRef.update(group.toFirestoreGroupDTO()).await()
+        DataResourceResult.Success(Unit)
+    }.getOrElse {
+        Log.e("FirestoreGroupDS", "Error in update for group: ${group.groupDocumentId}", it)
+        DataResourceResult.Failure(it)
     }
 
     override suspend fun read(): DataResourceResult<List<Group>> {
         TODO("Not yet implemented")
+    }
+
+    override suspend fun getGroupById(groupId: String): DataResourceResult<Group?> = runCatching {
+        Log.d("FirestoreGroupDS", "getGroupById 시작 - groupId: $groupId")
+        
+        val documentSnapshot = Firebase.firestore.collection("group_data")
+            .document(groupId)
+            .get()
+            .await()
+        
+        Log.d("FirestoreGroupDS", "Document exists: ${documentSnapshot.exists()}")
+        
+        if (documentSnapshot.exists()) {
+            val groupDTO = documentSnapshot.toObject(GroupDTO::class.java)
+            Log.d("FirestoreGroupDS", "GroupDTO: $groupDTO")
+            
+            if (groupDTO != null) {
+                val domainGroup = groupDTO.toDomainGroup(documentSnapshot.id)
+                Log.d("FirestoreGroupDS", "Domain Group: $domainGroup")
+                DataResourceResult.Success(domainGroup)
+            } else {
+                Log.w("FirestoreGroupDS", "Document $groupId data could not be converted to GroupDTO")
+                DataResourceResult.Failure(Exception("Failed to convert document to GroupDTO"))
+            }
+        } else {
+            Log.w("FirestoreGroupDS", "Document $groupId does not exist")
+            DataResourceResult.Success(null)
+        }
+    }.getOrElse {
+        Log.e("FirestoreGroupDS", "Error in getGroupById for id: $groupId", it)
+        DataResourceResult.Failure(it)
     }
 
     override suspend fun getGroupByCode(groupCode: String): DataResourceResult<Group?> = runCatching{
@@ -69,6 +109,18 @@ class FirestoreGroupDataSourceImpl @Inject constructor(): GroupDataSource {
         DataResourceResult.Success(Unit)
     }.getOrElse {
         Log.e("FirestoreGroupDS", "Error in addUserToGroup for group: $groupId, user: $userId", it)
+        DataResourceResult.Failure(it)
+    }
+
+    override suspend fun removeUserFromGroup(
+        groupId: String,
+        userId: String,
+    ): DataResourceResult<Unit> = runCatching {
+        val groupRef = Firebase.firestore.collection("group_data").document(groupId)
+        groupRef.update("_groupUserDocumentID", FieldValue.arrayRemove(userId)).await()
+        DataResourceResult.Success(Unit)
+    }.getOrElse {
+        Log.e("FirestoreGroupDS", "Error in removeUserFromGroup for group: $groupId, user: $userId", it)
         DataResourceResult.Failure(it)
     }
 

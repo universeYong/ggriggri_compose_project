@@ -324,9 +324,13 @@ class HomeViewModel @Inject constructor(
 
     fun loadRequests() {
         viewModelScope.launch {
+            _isLoading.value = true
+            _errorMessage.value = null
+            
             val currentGroupId = sessionManager.currentUserGroupIdFlow.filterNotNull().firstOrNull()
             if (currentGroupId.isNullOrEmpty()) {
                 _errorMessage.value = "그룹 정보를 찾을 수 없습니다."
+                _isLoading.value = false
                 return@launch
             }
             
@@ -337,11 +341,15 @@ class HomeViewModel @Inject constructor(
                     }
                     is DataResourceResult.Success -> {
                         _requests.value = result.data ?: emptyList()
+                        _isLoading.value = false
                     }
                     is DataResourceResult.Failure -> {
                         _errorMessage.value = "질문을 불러오는데 실패하였습니다."
+                        _isLoading.value = false
                     }
-                    else -> {}
+                    else -> {
+                        _isLoading.value = false
+                    }
                 }
             }
         }

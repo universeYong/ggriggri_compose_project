@@ -52,7 +52,14 @@ fun NavGraphBuilder.GgriggriNavigationGraph(
         )
     }
     composable<GgriggriNavigationRouteUi.MyPageTab> {
-        MyPageScreen()
+        MyPageScreen(
+            onNavigateToGroupSetting = { navController.navigate(GgriggriNavigationRouteUi.SettingGroup) },
+            onNavigateToLogin = { 
+                navController.navigate(GgriggriNavigationRouteUi.Login) {
+                    popUpTo(GgriggriNavigationRouteUi.Login) { inclusive = true }
+                }
+            }
+        )
     }
 
     /********* archive ******************************************************/
@@ -105,7 +112,9 @@ fun NavGraphBuilder.GgriggriNavigationGraph(
 
     /********* group ********************************************************/
     composable<GgriggriNavigationRouteUi.Group> {
-        GroupScreen()
+        GroupScreen(
+            onNavigateToHome = {navController.navigate(GgriggriNavigationRouteUi.HomeTab)}
+        )
     }
 
     /********* main *********************************************************/
@@ -129,13 +138,35 @@ fun NavGraphBuilder.GgriggriNavigationGraph(
 
     /********* setting ******************************************************/
     composable<GgriggriNavigationRouteUi.SettingGroup> {
-        SettingGroupScreen()
+        SettingGroupScreen(
+            onNavigateToModifyGroupPw = {navController.navigate(GgriggriNavigationRouteUi.ModifyGroupPw)},
+            onNavigateToModifyGroupName = {navController.navigate(GgriggriNavigationRouteUi.ModifyGroupName)},
+            onNavigateToLeaveGroup = {
+                navController.navigate(GgriggriNavigationRouteUi.Group) {
+                    popUpTo(GgriggriNavigationRouteUi.Group) { inclusive = true }
+                }
+            }
+        )
     }
     composable<GgriggriNavigationRouteUi.ModifyGroupPw> {
-        ModifyGroupPwScreen()
+        ModifyGroupPwScreen(
+            onNavigateBack = { navController.popBackStack() },
+            onNavigateToSettingGroup = { 
+                navController.navigate(GgriggriNavigationRouteUi.SettingGroup) {
+                    popUpTo(GgriggriNavigationRouteUi.SettingGroup) { inclusive = true }
+                }
+            }
+        )
     }
     composable<GgriggriNavigationRouteUi.ModifyGroupName> {
-        ModifyGroupNameScreen()
+        ModifyGroupNameScreen(
+            onNavigateBack = { navController.popBackStack() },
+            onNavigateToSettingGroup = { 
+                navController.navigate(GgriggriNavigationRouteUi.SettingGroup) {
+                    popUpTo(GgriggriNavigationRouteUi.SettingGroup) { inclusive = true }
+                }
+            }
+        )
     }
 
 }

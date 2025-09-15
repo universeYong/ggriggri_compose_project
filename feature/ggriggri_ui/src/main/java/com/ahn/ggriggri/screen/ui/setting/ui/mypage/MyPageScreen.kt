@@ -19,6 +19,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -32,10 +33,19 @@ import com.ahn.common_ui.R
 import com.ahn.ggriggri.screen.ui.setting.viewmodel.MyPageViewModel
 
 @Composable
-fun MyPageScreen() {
+fun MyPageScreen(
+    onNavigateToGroupSetting: () -> Unit = {},
+    onNavigateToLogin: () -> Unit = {},
+    myPageviewModel: MyPageViewModel = hiltViewModel()
+) {
 
-    val myPageviewModel: MyPageViewModel = hiltViewModel()
     val uiState by myPageviewModel.uiState.collectAsState()
+
+    // 화면이 다시 포커스될 때 그룹 정보 새로고침
+    DisposableEffect(Unit) {
+        myPageviewModel.refreshGroupInfo()
+        onDispose { }
+    }
 
     if (uiState.isLoading) {
         Box(
@@ -80,7 +90,7 @@ fun MyPageScreen() {
             )
 
             Text(
-                text = "groupName",
+                text = uiState.group?.groupName ?: "그룹 없음",
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
@@ -88,9 +98,11 @@ fun MyPageScreen() {
             // 메뉴 리스트
             SettingMenuItem(title = "알림 on/off", onClick = {})
             HorizontalDivider()
-            SettingMenuItem(title = "그룹 설정", onClick = { })
+            SettingMenuItem(title = "그룹 설정", onClick = { onNavigateToGroupSetting() })
             HorizontalDivider()
-            SettingMenuItem(title = "로그아웃", onClick = { } )
+            SettingMenuItem(title = "로그아웃", onClick = { 
+                myPageviewModel.logout(onNavigateToLogin)
+            } )
         }
     }
 }

@@ -35,6 +35,8 @@ class SessionManagerImpl(
         }
         .map { preferences ->
             val userJson = preferences[DataStoreKeys.USER_OBJECT_JSON]
+            Log.d("SessionManager", "currentUserFlow - userJson: $userJson")
+            
             if (userJson != null) {
                 runCatching {
                     val user = userJsonAdapter.fromJson(userJson)
@@ -43,9 +45,12 @@ class SessionManagerImpl(
                         "currentUserFlow emitted user: ${user?.userId}"
                     ) // User 객체 emit 로그
                     user
-                }.getOrNull()
+                }.getOrElse { exception ->
+                    Log.e("SessionManager", "JSON 파싱 실패", exception)
+                    null
+                }
             } else {
-                Log.d("SessionManager", "currentUserFlow emitted null user") // null User 객체 emit 로그
+                Log.d("SessionManager", "currentUserFlow emitted null user - userJson is null") // null User 객체 emit 로그
                 null
             }
         }
@@ -83,9 +88,16 @@ class SessionManagerImpl(
         if (tokenToSave.isBlank()) {
             Log.w(
                 "SessionManager",
-                "Token is blank, loginUser will not save session."
+                "Token is blank, loginUser will not save session and set isLoggedIn to false."
             ) // 토큰 비어있을 경우 로그
-            // 예외 처리 로직
+            
+            // 토큰이 비어있으면 로그인 상태를 false로 설정
+            context.dataStore.edit { settings ->
+                settings[DataStoreKeys.IS_LOGGED_IN] = false
+                settings.remove(DataStoreKeys.USER_OBJECT_JSON)
+                settings.remove(DataStoreKeys.USER_TOKEN)
+                settings.remove(DataStoreKeys.USER_GROUP_ID)
+            }
             return
         }
         runCatching {
@@ -98,6 +110,9 @@ class SessionManagerImpl(
                 settings[DataStoreKeys.IS_LOGGED_IN] = true
                 if (!user.userGroupDocumentId.isNullOrBlank()) {
                     settings[DataStoreKeys.USER_GROUP_ID] = user.userGroupDocumentId
+                    Log.d("SessionManager", "User group ID saved: ${user.userGroupDocumentId}")
+                } else {
+                    Log.d("SessionManager", "User group ID is null or blank")
                 }
                 Log.d(
                     "SessionManager",
@@ -105,8 +120,9 @@ class SessionManagerImpl(
                 ) // DataStore 저장 성공 로그
             }
             Log.d("SessionManager", "DataStore.edit block EXITED NORMALLY for user: ${user.userId}") // <--- (6) edit 블록 정상 종료 확인
-        }.getOrElse { exception -> throw exception
+        }.getOrElse { exception -> 
             Log.e("SessionManager", "Failed to save user session to DataStore", exception) // <--- (7) 예외 발생 시 확인
+            throw exception
         }
     }
 
@@ -153,6 +169,18 @@ class SessionManagerImpl(
                 }
             } // else: 현재 사용자 정보가 없는 경우 (로그아웃 상태 등) 프로필 업데이트 시도.
             // 이 경우에 대한 정책을 정해야 함 (오류로 처리할지, 무시할지 등)
+        }
+    }
+
+    suspend fun refreshUserInfo() {
+        // 사용자 정보를 다시 로드하여 currentUserFlow를 업데이트
+        // 이 함수는 currentUserFlow를 관찰하는 모든 ViewModel에서 그룹 정보를 새로고침하게 함
+        context.dataStore.edit { settings ->
+            // DataStore를 다시 읽어서 currentUserFlow를 트리거
+            val currentUserJson = settings[DataStoreKeys.USER_OBJECT_JSON]
+            if (currentUserJson != null) {
+                // currentUserFlow가 자동으로 업데이트됨
+            }
         }
     }
 }

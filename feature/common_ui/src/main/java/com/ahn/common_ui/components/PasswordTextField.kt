@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.VisibilityOff
  * @param label TextField의 라벨 텍스트
  * @param isError 오류 상태 여부
  * @param supportingText 하단에 표시될 보조 텍스트 또는 오류 메시지
+ * @param enabled TextField 활성화 상태
  */
 @Composable
 fun PasswordTextField(
@@ -36,7 +37,8 @@ fun PasswordTextField(
     onValueChange: (String) -> Unit,
     label: String,
     isError: Boolean = false,
-    supportingText: String? = null
+    supportingText: String? = null,
+    enabled: Boolean = true
 ) {
     var passwordVisible by remember { mutableStateOf(false) }
 
@@ -47,6 +49,7 @@ fun PasswordTextField(
         label = { Text(label) },
         singleLine = true,
         isError = isError,
+        enabled = enabled,
         supportingText = {
             if (supportingText != null) {
                 Text(text = supportingText)

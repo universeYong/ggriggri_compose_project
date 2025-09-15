@@ -20,17 +20,24 @@ class FirestoreGroupRepositoryImpl @Inject constructor(val groupDataSource: Grou
         TODO("Not yet implemented")
     }
 
-    override suspend fun update(groupInfo: Group): Flow<DataResourceResult<Unit>> {
-        TODO("Not yet implemented")
-    }
+    override suspend fun update(groupInfo: Group): Flow<DataResourceResult<Unit>> = flow {
+        emit(DataResourceResult.Loading)
+        emit(groupDataSource.update(groupInfo))
+    }.catch { emit(DataResourceResult.Failure(it)) }
 
-    override suspend fun delete(groupId: String): Flow<DataResourceResult<Unit>> {
-        TODO("Not yet implemented")
-    }
+    override suspend fun delete(groupId: String): Flow<DataResourceResult<Unit>> = flow {
+        emit(DataResourceResult.Loading)
+        emit(groupDataSource.delete(groupId))
+    }.catch { emit(DataResourceResult.Failure(it)) }
 
     override suspend fun getGroupByCode(groupCode: String): Flow<DataResourceResult<Group?>> = flow{
         emit(DataResourceResult.Loading)
         emit(groupDataSource.getGroupByCode(groupCode))
+    }.catch { emit(DataResourceResult.Failure(it)) }
+
+    override suspend fun getGroupById(groupId: String): Flow<DataResourceResult<Group?>> = flow {
+        emit(DataResourceResult.Loading)
+        emit(groupDataSource.getGroupById(groupId))
     }.catch { emit(DataResourceResult.Failure(it)) }
 
     override suspend fun addUserToGroup(
@@ -39,6 +46,14 @@ class FirestoreGroupRepositoryImpl @Inject constructor(val groupDataSource: Grou
     ): Flow<DataResourceResult<Unit>> = flow{
         emit(DataResourceResult.Loading)
         emit(groupDataSource.addUserToGroup(groupId, userId))
+    }.catch { emit(DataResourceResult.Failure(it)) }
+
+    override suspend fun removeUserFromGroup(
+        groupId: String,
+        userId: String,
+    ): Flow<DataResourceResult<Unit>> = flow {
+        emit(DataResourceResult.Loading)
+        emit(groupDataSource.removeUserFromGroup(groupId, userId))
     }.catch { emit(DataResourceResult.Failure(it)) }
 
     override suspend fun isGroupCodeExist(groupCode: String): Flow<DataResourceResult<Boolean>> = flow{

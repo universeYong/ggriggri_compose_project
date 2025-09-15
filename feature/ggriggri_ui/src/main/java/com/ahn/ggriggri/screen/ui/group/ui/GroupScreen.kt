@@ -30,9 +30,10 @@ import theme.NanumSquareExtraBold
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GroupScreen() {
-
-    val authViewModel: OAuthViewModel = hiltViewModel()
+fun GroupScreen(
+    authViewModel: OAuthViewModel = hiltViewModel(),
+    onNavigateToHome: () -> Unit = {}
+) {
 
     val tabItems = listOf("그룹 만들기", "그룹 들어가기")
     val pagerState = rememberPagerState(pageCount = { tabItems.size })
@@ -75,12 +76,18 @@ fun GroupScreen() {
                 when (page) {
                     0 -> {
                         if (!userId.isNullOrBlank()) {
-                            MakeGroupScreen(userId = userId!!)
+                            MakeGroupScreen(
+                                userId = userId!!,
+                                onNavigateToHome = onNavigateToHome
+                            )
                         }
                     }
                     1 -> {
                         if (!userId.isNullOrBlank()) {
-                            JoinGroupScreen(userId = userId!!)
+                            JoinGroupScreen(
+                                userId = userId!!,
+                                onNavigateToHome = onNavigateToHome
+                            )
                         }
                     }
                 }
