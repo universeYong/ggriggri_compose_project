@@ -32,8 +32,9 @@ import theme.NanumSquareExtraBold
 @Composable
 fun GroupScreen(
     authViewModel: OAuthViewModel = hiltViewModel(),
-    onNavigateToHome: () -> Unit = {}
-) {
+    onNavigateToHome: () -> Unit = {},
+    onNavigateBack: () -> Unit = {},
+    ) {
 
     val tabItems = listOf("그룹 만들기", "그룹 들어가기")
     val pagerState = rememberPagerState(pageCount = { tabItems.size })

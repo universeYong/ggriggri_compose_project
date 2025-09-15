@@ -15,6 +15,7 @@ import com.ahn.domain.common.DataResourceResult
 import com.ahn.domain.common.SessionManager
 import com.ahn.domain.model.User
 import com.ahn.domain.repository.UserRepository
+import com.ahn.domain.repository.GroupRepository
 import com.kakao.sdk.auth.model.OAuthToken
 import com.kakao.sdk.common.model.ClientError
 import com.kakao.sdk.common.model.ClientErrorCause
@@ -35,6 +36,7 @@ import javax.inject.Inject
 class OAuthViewModel @Inject constructor(
     private val sessionManager: SessionManager,
     private val userRepository: UserRepository,
+    private val groupRepository: GroupRepository,
 ) : ViewModel() {
 
     private val _loginStatus = MutableStateFlow("")
@@ -197,6 +199,94 @@ class OAuthViewModel @Inject constructor(
             } else {
                 Log.d("OAuthViewModel", "User ${currentUser.userId} has group ID: $groupId. Navigating to home.")
                 onNavigationToHome()
+            }
+        }
+    }
+
+    // 개발용 로그인 함수
+    fun handleDevLogin(
+        userId: String,
+        userName: String,
+        userProfileImage: String,
+        userGroupDocumentId: String,
+        userAutoLoginToken: String
+    ) {
+        viewModelScope.launch {
+            _loginStatus.value = "개발용 로그인 처리 중..."
+
+            try {
+                val devUser = User(
+                    userId = userId,
+                    userName = userName,
+                    userProfileImage = userProfileImage,
+                    userGroupDocumentId = userGroupDocumentId,
+                    userAutoLoginToken = userAutoLoginToken
+                )
+
+                Log.d("OAuthViewModel", "개발용 로그인 시도 - 사용자: $devUser")
+
+                // 기존 사용자 확인
+                val existingUser = userRepository.getUserByIdSync(userId)
+                Log.d("OAuthViewModel", "기존 사용자 확인 결과: $existingUser")
+
+                val dbOperationResultFlow = if (existingUser is DataResourceResult.Success && existingUser.data != null) {
+                    Log.d("OAuthViewModel", "기존 사용자 업데이트: $devUser")
+                    userRepository.update(devUser)
+                } else {
+                    Log.d("OAuthViewModel", "새 사용자 생성: $devUser")
+                    Log.d("OAuthViewModel", "사용자 생성 시작 - userId: $userId")
+                    userRepository.create(devUser)
+                }
+
+                val dbOperationResult = dbOperationResultFlow
+                    .filter { it !is DataResourceResult.Loading }
+                    .first()
+
+                Log.d("OAuthViewModel", "개발용 로그인 DB 결과: $dbOperationResult")
+
+                when (dbOperationResult) {
+                    is DataResourceResult.Success -> {
+                        Log.d("OAuthViewModel", "개발용 로그인 성공")
+                        
+                        // 그룹 ID가 있으면 그룹에 사용자 추가
+                        if (userGroupDocumentId.isNotEmpty()) {
+                            Log.d("OAuthViewModel", "그룹에 사용자 추가 시도 - 그룹ID: $userGroupDocumentId, 사용자ID: $userId")
+                            val groupResult = groupRepository.addUserToGroup(userGroupDocumentId, userId)
+                                .filter { it !is DataResourceResult.Loading }
+                                .first()
+                            
+                            when (groupResult) {
+                                is DataResourceResult.Success -> {
+                                    Log.d("OAuthViewModel", "그룹에 사용자 추가 성공")
+                                }
+                                is DataResourceResult.Failure -> {
+                                    Log.e("OAuthViewModel", "그룹에 사용자 추가 실패", groupResult.exception)
+                                    _loginStatus.value = "그룹 추가 실패: ${groupResult.exception.message}"
+                                    return@launch
+                                }
+                                else -> {
+                                    Log.w("OAuthViewModel", "그룹에 사용자 추가 결과: $groupResult")
+                                }
+                            }
+                        }
+                        
+                        sessionManager.loginUser(devUser)
+                        _loginStatus.value = "개발용 로그인 성공"
+                        Log.d("OAuthViewModel", "개발용 로그인 완료 - 사용자: $devUser")
+                    }
+                    is DataResourceResult.Failure -> {
+                        val failMsg = "개발용 로그인 실패: ${dbOperationResult.exception.message}"
+                        _loginStatus.value = failMsg
+                        Log.e("OAuthViewModel", failMsg, dbOperationResult.exception)
+                    }
+                    else -> {
+                        _loginStatus.value = "개발용 로그인 처리 중..."
+                    }
+                }
+            } catch (e: Exception) {
+                val errorMsg = "개발용 로그인 중 오류 발생: ${e.message}"
+                _loginStatus.value = errorMsg
+                Log.e("OAuthViewModel", errorMsg, e)
             }
         }
     }

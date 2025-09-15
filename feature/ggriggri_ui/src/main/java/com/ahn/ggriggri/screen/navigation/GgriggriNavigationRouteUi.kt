@@ -33,6 +33,9 @@ sealed interface GgriggriNavigationRouteUi {
     data object Login : GgriggriNavigationRouteUi
 
     @Serializable
+    data object DevLogin : GgriggriNavigationRouteUi
+
+    @Serializable
     data object Group: GgriggriNavigationRouteUi
 
     @Serializable
