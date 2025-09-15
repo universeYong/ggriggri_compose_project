@@ -111,7 +111,7 @@ class FirestoreUserDataSourceImpl @Inject constructor() : UserDataSource {
     ): DataResourceResult<Unit> = runCatching{
         Firebase.firestore.collection("user_data")
             .document(userId)
-            .update("_userGroupDocumentId", groupDocumentId)
+            .set(mapOf("_userGroupDocumentId" to groupDocumentId), SetOptions.merge())
             .await()
         DataResourceResult.Success(Unit)
     }.getOrElse {

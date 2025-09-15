@@ -12,6 +12,7 @@ import com.ahn.ggriggri.screen.archive.questionlist.QuestionListScreen
 import com.ahn.ggriggri.screen.archive.requestdetail.RequestDetailScreen
 import com.ahn.ggriggri.screen.archive.requestlist.RequestListScreen
 import com.ahn.ggriggri.screen.auth.login.LoginScreen
+import com.ahn.ggriggri.screen.ui.auth.ui.devlogin.DevLoginScreen
 import com.ahn.ggriggri.screen.group.GroupScreen
 import com.ahn.ggriggri.screen.main.answer.AnswerScreen
 import com.ahn.ggriggri.screen.main.home.HomeScreen
@@ -106,6 +107,25 @@ fun NavGraphBuilder.GgriggriNavigationGraph(
                 navController.navigate(GgriggriNavigationRouteUi.HomeTab) {
                     popUpTo(GgriggriNavigationRouteUi.Login) {inclusive = true}
                 }
+            },
+            onNavigationToDevLogin = {
+                Log.d("AppNavigation", "onNavigationToDevLogin called")
+                navController.navigate(GgriggriNavigationRouteUi.DevLogin)
+            }
+        )
+    }
+
+    composable<GgriggriNavigationRouteUi.DevLogin> {
+        DevLoginScreen(
+            onNavigationToGroup = {
+                Log.d("AppNavigation", "DevLogin onNavigationToGroup called")
+                navController.navigate(GgriggriNavigationRouteUi.Group)
+            },
+            onNavigationToHome = {
+                Log.d("AppNavigation", "DevLogin onNavigationToHome called")
+                navController.navigate(GgriggriNavigationRouteUi.HomeTab) {
+                    popUpTo(GgriggriNavigationRouteUi.DevLogin) {inclusive = true}
+                }
             }
         )
     }
@@ -113,7 +133,8 @@ fun NavGraphBuilder.GgriggriNavigationGraph(
     /********* group ********************************************************/
     composable<GgriggriNavigationRouteUi.Group> {
         GroupScreen(
-            onNavigateToHome = {navController.navigate(GgriggriNavigationRouteUi.HomeTab)}
+            onNavigateToHome = {navController.navigate(GgriggriNavigationRouteUi.HomeTab)},
+            onNavigateBack = { navController.popBackStack() },
         )
     }
 

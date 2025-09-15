@@ -10,8 +10,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -35,6 +37,7 @@ import theme.NanumSquareBold
 fun LoginScreen(
     onNavigationToGroup: () -> Unit,
     onNavigationToHome: () -> Unit,
+    onNavigationToDevLogin: () -> Unit = {},
 ) {
 
     val authViewModel: OAuthViewModel = hiltViewModel()
@@ -88,6 +91,18 @@ fun LoginScreen(
                         .fillMaxWidth()
                         .height(60.dp)
                 )
+
+                Spacer(Modifier.height(20.dp))
+
+                // 개발용 로그인 버튼 (개발 빌드에서만 표시)
+                Button(
+                    onClick = { onNavigationToDevLogin() },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(60.dp)
+                ) {
+                    Text("개발용 로그인")
+                }
 
             }
         }
