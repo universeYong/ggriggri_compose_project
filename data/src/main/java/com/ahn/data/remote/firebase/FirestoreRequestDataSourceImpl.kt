@@ -140,35 +140,9 @@ class FirestoreRequestDataSourceImpl @Inject constructor(): RequestDataSource {
     }
 
     override suspend fun readAllRequests(groupId: String): Flow<DataResourceResult<List<Request>>> = callbackFlow {
-        try {
-            Log.d("FirestoreRequestDataSource", "Reading ALL requests for group: $groupId")
-            
-            // 모든 요청을 가져오는 초기 쿼리 (필터링 없음)
-            val initialSnapshot = db.collection("request_data")
-                .get()
-                .await()
-            
-            val initialDTOList = initialSnapshot.toObjects(RequestDTO::class.java)
-            
-            Log.d("FirestoreRequestDataSource", "그룹 ID($groupId)로 필터링된 모든 요청: ${initialDTOList.size}개")
-            
-            val initialRequestList = initialSnapshot.documents
-                .mapNotNull { document ->
-                    val dto = document.toObject(RequestDTO::class.java)
-                    dto?.toDomainRequest(document.id)
-                }
-                .filter { it.requestGroupDocumentID == groupId } // 그룹 ID만 필터링
-                .sortedByDescending { it.requestTime } // 최신순 정렬
-            
-            Log.d("FirestoreRequestDataSource", "모든 요청 목록: ${initialRequestList.size}개")
-            trySend(DataResourceResult.Success(initialRequestList))
-            
-        } catch (e: Exception) {
-            Log.e("FirestoreRequestDataSource", "모든 요청 쿼리 오류", e)
-            trySend(DataResourceResult.Failure(e))
-        }
+        Log.d("FirestoreRequestDataSource", "Reading ALL requests for group: $groupId")
         
-        // 실시간 리스너 시작
+        // 실시간 리스너만 사용하여 중복 데이터 전송 방지
         val listener = db.collection("request_data")
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {

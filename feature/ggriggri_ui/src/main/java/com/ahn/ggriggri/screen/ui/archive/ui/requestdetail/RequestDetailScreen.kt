@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -42,6 +43,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import com.ahn.domain.model.Request
+import com.ahn.domain.model.Response
 import com.ahn.ggriggri.screen.ui.archive.viewmodel.requestdetail.RequestDetailViewModel
 import theme.GgriggriTheme
 import theme.MainColor
@@ -141,62 +143,72 @@ fun RequestDetailScreen(
 @Composable
 fun RequestDetailContent(
     request: Request,
-    viewModel: RequestDetailViewModel
+    viewModel: RequestDetailViewModel,
 ) {
     val userName by viewModel.userName.collectAsState()
     val userProfileImage by viewModel.userProfileImage.collectAsState()
-    val answers by viewModel.answers.collectAsState()
+    val responses by viewModel.responses.collectAsState()
+    val responseUserInfo by viewModel.responseUserInfo.collectAsState()
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(20.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp)
-    ) {
-        // 요청 정보 카드
-        item {
-            RequestInfoCard(
-                request = request,
-                userName = userName,
-                userProfileImage = userProfileImage
-            )
-        }
-
-        // 답변 목록
-        if (answers.isNotEmpty()) {
+    Column(Modifier.fillMaxSize()) {
+        LazyColumn(
+            modifier = Modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 4.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
+        ) {
+            // 요청 정보 카드
             item {
-                Text(
-                    text = "답변",
-                    fontSize = 18.sp,
-                    fontFamily = NanumSquareBold,
-                    color = Color.Black,
-                    modifier = Modifier.padding(horizontal = 4.dp)
+                RequestInfoCard(
+                    request = request,
+                    userName = userName,
+                    userProfileImage = userProfileImage
                 )
             }
-            
-            items(answers) { answer ->
-                AnswerCard(answer = answer, viewModel = viewModel)
-            }
-        } else {
-            item {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 4.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5)),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Box(
+        }
+            Spacer(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(15.dp)
+                    .background(Color(0xFFF0F0F0))
+            )
+
+        LazyColumn(
+            modifier = Modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 4.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
+        ) {
+            // 응답 목록
+            if (responses.isNotEmpty()) {
+
+                items(responses) { response ->
+                    ResponseCard(
+                        response = response,
+                        viewModel = viewModel,
+                        responseUserInfo = responseUserInfo
+                    )
+                }
+            } else {
+                item {
+                    Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(24.dp),
-                        contentAlignment = Alignment.Center
+                            .padding(horizontal = 4.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5)),
+                        shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text(
-                            text = "아직 답변이 없습니다.",
-                            fontSize = 14.sp,
-                            fontFamily = NanumSquareRegular,
-                            color = Color(0xFF666666)
-                        )
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(24.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "아직 답변이 없습니다.",
+                                fontSize = 14.sp,
+                                fontFamily = NanumSquareRegular,
+                                color = Color(0xFF666666)
+                            )
+                        }
                     }
                 }
             }
@@ -208,7 +220,7 @@ fun RequestDetailContent(
 fun RequestInfoCard(
     request: Request,
     userName: String?,
-    userProfileImage: String?
+    userProfileImage: String?,
 ) {
     Card(
         modifier = Modifier
@@ -251,9 +263,9 @@ fun RequestInfoCard(
                         )
                     }
                 }
-                
+
                 Spacer(modifier = Modifier.width(16.dp))
-                
+
                 Column {
                     Text(
                         text = userName ?: "알 수 없음",
@@ -269,9 +281,9 @@ fun RequestInfoCard(
                     )
                 }
             }
-            
+
             Spacer(modifier = Modifier.height(16.dp))
-            
+
             // 요청 메시지
             Text(
                 text = request.requestMessage,
@@ -280,7 +292,7 @@ fun RequestInfoCard(
                 color = Color.Black,
                 lineHeight = 22.sp
             )
-            
+
             // 이미지가 있는 경우
             if (request.requestImage.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(16.dp))
@@ -299,9 +311,10 @@ fun RequestInfoCard(
 }
 
 @Composable
-fun AnswerCard(
-    answer: com.ahn.domain.model.Answer,
-    viewModel: RequestDetailViewModel
+fun ResponseCard(
+    response: Response,
+    viewModel: RequestDetailViewModel,
+    responseUserInfo: Map<String, Pair<String, String>>,
 ) {
     Card(
         modifier = Modifier
@@ -314,22 +327,92 @@ fun AnswerCard(
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            Text(
-                text = answer.answerMessage,
-                fontSize = 14.sp,
-                fontFamily = NanumSquareRegular,
-                color = Color.Black,
-                lineHeight = 20.sp
-            )
-            
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            Text(
-                text = formatTime(answer.answerResponseTime),
-                fontSize = 11.sp,
-                fontFamily = NanumSquareRegular,
-                color = Color(0xFF888888)
-            )
+            // 응답자 정보 (프로필 이미지 + 이름)
+            val userInfo = responseUserInfo[response.responseUserDocumentID]
+            val (userName, userProfileImage) = userInfo ?: Pair("알 수 없는 사용자", "")
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(bottom = 12.dp)
+            ) {
+                // 프로필 이미지
+                if (userProfileImage.isNotEmpty()) {
+                    AsyncImage(
+                        model = userProfileImage,
+                        contentDescription = "프로필 이미지",
+                        modifier = Modifier
+                            .size(50.dp)
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    // 기본 프로필 아이콘
+                    Box(
+                        modifier = Modifier
+                            .size(50.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFFE0E0E0))
+                            .border(1.dp, Color(0xFFCCCCCC), CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.AccountCircle,
+                            contentDescription = "기본 프로필",
+                            tint = Color(0xFF666666),
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Column {
+                    // 사용자 이름
+                    Text(
+                        text = userName,
+                        fontSize = 16.sp,
+                        fontFamily = NanumSquareBold,
+                        color = Color.Black
+                    )
+                    // 응답 시간
+                    Text(
+                        text = formatTime(response.responseTime),
+                        fontSize = 12.sp,
+                        fontFamily = NanumSquareRegular,
+                        color = Color(0xFF888888)
+                    )
+                }
+            }
+
+            // 응답 메시지
+            if (response.responseMessage.isNotEmpty()) {
+                Text(
+                    text = response.responseMessage,
+                    fontSize = 14.sp,
+                    fontFamily = NanumSquareRegular,
+                    color = Color.Black,
+                    lineHeight = 20.sp
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
+            // 응답 이미지
+            if (response.responseImage.isNotEmpty()) {
+                AsyncImage(
+                    model = response.responseImage,
+                    contentDescription = "응답 이미지",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .clip(RoundedCornerShape(8.dp)),
+                    contentScale = ContentScale.Crop
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
+
         }
     }
 }

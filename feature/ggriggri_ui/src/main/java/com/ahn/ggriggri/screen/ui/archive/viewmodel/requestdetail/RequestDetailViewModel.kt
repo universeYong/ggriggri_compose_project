@@ -5,9 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ahn.domain.common.DataResourceResult
 import com.ahn.domain.common.SessionManager
-import com.ahn.domain.model.Answer
+import com.ahn.domain.model.Response
 import com.ahn.domain.model.Request
-import com.ahn.domain.repository.AnswerRepository
+import com.ahn.domain.repository.ResponseRepository
 import com.ahn.domain.repository.RequestRepository
 import com.ahn.domain.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -23,7 +23,7 @@ class RequestDetailViewModel @Inject constructor(
     private val sessionManager: SessionManager,
     private val requestRepository: RequestRepository,
     private val userRepository: UserRepository,
-    private val answerRepository: AnswerRepository,
+    private val responseRepository: ResponseRepository,
 ) : ViewModel() {
 
     private val _request = MutableStateFlow<Request?>(null)
@@ -35,8 +35,12 @@ class RequestDetailViewModel @Inject constructor(
     private val _userProfileImage = MutableStateFlow<String?>(null)
     val userProfileImage: StateFlow<String?> = _userProfileImage.asStateFlow()
 
-    private val _answers = MutableStateFlow<List<Answer>>(emptyList())
-    val answers: StateFlow<List<Answer>> = _answers.asStateFlow()
+    private val _responses = MutableStateFlow<List<Response>>(emptyList())
+    val responses: StateFlow<List<Response>> = _responses.asStateFlow()
+
+    // 응답자 정보를 저장하는 Map
+    private val _responseUserInfo = MutableStateFlow<Map<String, Pair<String, String>>>(emptyMap())
+    val responseUserInfo: StateFlow<Map<String, Pair<String, String>>> = _responseUserInfo.asStateFlow()
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
@@ -81,8 +85,8 @@ class RequestDetailViewModel @Inject constructor(
                                 // 사용자 이름 가져오기
                                 loadUserName(foundRequest.requestUserDocumentID)
                                 
-                                // 답변 목록 가져오기
-                                loadAnswers(requestId)
+                                // 응답 목록 가져오기
+                                loadResponses(requestId)
                                 
                                 Log.d("RequestDetailViewModel", "Found request: ${foundRequest.requestMessage}")
                             } else {
@@ -127,18 +131,74 @@ class RequestDetailViewModel @Inject constructor(
         }
     }
 
-    private suspend fun loadAnswers(requestId: String) {
+    private suspend fun loadResponses(requestId: String) {
         try {
-            Log.d("RequestDetailViewModel", "Loading answers for request: $requestId")
+            Log.d("RequestDetailViewModel", "Loading responses for request: $requestId")
             
-            // TODO: AnswerRepository에서 특정 요청의 답변을 가져오는 함수가 필요
-            // 현재는 임시로 빈 목록으로 설정
-            _answers.value = emptyList()
-            
-            Log.d("RequestDetailViewModel", "Loaded ${_answers.value.size} answers")
+            responseRepository.read(requestId).collect { result ->
+                when (result) {
+                    is DataResourceResult.Loading -> {
+                        Log.d("RequestDetailViewModel", "Loading responses...")
+                    }
+                    is DataResourceResult.Success -> {
+                        _responses.value = result.data
+                        Log.d("RequestDetailViewModel", "Loaded ${result.data.size} responses")
+                        
+                        // 응답자 정보 로드
+                        loadResponseUserInfo(result.data)
+                    }
+                    is DataResourceResult.Failure -> {
+                        Log.e("RequestDetailViewModel", "Error loading responses", result.exception)
+                        _responses.value = emptyList()
+                    }
+                    else -> {}
+                }
+            }
         } catch (e: Exception) {
-            Log.e("RequestDetailViewModel", "Error loading answers for $requestId", e)
-            _answers.value = emptyList()
+            Log.e("RequestDetailViewModel", "Error loading responses for $requestId", e)
+            _responses.value = emptyList()
+        }
+    }
+
+    private suspend fun loadResponseUserInfo(responses: List<Response>) {
+        try {
+            Log.d("RequestDetailViewModel", "Loading user info for ${responses.size} responses")
+            
+            val userInfoMap = mutableMapOf<String, Pair<String, String>>()
+            
+            responses.forEach { response ->
+                val userId = response.responseUserDocumentID
+                if (userId.isNotEmpty() && !userInfoMap.containsKey(userId)) {
+                    try {
+                        val userResult = userRepository.getUserByIdSync(userId)
+                        when (userResult) {
+                            is DataResourceResult.Success -> {
+                                val user = userResult.data
+                                if (user != null) {
+                                    userInfoMap[userId] = Pair(
+                                        user.userName ?: "알 수 없는 사용자",
+                                        user.userProfileImage ?: ""
+                                    )
+                                    Log.d("RequestDetailViewModel", "Loaded user info for $userId: ${user.userName}")
+                                }
+                            }
+                            else -> {
+                                userInfoMap[userId] = Pair("알 수 없는 사용자", "")
+                                Log.w("RequestDetailViewModel", "Failed to load user info for $userId")
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Log.e("RequestDetailViewModel", "Error loading user info for $userId", e)
+                        userInfoMap[userId] = Pair("알 수 없는 사용자", "")
+                    }
+                }
+            }
+            
+            _responseUserInfo.value = userInfoMap
+            Log.d("RequestDetailViewModel", "Loaded user info for ${userInfoMap.size} users")
+        } catch (e: Exception) {
+            Log.e("RequestDetailViewModel", "Error loading response user info", e)
+            _responseUserInfo.value = emptyMap()
         }
     }
 }

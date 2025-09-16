@@ -6,6 +6,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import androidx.navigation.toRoute
 import com.ahn.ggriggri.screen.archive.memory.MemoryScreen
 import com.ahn.ggriggri.screen.archive.questionanswer.QuestionAnswerScreen
 import com.ahn.ggriggri.screen.archive.questionlist.QuestionListScreen
@@ -17,6 +18,7 @@ import com.ahn.ggriggri.screen.group.GroupScreen
 import com.ahn.ggriggri.screen.main.answer.AnswerScreen
 import com.ahn.ggriggri.screen.main.home.HomeScreen
 import com.ahn.ggriggri.screen.main.request.RequestScreen
+import com.ahn.ggriggri.screen.main.response.ResponseScreen
 import com.ahn.ggriggri.screen.setting.modifygroupname.ModifyGroupNameScreen
 import com.ahn.ggriggri.screen.setting.modifygrouppw.ModifyGroupPwScreen
 import com.ahn.ggriggri.screen.setting.mypage.MyPageScreen
@@ -44,7 +46,9 @@ fun NavGraphBuilder.GgriggriNavigationGraph(
         HomeScreen(
             onNavigationToAnswer = {navController.navigate(GgriggriNavigationRouteUi.Answer)},
             onNavigateToRequest = {navController.navigate(GgriggriNavigationRouteUi.Request)},
-            onNavigateToResponse = {navController.navigate(GgriggriNavigationRouteUi.Response)},
+            onNavigateToResponse = { requestDocumentId ->
+                navController.navigate(GgriggriNavigationRouteUi.Response(requestDocumentId = requestDocumentId))
+            },
             onNavigateToRequestDetail = { request -> 
                 if (request.requestId.isNotBlank()) {
                     navController.navigate(GgriggriNavigationRouteUi.RequestDetail(requestId = request.requestId))
@@ -134,7 +138,9 @@ fun NavGraphBuilder.GgriggriNavigationGraph(
     composable<GgriggriNavigationRouteUi.Group> {
         GroupScreen(
             onNavigateToHome = {navController.navigate(GgriggriNavigationRouteUi.HomeTab)},
-            onNavigateBack = { navController.popBackStack() },
+            onNavigateBack = {
+                navController.navigate(GgriggriNavigationRouteUi.Login)
+            }
         )
     }
 
@@ -151,11 +157,13 @@ fun NavGraphBuilder.GgriggriNavigationGraph(
         )
     }
 
-//    composable <GgriggriNavigationRouteUi.Response> {
-//        ResponseScreen(
-//            onNavigateBack = {navController.navigate(GgriggriNavigationRouteUi.HomeTab)}
-//        )
-//    }
+    composable<GgriggriNavigationRouteUi.Response> { backStackEntry ->
+        val responseRoute = backStackEntry.toRoute<GgriggriNavigationRouteUi.Response>()
+        ResponseScreen(
+            requestDocumentId = responseRoute.requestDocumentId,
+            onNavigateBack = { navController.popBackStack() }
+        )
+    }
 
     /********* setting ******************************************************/
     composable<GgriggriNavigationRouteUi.SettingGroup> {
@@ -189,5 +197,7 @@ fun NavGraphBuilder.GgriggriNavigationGraph(
             }
         )
     }
+
+
 
 }

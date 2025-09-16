@@ -32,7 +32,7 @@ import theme.NanumSquareRegular
 fun ActiveRequestCard(
     request: Request,
     viewModel: HomeViewModel,
-    onNavigateToResponse: (Request) -> Unit = {},
+    onNavigateToResponse: (String) -> Unit = {},
     onNavigateToRequestDetail: (Request) -> Unit = {}
 ) {
     val userName by remember {

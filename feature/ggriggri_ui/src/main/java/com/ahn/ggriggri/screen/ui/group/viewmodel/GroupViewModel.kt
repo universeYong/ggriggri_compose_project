@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ahn.domain.common.DataResourceResult
+import com.ahn.domain.common.SessionManager
 import com.ahn.domain.model.Group
 import com.ahn.domain.repository.GroupRepository
 import com.ahn.domain.repository.UserRepository
@@ -15,19 +16,21 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 @HiltViewModel
 class GroupViewModel @Inject constructor(
     private val groupRepository: GroupRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val sessionManager: SessionManager
 ) : ViewModel() {
 
     // SnackBar 기능을 직접 구현
     private val _snackBarMessage = MutableSharedFlow<String>()
     val snackBarMessage: SharedFlow<String> = _snackBarMessage.asSharedFlow()
 
-    protected fun showSnackBar(message: String) {
+    fun showSnackBar(message: String) {
         viewModelScope.launch {
             _snackBarMessage.emit(message)
         }
@@ -74,6 +77,25 @@ class GroupViewModel @Inject constructor(
                                                 when (groupUserAddResult) {
                                                     is DataResourceResult.Success -> {
                                                         Log.i("GroupVM_Create", "User $userId successfully added to group $groupId members list.")
+                                                        // Firebase에서 최신 사용자 정보를 가져와서 SessionManager 업데이트
+                                                        try {
+                                                            val updatedUserResult = userRepository.getUserById(userId)
+                                                                .filter { it !is DataResourceResult.Loading }
+                                                                .first()
+                                                            when (updatedUserResult) {
+                                                                is DataResourceResult.Success -> {
+                                                                    updatedUserResult.data?.let { updatedUser ->
+                                                                        sessionManager.loginUser(updatedUser)
+                                                                        Log.d("GroupVM_Create", "SessionManager에 최신 사용자 정보 업데이트 성공")
+                                                                    }
+                                                                }
+                                                                else -> {
+                                                                    Log.e("GroupVM_Create", "최신 사용자 정보 가져오기 실패")
+                                                                }
+                                                            }
+                                                        } catch (e: Exception) {
+                                                            Log.e("GroupVM_Create", "사용자 정보 업데이트 실패", e)
+                                                        }
                                                         _createResult.value = DataResourceResult.Success(Unit)
                                                         showSnackBar("그룹이 성공적으로 생성되었습니다!")
                                                     }
@@ -141,6 +163,10 @@ class GroupViewModel @Inject constructor(
         }
     }
 
+    fun clearDuplicateCheckResult() {
+        _isGroupCodeDuplicate.value = null
+    }
+
     fun joinGroup(
         userId: String,
         groupCode: String,
@@ -186,6 +212,25 @@ class GroupViewModel @Inject constructor(
                                                   when (groupUserAddResult) {
                                                       is DataResourceResult.Success -> {
                                                           Log.i("GroupVM_Join", "User $userId successfully added to group $actualGroupDocumentId members list.")
+                                                          // Firebase에서 최신 사용자 정보를 가져와서 SessionManager 업데이트
+                                                          try {
+                                                              val updatedUserResult = userRepository.getUserById(userId)
+                                                                  .filter { it !is DataResourceResult.Loading }
+                                                                  .first()
+                                                              when (updatedUserResult) {
+                                                                  is DataResourceResult.Success -> {
+                                                                      updatedUserResult.data?.let { updatedUser ->
+                                                                          sessionManager.loginUser(updatedUser)
+                                                                          Log.d("GroupVM_Join", "SessionManager에 최신 사용자 정보 업데이트 성공")
+                                                                      }
+                                                                  }
+                                                                  else -> {
+                                                                      Log.e("GroupVM_Join", "최신 사용자 정보 가져오기 실패")
+                                                                  }
+                                                              }
+                                                          } catch (e: Exception) {
+                                                              Log.e("GroupVM_Join", "사용자 정보 업데이트 실패", e)
+                                                          }
                                                           _createResult.value = DataResourceResult.Success(Unit)
                                                           showSnackBar("그룹에 성공적으로 가입되었습니다!")
                                                       }

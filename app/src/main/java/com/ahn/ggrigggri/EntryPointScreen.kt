@@ -45,13 +45,31 @@ fun EntryPointScreen() {
 
     val finalTopBarData = remember(topBarData, navBackStackEntry?.destination?.route) {
 
-        // 왼쪽 아이콘이 있을때 뒤로가기 액션
         if (topBarData.titleLeftIcon != null) {
-            topBarData.copy(IconOnClick = { navController.popBackStack() })
+            topBarData.copy(IconOnClick = {
+                Log.d("Navigation", "TopBar back button clicked")
+                Log.d("Navigation", "Current route: $currentRoute")
+                Log.d("Navigation", "Route contains Group: ${currentRoute?.contains("Group")}")
+                
+                // Group 화면인지 확인 (더 정확한 체크)
+                val isGroupScreen = currentRoute?.contains("Group") == true || 
+                                  currentRoute?.contains("ggriggri_compose.Group") == true
+                
+                if (isGroupScreen) {
+                    Log.d("Navigation", "Navigating to Login from Group")
+                    navController.navigate(GgriggriNavigationRouteUi.Login) {
+                        popUpTo(GgriggriNavigationRouteUi.Login) { inclusive = true }
+                    }
+                } else {
+                    Log.d("Navigation", "Using popBackStack")
+                    navController.popBackStack()
+                }
+            })
         } else {
             topBarData
         }
     }
+
 
 
     val topBarTitle = if (topBarData.title != 0) stringResource(topBarData.title) else ""

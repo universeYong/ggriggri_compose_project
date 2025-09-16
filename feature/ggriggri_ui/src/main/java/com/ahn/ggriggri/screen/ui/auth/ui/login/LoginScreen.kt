@@ -47,9 +47,11 @@ fun LoginScreen(
     val loginStatus by authViewModel.loginStatus.collectAsStateWithLifecycle()
     val currentUserId by authViewModel.currentUserId.collectAsStateWithLifecycle()
 
-    LaunchedEffect(currentUserId) {
-        if (currentUserId != null) {
-            Log.d("LoginScreen", "CurrentUserId is $currentUserId, checking group and navigating.")
+    // 이미 로그인된 사용자가 뒤로가기로 온 경우 자동 네비게이션 방지
+    // 새로운 로그인 시에만 네비게이션 체크
+    LaunchedEffect(loginStatus) {
+        if (loginStatus.contains("성공") && currentUserId != null) {
+            Log.d("LoginScreen", "Login successful, checking group and navigating.")
             authViewModel.checkUserGroupAndNavigate(
                 onNavigationToGroup = onNavigationToGroup,
                 onNavigationToHome = onNavigationToHome
