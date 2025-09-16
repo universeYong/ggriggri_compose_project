@@ -5,6 +5,7 @@ import com.ahn.data.datasource.GroupDataSource
 import com.ahn.data.datasource.QuestionDataSource
 import com.ahn.data.datasource.QuestionListDataSource
 import com.ahn.data.datasource.RequestDataSource
+import com.ahn.data.datasource.ResponseDataSource
 import com.ahn.data.datasource.StorageDataSource
 import com.ahn.data.datasource.UserDataSource
 import com.ahn.data.remote.firebase.FirebaseStorageDataSourceImpl
@@ -13,45 +14,56 @@ import com.ahn.data.remote.firebase.FirestoreGroupDataSourceImpl
 import com.ahn.data.remote.firebase.FirestoreQuestionDataSourceImpl
 import com.ahn.data.remote.firebase.FirestoreQuestionListDataSourceImpl
 import com.ahn.data.remote.firebase.FirestoreRequestDataSourceImpl
+import com.ahn.data.remote.firebase.FirestoreResponseDataSourceImpl
 import com.ahn.data.remote.firebase.FirestoreUserDataSourceImpl
+import dagger.Binds
 import dagger.Module
-import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.components.ViewModelComponent
 import dagger.hilt.components.SingletonComponent
-import jakarta.inject.Singleton
 
 @Module
-@InstallIn(SingletonComponent::class)
-object FirestoreDataSourceModule {
+@InstallIn(ViewModelComponent::class)
+abstract class FirestoreDataSourceModule {
 
-    @Provides
-    @Singleton
-    fun provideUserDataSource(): UserDataSource = FirestoreUserDataSourceImpl()
+    @Binds
+    abstract fun bindUserDataSource(
+        firestoreUserDataSourceImpl: FirestoreUserDataSourceImpl
+    ): UserDataSource
 
-    @Provides
-    @Singleton
-    fun provideGroupDataSource(): GroupDataSource = FirestoreGroupDataSourceImpl()
+    @Binds
+    abstract fun bindGroupDataSource(
+        firestoreGroupDataSourceImpl: FirestoreGroupDataSourceImpl
+    ): GroupDataSource
 
-    @Provides
-    @Singleton
-    fun provideQuestionDataSource(): QuestionDataSource = FirestoreQuestionDataSourceImpl()
+    @Binds
+    abstract fun bindQuestionDataSource(
+        firestoreQuestionDataSourceImpl: FirestoreQuestionDataSourceImpl
+    ): QuestionDataSource
 
-    @Provides
-    @Singleton
-    fun provideQuestionListDataSource(): QuestionListDataSource =
-        FirestoreQuestionListDataSourceImpl()
+    @Binds
+    abstract fun bindQuestionListDataSource(
+        firestoreQuestionListDataSourceImpl: FirestoreQuestionListDataSourceImpl
+    ): QuestionListDataSource
 
-    @Provides
-    @Singleton
-    fun provideQuestionAnswerDataSource(): AnswerDataSource = FirestoreAnswerDataSourceImpl()
+    @Binds
+    abstract fun bindAnswerDataSource(
+        firestoreAnswerDataSourceImpl: FirestoreAnswerDataSourceImpl
+    ): AnswerDataSource
 
-    @Provides
-    @Singleton
-    fun provideRequestDataSource(): RequestDataSource = FirestoreRequestDataSourceImpl()
+    @Binds
+    abstract fun bindRequestDataSource(
+        firestoreRequestDataSourceImpl: FirestoreRequestDataSourceImpl
+    ): RequestDataSource
 
-    @Provides
-    @Singleton
-    fun provideStorageDataSource(): StorageDataSource = FirebaseStorageDataSourceImpl()
+    @Binds
+    abstract fun bindStorageDataSource(
+        firebaseStorageDataSourceImpl: FirebaseStorageDataSourceImpl
+    ): StorageDataSource
 
+    @Binds
+    abstract fun bindResponseDataSource(
+        firestoreResponseDataSourceImpl: FirestoreResponseDataSourceImpl
+    ): ResponseDataSource
 
 }

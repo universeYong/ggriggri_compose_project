@@ -27,6 +27,7 @@ import com.ahn.ggriggri.screen.ui.main.ui.request.component.ImageUploadSection
 import com.ahn.ggriggri.screen.ui.main.ui.request.component.MessageInputSection
 import com.ahn.ggriggri.screen.ui.main.viewmodel.RequestViewModel
 import theme.GgriggriTheme
+import theme.MainColor
 import theme.NanumSquareBold
 import theme.NanumSquareLight
 import theme.NanumSquareRegular
@@ -82,16 +83,6 @@ fun RequestScreen(
             ) {
                 Spacer(modifier = Modifier.height(70.dp))
 
-                //이미지 업로드
-//                ImageUploadBox(
-//                    imageUri = selectedImageUri,
-//                    onClick = {
-//                        // 이미지 선택기 실행
-//                        photoPickerLauncher.launch(
-//                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-//                        )
-//                    }
-//                )
                 ImageUploadSection(
                     selectedImageUri = selectedImageUri,
                     onImageSelected = { 
@@ -122,7 +113,8 @@ fun RequestScreen(
                         .height(50.dp),
                     enabled = isRequestButtonEnabled && !isLoading,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isRequestButtonEnabled) Color.Gray else Color.LightGray
+                        containerColor = if (isRequestButtonEnabled) MainColor else Color.LightGray,
+                        contentColor = if (isRequestButtonEnabled) Color.Black else Color.White
                     )
                 ) {
                     if (isLoading) {

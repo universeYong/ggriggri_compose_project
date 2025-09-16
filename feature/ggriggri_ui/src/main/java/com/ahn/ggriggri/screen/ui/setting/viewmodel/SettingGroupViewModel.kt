@@ -201,6 +201,25 @@ class SettingGroupViewModel @Inject constructor(
                         
                         when (userResult) {
                             is DataResourceResult.Success -> {
+                                // Firebase에서 최신 사용자 정보를 가져와서 SessionManager 업데이트
+                                try {
+                                    val updatedUserResult = userRepository.getUserById(currentUser.userId)
+                                        .filter { it !is DataResourceResult.Loading }
+                                        .first()
+                                    when (updatedUserResult) {
+                                        is DataResourceResult.Success -> {
+                                            updatedUserResult.data?.let { updatedUser ->
+                                                sessionManager.loginUser(updatedUser)
+                                                Log.d("SettingGroupViewModel", "SessionManager에 최신 사용자 정보 업데이트 성공")
+                                            }
+                                        }
+                                        else -> {
+                                            Log.e("SettingGroupViewModel", "최신 사용자 정보 가져오기 실패")
+                                        }
+                                    }
+                                } catch (e: Exception) {
+                                    Log.e("SettingGroupViewModel", "사용자 정보 업데이트 실패", e)
+                                }
                                 _successMessage.value = "그룹에서 성공적으로 나갔습니다."
                                 _isLoading.value = false
                                 Log.d("SettingGroupViewModel", "그룹 나가기 성공 - 그룹과 사용자 정보 모두 업데이트됨")

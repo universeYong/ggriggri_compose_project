@@ -66,6 +66,13 @@ fun MakeGroupScreen(
             onNavigateToHome()
         }
     }
+    
+    // SnackBar 메시지 표시
+    LaunchedEffect(Unit) {
+        groupViewModel.snackBarMessage.collect { message ->
+            // SnackBar 표시 로직 (필요시 추가)
+        }
+    }
 
     GgriggriTheme {
         Surface(
@@ -97,15 +104,54 @@ fun MakeGroupScreen(
                     CommonOutlinedTextField(
                         modifier = Modifier.weight(1f),
                         value = groupCode,
-                        onValueChange = {
+                        onValueChange = { 
                             groupCode = it
-                            groupViewModel.checkGroupCodeDuplicate(it) },
+                            // 그룹코드가 변경되면 중복확인 결과 초기화
+                            groupViewModel.clearDuplicateCheckResult()
+                        },
                         label = { Text(stringResource(R.string.group_code)) },
                         singleLine = true
                     )
                     CommonButton(
-                        onClick = {}
+                        onClick = { groupViewModel.checkGroupCodeDuplicate(groupCode) }
                     ) { Text(stringResource(R.string.button_check_id_duplication)) }
+                }
+                
+                // 그룹코드 중복확인 결과 표시
+                val duplicateResult = isCodeDuplicateResult
+                when (duplicateResult) {
+                    is DataResourceResult.Loading -> {
+                        Text(
+                            text = "코드 확인 중...",
+                            color = MaterialTheme.colorScheme.primary,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                    is DataResourceResult.Success -> {
+                        if (duplicateResult.data) {
+                            Text(
+                                text = "이미 사용중인 코드입니다",
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        } else {
+                            Text(
+                                text = "사용 가능한 코드입니다",
+                                color = MaterialTheme.colorScheme.primary,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    }
+                    is DataResourceResult.Failure -> {
+                        Text(
+                            text = "코드 확인에 실패했습니다",
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                    else -> {
+                        // 아무것도 표시하지 않음
+                    }
                 }
 
                 // 그룹코드 비밀번호
@@ -162,8 +208,15 @@ fun MakeGroupScreen(
 
                 CommonButton(
                     onClick = {
+                        // 중복확인이 완료되고 사용 가능한 코드인지 확인
+                        val duplicateResult = isCodeDuplicateResult
+                        val isCodeAvailable = when (duplicateResult) {
+                            is DataResourceResult.Success -> duplicateResult.data == false
+                            else -> false
+                        }
+                        
                         if (groupPw == groupConfirmPw && groupName.isNotBlank() &&
-                            groupCode.isNotBlank()
+                            groupCode.isNotBlank() && isCodeAvailable
                         ) {
                             groupViewModel.createGroupAndUpdateUser(
                                 userId = userId,
@@ -171,6 +224,9 @@ fun MakeGroupScreen(
                                 groupCode,
                                 groupPw
                             )
+                        } else if (!isCodeAvailable && groupCode.isNotBlank()) {
+                            // 중복확인이 안된 경우 안내 메시지
+                            groupViewModel.showSnackBar("그룹코드 중복확인을 먼저 해주세요")
                         }
                     },
                     modifier = Modifier

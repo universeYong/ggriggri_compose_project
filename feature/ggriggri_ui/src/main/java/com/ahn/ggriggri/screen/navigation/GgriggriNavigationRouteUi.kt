@@ -54,5 +54,5 @@ sealed interface GgriggriNavigationRouteUi {
     data object Request: GgriggriNavigationRouteUi
 
     @Serializable
-    data object Response: GgriggriNavigationRouteUi
+    data class Response(val requestDocumentId: String): GgriggriNavigationRouteUi
 }

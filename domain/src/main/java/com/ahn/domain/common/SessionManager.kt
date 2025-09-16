@@ -13,4 +13,5 @@ interface SessionManager {
     suspend fun getTokenOnce(): String?
     suspend fun getCurrentUserIdOnce(): String?
     suspend fun updateUserProfile(newName: String, newProfileImage: String)
+    suspend fun refreshUserInfo()
 }

@@ -108,6 +108,10 @@
     <!-- REQUEST stri   ng -->
     <string name="request_title">요청하기</string>
 
+
+    <!-- Response stri   ng -->
+    <string name="response_title">응답하기</string>
+
     <!-- answer string -->
     <string name="answer_title">답변하기</string>
 

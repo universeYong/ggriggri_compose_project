@@ -76,7 +76,9 @@ class SessionManagerImpl(
             }
         }
         .map { preferences ->
-            preferences[DataStoreKeys.USER_GROUP_ID]
+            val groupId = preferences[DataStoreKeys.USER_GROUP_ID]
+            Log.d("SessionManager", "currentUserGroupIdFlow emitted: $groupId")
+            groupId
         }
 
     override suspend fun loginUser(user: User) {
@@ -172,14 +174,26 @@ class SessionManagerImpl(
         }
     }
 
-    suspend fun refreshUserInfo() {
+    override suspend fun refreshUserInfo() {
         // 사용자 정보를 다시 로드하여 currentUserFlow를 업데이트
         // 이 함수는 currentUserFlow를 관찰하는 모든 ViewModel에서 그룹 정보를 새로고침하게 함
+        Log.d("SessionManager", "refreshUserInfo() 호출됨")
         context.dataStore.edit { settings ->
             // DataStore를 다시 읽어서 currentUserFlow를 트리거
             val currentUserJson = settings[DataStoreKeys.USER_OBJECT_JSON]
+            Log.d("SessionManager", "refreshUserInfo() - currentUserJson: $currentUserJson")
             if (currentUserJson != null) {
-                // currentUserFlow가 자동으로 업데이트됨
+                // 사용자 정보를 다시 파싱해서 저장하여 Flow를 트리거
+                runCatching {
+                    val user = userJsonAdapter.fromJson(currentUserJson)
+                    if (user != null) {
+                        // 사용자 정보를 다시 저장하여 Flow 업데이트 트리거
+                        settings[DataStoreKeys.USER_OBJECT_JSON] = userJsonAdapter.toJson(user)
+                        Log.d("SessionManager", "refreshUserInfo() - 사용자 정보 재저장 완료")
+                    }
+                }.getOrElse { exception ->
+                    Log.e("SessionManager", "refreshUserInfo() - 사용자 정보 재저장 실패", exception)
+                }
             }
         }
     }

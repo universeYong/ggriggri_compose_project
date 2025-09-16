@@ -67,7 +67,7 @@ fun MyPageScreen(
                 contentAlignment = Alignment.Center
             ) {
                 AsyncImage(
-                    model = if (user.userProfileImage.isNotEmpty()) user.userProfileImage else R.drawable.main_logo_background,
+                    model = if (user.userProfileImage.isNotEmpty()) user.userProfileImage else R.drawable.outline_account_circle_24,
                     contentDescription = "프로필 이미지",
                     modifier = Modifier
                         .size(150.dp)

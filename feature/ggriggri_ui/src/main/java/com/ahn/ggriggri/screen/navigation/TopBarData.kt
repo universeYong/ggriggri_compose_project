@@ -110,6 +110,13 @@ val NavBackStackEntry.topBarAsRouteName: TopBarData
                 )
             }
 
+            routeName.contains("Response") -> {
+                TopBarData(
+                    title = R.string.response_title,
+                    titleLeftIcon = Icons.Outlined.ArrowBackIosNew
+                )
+            }
+
             else -> throw IllegalArgumentException("???")
         }
     }

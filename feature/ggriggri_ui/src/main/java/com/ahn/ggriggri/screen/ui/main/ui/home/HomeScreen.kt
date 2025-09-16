@@ -15,7 +15,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.ahn.ggriggri.screen.ui.main.ui.home.component.bottomsheet.AllProfilesSheetContent
 import com.ahn.ggriggri.screen.ui.main.viewmodel.HomeViewModel
 import kotlinx.coroutines.launch
@@ -34,14 +36,18 @@ import com.ahn.ggriggri.screen.ui.main.ui.home.component.requestcard.DefaultRequ
 fun HomeScreen(
     onNavigationToAnswer: () -> Unit,
     onNavigateToRequest: () -> Unit = {},
-    onNavigateToResponse: (Request) -> Unit = {},
+    onNavigateToResponse: (String) -> Unit = {},
     onNavigateToRequestDetail: (Request) -> Unit = {},
     homeViewModel: HomeViewModel = hiltViewModel()
 ) {
+    android.util.Log.d("HomeScreen", "HomeScreen 컴포즈 시작")
 
     val profiles by homeViewModel.profiles.collectAsState()
     val todayQuestion by homeViewModel.todayQuestionContent.collectAsState()
     val isLoadingTodayQuestion by homeViewModel.isLoading.collectAsState()
+    val errorMessage by homeViewModel.errorMessage.collectAsState()
+
+    android.util.Log.d("HomeScreen", "HomeViewModel 상태 수집 완료 - 로딩: $isLoadingTodayQuestion, 오류: $errorMessage")
 
     val sheetState = rememberModalBottomSheetState()
     var showBottomSheet by remember { mutableStateOf(false) }
@@ -63,11 +69,23 @@ fun HomeScreen(
     LaunchedEffect(true) {
         homeViewModel.loadRequests()
     }
-    
-//    // 화면이 다시 포커스될 때 요청 목록 새로고침
-//    LaunchedEffect(true) {
-//        homeViewModel.refreshRequests()
-//    }
+
+    // 프로필 로딩 상태 디버깅
+    LaunchedEffect(profiles) {
+        android.util.Log.d("HomeScreen", "프로필 목록 업데이트: ${profiles.size}개")
+        profiles.forEach { profile ->
+            android.util.Log.d("HomeScreen", "프로필: ${profile.name} (${profile.id})")
+        }
+    }
+
+    // 오늘의 질문 상태 디버깅
+    LaunchedEffect(todayQuestion, isLoadingTodayQuestion) {
+        android.util.Log.d("HomeScreen", "오늘의 질문 상태 - 로딩: $isLoadingTodayQuestion, 질문: $todayQuestion")
+        val currentQuestion = todayQuestion
+        if (currentQuestion != null) {
+            android.util.Log.d("HomeScreen", "오늘의 질문 내용: ${currentQuestion.content}")
+        }
+    }
 
     GgriggriTheme {
         Surface(
@@ -127,10 +145,24 @@ fun HomeScreen(
                                         modifier = Modifier.fillMaxSize(),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        Text(
-                                            "오늘의 질문을 불러오지 못했어요.",
-                                            fontFamily = NanumSquareRegular
-                                        )
+                                        Column(
+                                            horizontalAlignment = Alignment.CenterHorizontally
+                                        ) {
+                                            Text(
+                                                text = "오늘의 질문을 불러오지 못했어요.",
+                                                fontFamily = NanumSquareRegular,
+                                                color = Color(0xFF666666)
+                                            )
+                                            if (errorMessage != null) {
+                                                Spacer(modifier = Modifier.height(4.dp))
+                                                Text(
+                                                    text = errorMessage!!,
+                                                    fontSize = 12.sp,
+                                                    fontFamily = NanumSquareRegular,
+                                                    color = Color(0xFF999999)
+                                                )
+                                            }
+                                        }
                                     }
                                 }
                             }
