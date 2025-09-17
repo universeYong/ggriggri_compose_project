@@ -6,7 +6,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,10 +42,10 @@ fun HomeScreen(
 ) {
     android.util.Log.d("HomeScreen", "HomeScreen 컴포즈 시작")
 
-    val profiles by homeViewModel.profiles.collectAsState()
-    val todayQuestion by homeViewModel.todayQuestionContent.collectAsState()
-    val isLoadingTodayQuestion by homeViewModel.isLoading.collectAsState()
-    val errorMessage by homeViewModel.errorMessage.collectAsState()
+    val profiles by homeViewModel.profiles.collectAsStateWithLifecycle()
+    val todayQuestion by homeViewModel.todayQuestionContent.collectAsStateWithLifecycle()
+    val isLoadingTodayQuestion by homeViewModel.isLoading.collectAsStateWithLifecycle()
+    val errorMessage by homeViewModel.errorMessage.collectAsStateWithLifecycle()
 
     android.util.Log.d("HomeScreen", "HomeViewModel 상태 수집 완료 - 로딩: $isLoadingTodayQuestion, 오류: $errorMessage")
 
@@ -53,7 +53,7 @@ fun HomeScreen(
     var showBottomSheet by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
-    val requests by homeViewModel.requests.collectAsState()
+    val requests by homeViewModel.requests.collectAsStateWithLifecycle()
     val hasActiveRequest = requests.any { it.isAnswerable() }
     val activeRequest = requests.firstOrNull { it.isAnswerable() }
     

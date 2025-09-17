@@ -6,7 +6,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,7 +36,7 @@ import theme.NanumSquareRegular
 fun QuestionAnswerScreen() {
 
     val  questionAnswerViewModel: QuestionAnswerViewModel = hiltViewModel()
-    val uiState by questionAnswerViewModel.uiState.collectAsState()
+    val uiState by questionAnswerViewModel.uiState.collectAsStateWithLifecycle()
 
     GgriggriTheme {
         Surface(

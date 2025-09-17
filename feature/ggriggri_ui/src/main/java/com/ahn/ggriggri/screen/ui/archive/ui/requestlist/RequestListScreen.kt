@@ -14,7 +14,7 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,8 +29,8 @@ fun RequestListScreen(
 ) {
     val requestListViewModel: RequestListViewModel = hiltViewModel()
 
-    val archivedRequests by requestListViewModel.archivedRequests.collectAsState()
-    val isLoading by requestListViewModel.isLoading.collectAsState()
+    val archivedRequests by requestListViewModel.archivedRequests.collectAsStateWithLifecycle()
+    val isLoading by requestListViewModel.isLoading.collectAsStateWithLifecycle()
 
     Column(modifier = Modifier.fillMaxSize()) {
         if (isLoading) {

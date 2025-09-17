@@ -17,7 +17,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,7 +47,7 @@ fun JoinGroupScreen(
 
     var passwordVisible by remember { mutableStateOf(false) }
 
-    val createResult by groupViewModel.createResult.collectAsState()
+    val createResult by groupViewModel.createResult.collectAsStateWithLifecycle()
 
     // 성공 시 화면 이동
     LaunchedEffect(createResult) {

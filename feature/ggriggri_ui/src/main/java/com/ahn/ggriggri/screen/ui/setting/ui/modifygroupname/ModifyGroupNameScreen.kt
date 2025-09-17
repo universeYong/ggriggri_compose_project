@@ -26,9 +26,9 @@ fun ModifyGroupNameScreen(
     var groupName by remember { mutableStateOf("") }
 
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
-    val errorMessage by viewModel.errorMessage.collectAsState()
-    val successMessage by viewModel.successMessage.collectAsState()
-    val currentGroup by viewModel.currentGroup.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsStateWithLifecycle()
+    val successMessage by viewModel.successMessage.collectAsStateWithLifecycle()
+    val currentGroup by viewModel.currentGroup.collectAsStateWithLifecycle()
 
     val snackbarHostState = remember { SnackbarHostState() }
 

@@ -31,7 +31,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,9 +59,9 @@ fun RequestDetailScreen(
     onNavigateBack: () -> Unit,
     viewModel: RequestDetailViewModel = hiltViewModel(),
 ) {
-    val request by viewModel.request.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
-    val error by viewModel.error.collectAsState()
+    val request by viewModel.request.collectAsStateWithLifecycle()
+    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+    val error by viewModel.error.collectAsStateWithLifecycle()
 
     LaunchedEffect(requestId) {
         if (requestId.isNotBlank()) {
@@ -145,10 +145,10 @@ fun RequestDetailContent(
     request: Request,
     viewModel: RequestDetailViewModel,
 ) {
-    val userName by viewModel.userName.collectAsState()
-    val userProfileImage by viewModel.userProfileImage.collectAsState()
-    val responses by viewModel.responses.collectAsState()
-    val responseUserInfo by viewModel.responseUserInfo.collectAsState()
+    val userName by viewModel.userName.collectAsStateWithLifecycle()
+    val userProfileImage by viewModel.userProfileImage.collectAsStateWithLifecycle()
+    val responses by viewModel.responses.collectAsStateWithLifecycle()
+    val responseUserInfo by viewModel.responseUserInfo.collectAsStateWithLifecycle()
 
     Column(Modifier.fillMaxSize()) {
         LazyColumn(
