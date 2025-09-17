@@ -15,5 +15,5 @@ interface UserRepository {
             Flow<DataResourceResult<Unit>>
     suspend fun getUserById(userId: String): Flow<DataResourceResult<User?>>
     suspend fun getUserByIdSync(userId: String): DataResourceResult<User?>
-
+    suspend fun updateFcmToken(userId: String, token: String): Flow<DataResourceResult<Boolean>>
 }

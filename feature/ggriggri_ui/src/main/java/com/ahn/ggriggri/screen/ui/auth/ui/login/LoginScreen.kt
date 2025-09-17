@@ -1,5 +1,6 @@
 package com.ahn.ggriggri.screen.auth.login
 
+import android.app.Activity
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
@@ -47,6 +48,7 @@ fun LoginScreen(
     val loginStatus by authViewModel.loginStatus.collectAsStateWithLifecycle()
     val currentUserId by authViewModel.currentUserId.collectAsStateWithLifecycle()
 
+
     // 뒤로가기 버튼을 눌렀을 때 앱 종료
     BackHandler {
         // 앱 종료 처리
@@ -62,6 +64,9 @@ fun LoginScreen(
                 onNavigationToGroup = onNavigationToGroup,
                 onNavigationToHome = onNavigationToHome
             )
+        }
+        if (context is MainActivity) {
+            context.requestNotificationPermission()
         }
     }
 

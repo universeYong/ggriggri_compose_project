@@ -4,12 +4,17 @@ import com.ahn.domain.common.DataResourceResult
 import com.ahn.domain.model.User
 import com.ahn.domain.repository.UserRepository
 import com.ahn.data.datasource.UserDataSource
+import com.ahn.data.remote.dto.FCMTokenRequestDTO
+import com.ahn.data.rest.ApiService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
-class FirestoreUserRepositoryImpl @Inject constructor(val userDataSource: UserDataSource) : UserRepository {
+class FirestoreUserRepositoryImpl @Inject constructor(
+    val userDataSource: UserDataSource,
+    private val apiService: ApiService
+) : UserRepository {
     override suspend fun create(userInfo: User): Flow<DataResourceResult<Unit>> = flow {
         emit(DataResourceResult.Loading)
         emit(userDataSource.create(userInfo))
@@ -53,4 +58,18 @@ class FirestoreUserRepositoryImpl @Inject constructor(val userDataSource: UserDa
     override suspend fun getUserByIdSync(userId: String): DataResourceResult<User?> {
         return userDataSource.getUserByIdSync(userId)
     }
+
+    override suspend fun updateFcmToken(userId: String, token: String): Flow<DataResourceResult<Boolean>> = flow {
+            emit(DataResourceResult.Loading)
+
+            val request = FCMTokenRequestDTO(userId, token)
+            val response = apiService.updateFCMToken(request)
+
+            if (response.isSuccessful) {
+                emit(DataResourceResult.Success(true))
+            } else {
+                emit(DataResourceResult.Failure(Exception("Failed to update FCM token")))
+            }
+        }.catch { emit(DataResourceResult.Failure(it)) }
+
 }

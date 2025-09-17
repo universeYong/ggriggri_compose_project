@@ -1,5 +1,6 @@
 package com.ahn.ggriggri.screen.ui.auth.viewmodel
 
+import android.app.Activity
 import android.app.Application
 import android.content.Context
 import android.service.autofill.UserData
@@ -9,6 +10,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.ahn.data.datasource.UserDataSource
+import com.ahn.data.fcm.FCMTokenManager
+import com.ahn.data.fcm.PermissionManager
 import com.ahn.data.remote.firebase.FirestoreUserDataSourceImpl
 import com.ahn.data.repository.FirestoreUserRepositoryImpl
 import com.ahn.domain.common.DataResourceResult
@@ -38,6 +41,8 @@ class OAuthViewModel @Inject constructor(
     private val sessionManager: SessionManager,
     private val userRepository: UserRepository,
     private val groupRepository: GroupRepository,
+    private val permissionManager: PermissionManager,
+    private val fcmTokenManager: FCMTokenManager
 ) : ViewModel() {
 
     private val _loginStatus = MutableStateFlow("")
@@ -48,12 +53,31 @@ class OAuthViewModel @Inject constructor(
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
+    private val _notificationPermissionState = MutableStateFlow(false)
+    val notificationPermissionState: StateFlow<Boolean> = _notificationPermissionState.asStateFlow()
+
+
     init {
         viewModelScope.launch {
             // 자동로그인 로직
             currentUserId.collect { value ->
                 Log.d("OAuthViewModel", "currentUserId updated: $value")
             }
+        }
+        _notificationPermissionState.value = permissionManager.hasNotificationPermission()
+    }
+
+    fun requestNotificationPermission(activity: Activity) {
+        permissionManager.requestNotificationPermission(activity)
+    }
+
+    fun handlePermissionResult(isGranted: Boolean) {
+        if (isGranted) {
+            Log.d("LoginViewModel", "Notification permission granted")
+            // 권한이 허용되었을 때 처리
+        } else {
+            Log.d("LoginViewModel", "Notification permission denied")
+            // 권한이 거부되었을 때 처리
         }
     }
 

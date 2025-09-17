@@ -10,4 +10,9 @@ object DataStoreKeys {
     val USER_GROUP_ID = stringPreferencesKey("user_group_id")
 
     val TODAY_QUESTION_ID = stringPreferencesKey("today_question_id")
+
+    val DAILY_QUESTION_ENABLED = booleanPreferencesKey("daily_question_enabled")
+    val REQUEST_ENABLED = booleanPreferencesKey("request_enabled")
+    val RESPONSE_ENABLED = booleanPreferencesKey("response_enabled")
+    val ALL_NOTIFICATIONS_ENABLED = booleanPreferencesKey("all_notifications_enabled")
 }

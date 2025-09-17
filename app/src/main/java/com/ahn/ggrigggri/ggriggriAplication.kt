@@ -10,6 +10,7 @@ import coil3.SingletonImageLoader
 import coil3.disk.DiskCache
 import coil3.disk.directory
 import coil3.memory.MemoryCache
+import com.ahn.domain.notification.NotificationChannelManager
 import com.kakao.sdk.common.KakaoSdk
 import dagger.hilt.android.HiltAndroidApp
 import jakarta.inject.Inject
@@ -27,6 +28,9 @@ class ggriggriAplication : Application(), SingletonImageLoader.Factory,
     Configuration.Provider{
 
     @Inject
+    lateinit var notificationChannelManager: NotificationChannelManager
+
+    @Inject
     lateinit var workerFactory: HiltWorkerFactory
 
     override val workManagerConfiguration: Configuration
@@ -38,7 +42,8 @@ class ggriggriAplication : Application(), SingletonImageLoader.Factory,
     override fun onCreate() {
         super.onCreate()
 
-        Log.d("ggriggriAplication", "카카오 SDK 초기화 완료")
+        notificationChannelManager.createNotificationChannels()
+
 //        Log.e("TAG", KakaoSdk.keyHash)
     }
 
