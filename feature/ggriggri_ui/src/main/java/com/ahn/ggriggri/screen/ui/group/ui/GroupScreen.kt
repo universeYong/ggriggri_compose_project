@@ -3,6 +3,7 @@ package com.ahn.ggriggri.screen.group
 import theme.BtnContentColor
 import theme.MainColor
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -38,6 +39,8 @@ fun GroupScreen(
     onNavigateToHome: () -> Unit = {},
     onNavigateBack: () -> Unit = {},
     ) {
+
+    BackHandler { onNavigateBack() }
 
     val tabItems = listOf("그룹 만들기", "그룹 들어가기")
     val pagerState = rememberPagerState(pageCount = { tabItems.size })

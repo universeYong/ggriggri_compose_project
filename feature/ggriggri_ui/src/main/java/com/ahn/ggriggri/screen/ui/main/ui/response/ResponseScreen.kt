@@ -8,6 +8,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -24,13 +25,13 @@ fun ResponseScreen(
     viewModel: ResponseViewModel = hiltViewModel(),
 ) {
 
-    val selectedImageUri by viewModel.selectedImageUri.collectAsState()
-    val responseMessage by viewModel.responseMessage.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
-    val errorMessage by viewModel.errorMessage.collectAsState()
-    val successMessage by viewModel.successMessage.collectAsState()
-    val isResponseButtonEnabled by viewModel.isResponseButtonEnabled.collectAsState()
-    val currentMessageLength by viewModel.currentMessageLength.collectAsState()
+    val selectedImageUri by viewModel.selectedImageUri.collectAsStateWithLifecycle()
+    val responseMessage by viewModel.responseMessage.collectAsStateWithLifecycle()
+    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+    val errorMessage by viewModel.errorMessage.collectAsStateWithLifecycle()
+    val successMessage by viewModel.successMessage.collectAsStateWithLifecycle()
+    val isResponseButtonEnabled by viewModel.isResponseButtonEnabled.collectAsStateWithLifecycle()
+    val currentMessageLength by viewModel.currentMessageLength.collectAsStateWithLifecycle()
 
     // requestDocumentId를 ViewModel에 설정
     LaunchedEffect(requestDocumentId) {

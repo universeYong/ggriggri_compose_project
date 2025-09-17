@@ -1,6 +1,7 @@
 package com.ahn.ggriggri.screen.auth.login
 
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -38,14 +39,19 @@ fun LoginScreen(
     onNavigationToGroup: () -> Unit,
     onNavigationToHome: () -> Unit,
     onNavigationToDevLogin: () -> Unit = {},
+    authViewModel: OAuthViewModel = hiltViewModel(),
 ) {
-
-    val authViewModel: OAuthViewModel = hiltViewModel()
 
     val context = LocalContext.current // 이것도 여기서 쓰면 안됨
 
     val loginStatus by authViewModel.loginStatus.collectAsStateWithLifecycle()
     val currentUserId by authViewModel.currentUserId.collectAsStateWithLifecycle()
+
+    // 뒤로가기 버튼을 눌렀을 때 앱 종료
+    BackHandler {
+        // 앱 종료 처리
+        (context as? android.app.Activity)?.finishAffinity()
+    }
 
     // 이미 로그인된 사용자가 뒤로가기로 온 경우 자동 네비게이션 방지
     // 새로운 로그인 시에만 네비게이션 체크

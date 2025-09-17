@@ -18,7 +18,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,7 +47,7 @@ fun MakeGroupScreen(
 
     var groupName by remember { mutableStateOf("") }
     var groupCode by remember { mutableStateOf("") }
-    val isCodeDuplicateResult by groupViewModel.isGroupCodeDuplicate.collectAsState()
+    val isCodeDuplicateResult by groupViewModel.isGroupCodeDuplicate.collectAsStateWithLifecycle()
     var groupPw by remember { mutableStateOf("") }
     var groupConfirmPw by remember { mutableStateOf("") }
 
@@ -58,7 +58,7 @@ fun MakeGroupScreen(
         groupPw.isNotEmpty() && groupConfirmPw.isNotEmpty() && groupPw != groupConfirmPw
 
 
-    val createResult by groupViewModel.createResult.collectAsState()
+    val createResult by groupViewModel.createResult.collectAsStateWithLifecycle()
 
     // 성공 시 화면 이동
     LaunchedEffect(createResult) {

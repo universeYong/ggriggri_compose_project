@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.AddPhotoAlternate
 import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,13 +40,13 @@ fun RequestScreen(
     viewModel: RequestViewModel = hiltViewModel(),
 ) {
 
-    val selectedImageUri by viewModel.selectedImageUri.collectAsState()
-    val requestMessage by viewModel.requestMessage.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
-    val errorMessage by viewModel.errorMessage.collectAsState()
-    val successMessage by viewModel.successMessage.collectAsState()
-    val isRequestButtonEnabled by viewModel.isRequestButtonEnabled.collectAsState()
-    val currentMessageLength by viewModel.currentMessageLength.collectAsState()
+    val selectedImageUri by viewModel.selectedImageUri.collectAsStateWithLifecycle()
+    val requestMessage by viewModel.requestMessage.collectAsStateWithLifecycle()
+    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+    val errorMessage by viewModel.errorMessage.collectAsStateWithLifecycle()
+    val successMessage by viewModel.successMessage.collectAsStateWithLifecycle()
+    val isRequestButtonEnabled by viewModel.isRequestButtonEnabled.collectAsStateWithLifecycle()
+    val currentMessageLength by viewModel.currentMessageLength.collectAsStateWithLifecycle()
 
     errorMessage?.let { message ->
         LaunchedEffect(message) {

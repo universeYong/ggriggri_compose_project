@@ -61,7 +61,8 @@ fun NavGraphBuilder.GgriggriNavigationGraph(
             onNavigateToGroupSetting = { navController.navigate(GgriggriNavigationRouteUi.SettingGroup) },
             onNavigateToLogin = { 
                 navController.navigate(GgriggriNavigationRouteUi.Login) {
-                    popUpTo(GgriggriNavigationRouteUi.Login) { inclusive = true }
+                    // 전체 백스택을 정리하고 로그인 화면으로 이동
+                    popUpTo(0) { inclusive = false }
                 }
             }
         )
@@ -172,7 +173,9 @@ fun NavGraphBuilder.GgriggriNavigationGraph(
             onNavigateToModifyGroupName = {navController.navigate(GgriggriNavigationRouteUi.ModifyGroupName)},
             onNavigateToLeaveGroup = {
                 navController.navigate(GgriggriNavigationRouteUi.Group) {
-                    popUpTo(GgriggriNavigationRouteUi.Group) { inclusive = true }
+                    popUpTo(GgriggriNavigationRouteUi.Group){
+                        inclusive = true
+                    }
                 }
             }
         )

@@ -7,7 +7,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,7 +29,7 @@ fun DynamicButton(
     onNavigateToResponse: (String) -> Unit = {},
     onNavigateToRequestDetail: (Request) -> Unit = {},
 ) {
-    val currentUser by viewModel.currentUser.collectAsState()
+    val currentUser by viewModel.currentUser.collectAsStateWithLifecycle()
     val currentUserId = currentUser?.userId
 
     // 현재 사용자가 응답했는지 확인하는 상태

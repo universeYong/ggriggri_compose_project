@@ -20,7 +20,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,7 +39,7 @@ fun MyPageScreen(
     myPageviewModel: MyPageViewModel = hiltViewModel()
 ) {
 
-    val uiState by myPageviewModel.uiState.collectAsState()
+    val uiState by myPageviewModel.uiState.collectAsStateWithLifecycle()
 
     // 화면이 다시 포커스될 때 그룹 정보 새로고침
     DisposableEffect(Unit) {

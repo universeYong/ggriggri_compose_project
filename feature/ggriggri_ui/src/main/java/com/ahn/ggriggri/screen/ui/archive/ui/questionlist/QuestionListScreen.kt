@@ -14,7 +14,7 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,9 +29,9 @@ fun QuestionListScreen(
 ) {
     val archiveViewModel: QuestionListViewModel = hiltViewModel()
 
-    val archivedQuestions by archiveViewModel.archivedQuestions.collectAsState()
-    val isLoading by archiveViewModel.isLoading.collectAsState()
-    val error by archiveViewModel.error.collectAsState()
+    val archivedQuestions by archiveViewModel.archivedQuestions.collectAsStateWithLifecycle()
+    val isLoading by archiveViewModel.isLoading.collectAsStateWithLifecycle()
+    val error by archiveViewModel.error.collectAsStateWithLifecycle()
 
     Column(modifier = Modifier.fillMaxSize()) {
         if (isLoading) {
