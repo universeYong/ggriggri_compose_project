@@ -37,6 +37,7 @@ class ggriggriAplication : Application(), SingletonImageLoader.Factory,
 
     override fun onCreate() {
         super.onCreate()
+        KakaoSdk.init(this,"fdf59a777205057ffca042069bd2284d")
 
         Log.d("ggriggriAplication", "카카오 SDK 초기화 완료")
 //        Log.e("TAG", KakaoSdk.keyHash)

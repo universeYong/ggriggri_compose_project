@@ -7,6 +7,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddPhotoAlternate
@@ -20,6 +21,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -66,7 +68,7 @@ fun RequestScreen(
     // 이미지 선택을 위한 ActivityResultLauncher 정의
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
-        onResult = { uri -> 
+        onResult = { uri ->
             uri?.let { viewModel.selectImage(it) }
         }
     )
@@ -76,60 +78,76 @@ fun RequestScreen(
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ) {
-            Column(
+            LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
+                    .imePadding()
                     .padding(horizontal = 20.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
+                contentPadding = PaddingValues(vertical = 20.dp)
             ) {
-                Spacer(modifier = Modifier.height(70.dp))
+                item {
+                    Spacer(modifier = Modifier.height(50.dp))
+                }
 
-                ImageUploadSection(
-                    selectedImageUri = selectedImageUri,
-                    onImageSelected = { 
-                        photoPickerLauncher.launch(
-                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                        )
-                    },
-                    onImageRemoved = viewModel::removeImage
-                )
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                MessageInputSection(
-                    message = requestMessage,
-                    onMessageChanged = viewModel::updateMessage,
-                    currentLength = currentMessageLength,
-                    maxLength = 100
-                )
-
-
-                Spacer(modifier = Modifier.weight(1f))
-
-
-                Button(
-                    onClick = viewModel::createRequest,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp),
-                    enabled = isRequestButtonEnabled && !isLoading,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isRequestButtonEnabled) MainColor else Color.LightGray,
-                        contentColor = if (isRequestButtonEnabled) Color.Black else Color.White
+                item {
+                    ImageUploadSection(
+                        selectedImageUri = selectedImageUri,
+                        onImageSelected = {
+                            photoPickerLauncher.launch(
+                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                            )
+                        },
+                        onImageRemoved = viewModel::removeImage
                     )
-                ) {
-                    if (isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(20.dp),
-                            color = Color.White
+                }
+
+                item {
+                    Spacer(modifier = Modifier.height(20.dp))
+                }
+
+                item {
+                    MessageInputSection(
+                        message = requestMessage,
+                        onMessageChanged = viewModel::updateMessage,
+                        currentLength = currentMessageLength,
+                        maxLength = 100
+                    )
+                }
+
+                item {
+                    Spacer(modifier = Modifier.height(20.dp))
+                }
+
+                item {
+                    Button(
+                        onClick = viewModel::createRequest,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp),
+                        enabled = isRequestButtonEnabled && !isLoading,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (isRequestButtonEnabled) MainColor else Color.LightGray,
+                            contentColor = if (isRequestButtonEnabled) Color.Black else Color.White
                         )
-                    } else {
-                        Text(
-                            text = "요청하기",
-                            fontSize = 16.sp,
-                            fontFamily = NanumSquareBold
-                        )
+                    ) {
+                        if (isLoading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                color = Color.White
+                            )
+                        } else {
+                            Text(
+                                text = "요청하기",
+                                fontSize = 16.sp,
+                                fontFamily = NanumSquareBold
+                            )
+                        }
                     }
+                }
+
+                item {
+                    Spacer(modifier = Modifier.height(20.dp))
                 }
             }
         }
