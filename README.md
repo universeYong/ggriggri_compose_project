@@ -51,7 +51,8 @@
 
 | 로그인 화면 | 그룹 화면 | 홈 화면 |
 | --- | --- | --- |
-| ![image1](app/src/main/res/drawable/image1.png) | ![image2](app/src/main/res/drawable/image2.png) | ![image3](app/src/main/res/drawable/image3.png) |
+| !<img width="1080" height="2340" alt="Screenshot_20250918_031735" src="https://github.com/user-attachments/assets/51fac88b-a84d-43aa-86ba-d2fed37bbdd5" />
+ | ![image2](app/src/main/res/drawable/image2.png) | ![image3](app/src/main/res/drawable/image3.png) |
 
 | 오늘의 질문 화면 | 요청하기 화면 | 요청 보기 화면 |
 | --- | --- | --- |
