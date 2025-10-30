@@ -49,10 +49,9 @@
 
 ## 📺 화면 구성
 
-| 로그인 화면 | 그룹 화면 | 홈 화면 |
+| 로그인 화면 | 그룹 만들기 화면 | 그룹 들어가기 화면 |
 | --- | --- | --- |
-| <img width="300" height="600" alt="Screenshot_20250918_031735" src="https://github.com/user-attachments/assets/b86864ce-6f18-453a-93b4-a43f4b5b0449" /> | <img width="300" height="600" src="https://github.com/user-attachments/assets/a1720524-43c0-4971-8e53-6839c0446904" /> |
- ![image3](app/src/main/res/drawable/image3.png) |
+| <img width="300" height="600" alt="Screenshot_20250918_031735" src="https://github.com/user-attachments/assets/b86864ce-6f18-453a-93b4-a43f4b5b0449" /> | <img width="300" height="600" src="https://github.com/user-attachments/assets/a1720524-43c0-4971-8e53-6839c0446904" /> | <img width="300" height="600" src= "https://github.com/user-attachments/assets/f8eec8bd-e9b7-41ad-8c03-56141ab3efc0" /> |
 
 
 | 오늘의 질문 화면 | 요청하기 화면 | 요청 보기 화면 |
