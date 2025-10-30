@@ -65,7 +65,7 @@
 
 ❗소셜 로그인
 
-- 카카오, 네이버, 구글 계정으로 간편하게 계정을 생성하고 로그인할 수 있음
+- 카카오계정으로 간편하게 계정을 생성하고 로그인할 수 있음
 - 빠르고 편리한 앱 이용 가능
 
 ❗그룹 생성/들어가기/나가기
@@ -87,66 +87,3 @@
 ❗추억들
 
 - 그동안 그룹에 쌓여온 요청과 질문에 대한 답변들을 모아서 볼 수 있음
-
-## 🏗️ **아키텍처**
-
-
-📁 패키지 구조
-
-```markdown
-├── com.friends.ggiriggiri
-│   │
-│   ├── api
-│   │
-│   ├── util // 도구
-│   │   └── tools
-│   │
-│   ├── data // 서버와 통신하는 부분
-│   │   ├── model
-│   │   ├── repository
-│   │   ├── service
-│   │   └── vo
-│   │
-│   ├── di // 앱모듈
-│   │   └── AppModule.kt
-│   │
-│   ├── ui // 화면별로 패키지를 나눠서 작업함
-│   │   ├── adapter // RecyclerView 어댑터
-│   │   ├── custom  // customProgressbar,customDialog
-│   │   │
-│   │   ├── start // 로그인 화면
-│   │   │   ├── findid
-│   │   │   ├── findpw
-│   │   │   ├── login
-│   │   │   └── register
-│   │   │
-│   │   ├── settinggroup // 그룹만들기, 그룹들어가기 화면
-│   │   │   ├── group
-│   │   │   ├── joingroup
-│   │   │   └── makegroup
-│   │   │
-│   │   ├── main // 메인화면, 요청하기, 요청에답하기, 질문에답하기 화면
-│   │   │   ├── answer
-│   │   │   ├── home
-│   │   │   ├── request
-│   │   │   └── response
-│   │   │
-│   │   ├── mypages // 마이페이지 화면
-│   │   │   ├── modifygroupname
-│   │   │   ├── modifygrouppw
-│   │   │   ├── modifyuserpw
-│   │   │   ├── mypage
-│   │   │   └── settinggroup
-│   │   │
-│   │   ├── memories // 추억들 화면
-│   │   │   ├── memory
-│   │   │   ├── questionanswer
-│   │   │   ├── questionlist
-│   │   │   ├── requestdetail
-│   │   │   └── requestlist
-```
-
-
-❗흐름
-
-![image1](app/src/main/res/drawable/architecture_ggiriggiri.png)
