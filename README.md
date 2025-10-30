@@ -51,7 +51,7 @@
 
 | 로그인 화면 | 그룹 화면 | 홈 화면 |
 | --- | --- | --- |
-| !<img width="300" height="600" alt="Screenshot_20250918_031735" src="https://github.com/user-attachments/assets/b86864ce-6f18-453a-93b4-a43f4b5b0449" /> | <img width="300" height="600" src="https://github.com/user-attachments/assets/41eed3da-8874-4396-a7a4-279ce8439157.gif" /> |
+| !<img width="300" height="600" alt="Screenshot_20250918_031735" src="https://github.com/user-attachments/assets/b86864ce-6f18-453a-93b4-a43f4b5b0449" /> | <img width="300" height="600" src="https://github.com/user-attachments/assets/a1720524-43c0-4971-8e53-6839c0446904" /> |
  ![image3](app/src/main/res/drawable/image3.png) |
 
 
