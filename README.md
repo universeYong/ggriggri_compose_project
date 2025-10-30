@@ -54,9 +54,9 @@
 | <img width="300" height="600" alt="Screenshot_20250918_031735" src="https://github.com/user-attachments/assets/b86864ce-6f18-453a-93b4-a43f4b5b0449" /> | <img width="300" height="600" src="https://github.com/user-attachments/assets/a1720524-43c0-4971-8e53-6839c0446904" /> | <img width="300" height="600" src= "https://github.com/user-attachments/assets/f8eec8bd-e9b7-41ad-8c03-56141ab3efc0" /> |
 
 
-| 오늘의 질문 화면 | 요청하기 화면 | 요청 보기 화면 |
+| 오늘의 질문 화면 | 요청하기 화면 | 응답하기 화면 |
 | --- | --- | --- |
-| ![image1](app/src/main/res/drawable/image4.png) | ![image2](app/src/main/res/drawable/image5.png) | ![image3](app/src/main/res/drawable/image6.png) |
+| <img width="300" height="600" src= "https://github.com/user-attachments/assets/f4b0b5ae-d378-48dc-8215-8b620ad836f1" /> | <img width="300" height="600" src= "https://github.com/user-attachments/assets/b410478f-288c-4197-99cc-12705eb1bdf9" />  | <img width="300" height="600" src= "https://github.com/user-attachments/assets/0e23e272-b2e5-4b91-9518-ab688cd62e98" /> | 
 
 | 추억들 화면 | 질문 답변하기 화면 | 마이페이지 화면 |
 | --- | --- | --- |
