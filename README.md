@@ -58,9 +58,13 @@
 | --- | --- | --- |
 | <img width="300" height="600" src= "https://github.com/user-attachments/assets/f4b0b5ae-d378-48dc-8215-8b620ad836f1" /> | <img width="300" height="600" src= "https://github.com/user-attachments/assets/b410478f-288c-4197-99cc-12705eb1bdf9" />  | <img width="300" height="600" src= "https://github.com/user-attachments/assets/0e23e272-b2e5-4b91-9518-ab688cd62e98" /> | 
 
-| 추억들 화면 | 질문 답변하기 화면 | 마이페이지 화면 |
+| 홈 화면 | 추억들 화면 | 그룹 비밀변호 변경 화면 |
 | --- | --- | --- |
-| ![image1](app/src/main/res/drawable/memories.jpg) | ![image2](app/src/main/res/drawable/image8.png) | ![image3](app/src/main/res/drawable/image9.png) |
+| <img width="300" height="600" src= "https://github.com/user-attachments/assets/5284c728-75b4-4f5b-951f-a175dd1d7222" /> | <img width="300" height="600" src= "https://github.com/user-attachments/assets/5e5f3fc1-4b10-4a16-9c18-6e7ab80b2d92" /> | <img width="300" height="600" src= "https://github.com/user-attachments/assets/4c40f01e-8d82-454b-8ddb-151a04e1ee7c" /> |
+
+| 그룹명 변경 화면 |
+| --- |
+| <img width="300" height="600" src= "https://github.com/user-attachments/assets/bf0def48-38a6-476d-ace3-03549683bfd5" /> | 
 
 ## 🔔 주요 기능
 
