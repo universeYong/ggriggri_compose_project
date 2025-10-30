@@ -51,7 +51,7 @@
 
 | 로그인 화면 | 그룹 화면 | 홈 화면 |
 | --- | --- | --- |
-| !<img width="1080" height="2087" alt="Screenshot_20250918_031735" src="https://github.com/user-attachments/assets/b86864ce-6f18-453a-93b4-a43f4b5b0449" /> | ![Ingroup](https://github.com/user-attachments/assets/d8c444ab-35f6-4d91-b293-8986e64c6673) |
+| !<img width="300" height="600" alt="Screenshot_20250918_031735" src="https://github.com/user-attachments/assets/b86864ce-6f18-453a-93b4-a43f4b5b0449" /> | ![Ingroup](https://github.com/user-attachments/assets/d8c444ab-35f6-4d91-b293-8986e64c6673) |
  ![image3](app/src/main/res/drawable/image3.png) |
 
 | 오늘의 질문 화면 | 요청하기 화면 | 요청 보기 화면 |
