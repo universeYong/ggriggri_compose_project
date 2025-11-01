@@ -5,14 +5,6 @@
 > 개발 기간 : 2025.08.06 ~ 2025.09.13
 > 
 
-## 🌟 개발단계
-
-> 요구사항 명세서                                                 
-> https://docs.google.com/spreadsheets/d/1x4YWIlUO0vx7K2CE0nvun3ryrkuAntxt/edit?gid=1388090367#gid=1388090367
->
-> 피그마
-> https://www.figma.com/design/tRQobtFSTbqcQ2u8kLvNaI/%EC%95%B1%EC%8A%A4%EC%BF%A8_3%EA%B8%B0_%ED%8C%8C%EC%9D%B4%EB%84%90%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8_1%ED%8C%80?node-id=846-4449&t=30lCzx21T06wlP7n-0
- 
 ## 🔍 프로젝트 소개
 
 > **"친한 친구들과 편하게 소통하고 싶지 않나요?"**
