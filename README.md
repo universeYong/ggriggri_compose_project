@@ -41,22 +41,29 @@
 
 ## 📺 화면 구성
 
-| 로그인 화면 | 그룹 만들기 화면 | 그룹 들어가기 화면 |
-| --- | --- | --- |
-| <img width="300" height="600" alt="Screenshot_20250918_031735" src="https://github.com/user-attachments/assets/b86864ce-6f18-453a-93b4-a43f4b5b0449" /> | <img width="300" height="600" src="https://github.com/user-attachments/assets/a1720524-43c0-4971-8e53-6839c0446904" /> | <img width="300" height="600" src= "https://github.com/user-attachments/assets/f8eec8bd-e9b7-41ad-8c03-56141ab3efc0" /> |
-
-
-| 오늘의 질문 화면 | 요청하기 화면 | 응답하기 화면 |
-| --- | --- | --- |
-| <img width="300" height="600" src= "https://github.com/user-attachments/assets/f4b0b5ae-d378-48dc-8215-8b620ad836f1" /> | <img width="300" height="600" src= "https://github.com/user-attachments/assets/b410478f-288c-4197-99cc-12705eb1bdf9" />  | <img width="300" height="600" src= "https://github.com/user-attachments/assets/0e23e272-b2e5-4b91-9518-ab688cd62e98" /> | 
-
-| 홈 화면 | 추억들 화면 | 그룹 비밀변호 변경 화면 |
-| --- | --- | --- |
-| <img width="300" height="600" src= "https://github.com/user-attachments/assets/5284c728-75b4-4f5b-951f-a175dd1d7222" /> | <img width="300" height="600" src= "https://github.com/user-attachments/assets/5e5f3fc1-4b10-4a16-9c18-6e7ab80b2d92" /> | <img width="300" height="600" src= "https://github.com/user-attachments/assets/4c40f01e-8d82-454b-8ddb-151a04e1ee7c" /> |
-
-| 그룹명 변경 화면 |
-| --- |
-| <img width="300" height="600" src= "https://github.com/user-attachments/assets/bf0def48-38a6-476d-ace3-03549683bfd5" /> | 
+<table width="100%">
+  <tr>
+    <th width="33%">로그인 화면</th>
+    <th width="33%">그룹 만들기 화면</th>
+    <th width="33%">그룹 들어가기 화면</th>
+  </tr>
+  <tr>
+    <td><img src="https://github.com/user-attachments/assets/b86864ce-6f18-453a-93b4-a43f4b5b0449" width="100%"></td>
+    <td><img src="https://github.com/user-attachments/assets/a1720524-43c0-4971-8e53-6839c0446904" width="100%"></td>
+    <td><img src="https://github.com/user-attachments/assets/f8eec8bd-e9b7-41ad-8c03-56141ab3efc0" width="100%"></td>
+  </tr>
+  
+  <tr>
+    <th>오늘의 질문 화면</th>
+    <th>요청하기 화면</th>
+    <th>응답하기 화면</th>
+  </tr>
+  <tr>
+    <td><img src="https://github.com/user-attachments/assets/f4b0b5ae-d378-48dc-8215-8b620ad836f1" width="100%"></td>
+    <td><img src="https://github.com/user-attachments/assets/b410478f-288c-4197-99cc-12705eb1bdf9" width="100%"></td>
+    <td><img src="https://github.com/user-attachments/assets/0e23e272-b2e5-4b91-9518-ab688cd62e98" width="100%"></td>
+  </tr>
+</table>
 
 ## 🔔 주요 기능
 
