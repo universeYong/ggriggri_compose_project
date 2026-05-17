@@ -19,7 +19,7 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
+import jakarta.inject.Inject
 
 @HiltViewModel
 class SettingGroupViewModel @Inject constructor(

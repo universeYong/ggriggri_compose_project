@@ -14,4 +14,5 @@ kotlin {
 dependencies {
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.bundles.moshi.libraries)
+    implementation("jakarta.inject:jakarta.inject-api:2.0.1")
 }

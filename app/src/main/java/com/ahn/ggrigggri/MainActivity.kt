@@ -1,6 +1,7 @@
 package com.ahn.ggrigggri
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -10,54 +11,80 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.viewModels
-import androidx.core.app.ActivityCompat
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
+import com.ahn.domain.common.SessionManager
 import com.ahn.ggrigggri.ui.theme.GgrigggriTheme
-import com.ahn.ggriggri.screen.auth.login.LoginScreen
-import com.ahn.ggriggri.screen.ui.auth.viewmodel.OAuthViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import jakarta.inject.Inject
-
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    private lateinit var oauthViewModel: OAuthViewModel
+    @Inject
+    lateinit var sessionManager: SessionManager
+
     private lateinit var requestPermissionLauncher: ActivityResultLauncher<String>
+    private var pendingNotificationRoute: NotificationRoute? by mutableStateOf(null)
+    private var isLoggedIn: Boolean? by mutableStateOf(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        pendingNotificationRoute = parseNotificationRoute(intent)
+        lifecycleScope.launch {
+            isLoggedIn = sessionManager.isLoggedInFlow.first()
+        }
 
-        oauthViewModel = hiltViewModel()
-
-        // Activity Result API 설정
         requestPermissionLauncher = registerForActivityResult(
             ActivityResultContracts.RequestPermission()
         ) { isGranted: Boolean ->
             if (isGranted) {
-                // 권한이 허용됨
                 Log.d("MainActivity", "Notification permission granted")
-                oauthViewModel.handlePermissionResult(true)
             } else {
-                // 권한이 거부됨
                 Log.d("MainActivity", "Notification permission denied")
-                oauthViewModel.handlePermissionResult(false)
             }
         }
 
         setContent {
             GgrigggriTheme {
-                EntryPointScreen()
+                EntryPointScreen(
+                    isLoggedIn = isLoggedIn,
+                    notificationRoute = pendingNotificationRoute,
+                    onNotificationRouteConsumed = {
+                        pendingNotificationRoute = null
+                    }
+                )
             }
         }
     }
 
-    // 권한 요청 함수
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        pendingNotificationRoute = parseNotificationRoute(intent)
+    }
+
     fun requestNotificationPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        if (
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
             requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
+    }
+
+    private fun parseNotificationRoute(intent: Intent?): NotificationRoute? {
+        val type = intent?.getStringExtra("type") ?: return null
+        val requestId = intent.getStringExtra("requestId")
+        return NotificationRoute(type = type, requestId = requestId)
     }
 }

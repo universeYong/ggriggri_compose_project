@@ -1,15 +1,21 @@
 package com.ahn.data.repository
 
+import android.util.Log
 import com.ahn.domain.common.DataResourceResult
 import com.ahn.domain.model.User
 import com.ahn.domain.repository.UserRepository
 import com.ahn.data.datasource.UserDataSource
 import com.ahn.data.remote.dto.FCMTokenRequestDTO
 import com.ahn.data.rest.ApiService
+import com.google.firebase.Firebase
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.SetOptions
+import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
-import javax.inject.Inject
+import kotlinx.coroutines.tasks.await
+import jakarta.inject.Inject
 
 class FirestoreUserRepositoryImpl @Inject constructor(
     val userDataSource: UserDataSource,
@@ -60,16 +66,25 @@ class FirestoreUserRepositoryImpl @Inject constructor(
     }
 
     override suspend fun updateFcmToken(userId: String, token: String): Flow<DataResourceResult<Boolean>> = flow {
-            emit(DataResourceResult.Loading)
+        emit(DataResourceResult.Loading)
 
-            val request = FCMTokenRequestDTO(userId, token)
-            val response = apiService.updateFCMToken(request)
+        // Functions는 user_data._userFcmToken을 읽기 때문에 Firestore 저장이 우선 보장되어야 한다.
+        Firebase.firestore.collection("user_data")
+            .document(userId)
+            .set(
+                mapOf("_userFcmToken" to FieldValue.arrayUnion(token)),
+                SetOptions.merge()
+            )
+            .await()
 
-            if (response.isSuccessful) {
-                emit(DataResourceResult.Success(true))
-            } else {
-                emit(DataResourceResult.Failure(Exception("Failed to update FCM token")))
-            }
-        }.catch { emit(DataResourceResult.Failure(it)) }
+        // 백엔드 동기화는 best-effort로 유지한다.
+        val request = FCMTokenRequestDTO(userId, token)
+        val response = runCatching { apiService.updateFCMToken(request) }.getOrNull()
+        if (response?.isSuccessful != true) {
+            Log.w("FirestoreUserRepository", "FCM token API sync failed, but Firestore update succeeded.")
+        }
+
+        emit(DataResourceResult.Success(true))
+    }.catch { emit(DataResourceResult.Failure(it)) }
 
 }

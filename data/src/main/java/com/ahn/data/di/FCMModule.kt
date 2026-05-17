@@ -33,19 +33,11 @@ object FCMModule {
     @Provides
     @Singleton
     fun provideNotificationHandler(
-        @ApplicationContext context: Context,
         notificationPreferenceManager: NotificationPreferenceManager,
         notificationDisplayManager: NotificationDisplayManager
     ): NotificationHandler {
-        return NotificationHandler(context, notificationPreferenceManager,notificationDisplayManager)
+        return NotificationHandler(notificationPreferenceManager, notificationDisplayManager)
     }
-
-    @Provides
-    @Singleton
-    fun provideSessionManager(
-        @ApplicationContext context: Context,
-        moshi: Moshi,
-    ): SessionManager = SessionManagerImpl(context, moshi)
 
     @Provides
     @Singleton

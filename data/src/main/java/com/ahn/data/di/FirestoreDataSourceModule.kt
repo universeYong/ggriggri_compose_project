@@ -21,15 +21,25 @@ import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ViewModelComponent
 import dagger.hilt.components.SingletonComponent
+import jakarta.inject.Singleton
 
+@Module
+@InstallIn(SingletonComponent::class)
+abstract class DataSourceModule {
+    @Binds
+    @Singleton
+    abstract fun bindUserDataSource(
+        firestoreUserDataSourceImpl: FirestoreUserDataSourceImpl
+    ): UserDataSource
+}
 @Module
 @InstallIn(ViewModelComponent::class)
 abstract class FirestoreDataSourceModule {
 
-    @Binds
-    abstract fun bindUserDataSource(
-        firestoreUserDataSourceImpl: FirestoreUserDataSourceImpl
-    ): UserDataSource
+//    @Binds
+//    abstract fun bindUserDataSource(
+//        firestoreUserDataSourceImpl: FirestoreUserDataSourceImpl
+//    ): UserDataSource
 
     @Binds
     abstract fun bindGroupDataSource(

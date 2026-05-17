@@ -3,9 +3,9 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.gms.google.services)
-    alias(libs.plugins.secrets.gradle.plugin)
     alias(libs.plugins.hilt.gradle)
     alias(libs.plugins.google.ksp)
+    alias(libs.plugins.secrets.gradle.plugin)
 }
 
 android {
@@ -20,9 +20,7 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
-
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -45,16 +43,9 @@ kotlin {
     jvmToolchain(21)
 }
 secrets {
-// 사용할 프로퍼티 파일의 이름을 선언(선언하지 않으면: "local.properties")
     propertiesFileName = "secret.properties"
-// CI/CD 환경을 위한 기본 프로퍼티 파일을 지정
-    // 이 파일은 버전 관리에 포함될 수 있음
-    //defaultPropertiesFileName = "secrets.defaults.properties"
-// Secrets Plug-In 무시할 키의 목록을 정규 표현식으로 지정가능
-    // "sdk.dir"은 기본적으로 무시
-    //ignoreList.add("temp_internal_key") // "temp_internal_key" 키 무시
-    //ignoreList.add("debug.*") // "debug"로 시작하는 모든 키 무시
 }
+
 
 
 dependencies {

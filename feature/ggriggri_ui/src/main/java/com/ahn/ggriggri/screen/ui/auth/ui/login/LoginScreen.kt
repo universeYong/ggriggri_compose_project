@@ -1,6 +1,5 @@
 package com.ahn.ggriggri.screen.auth.login
 
-import android.app.Activity
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
@@ -42,45 +41,42 @@ fun LoginScreen(
     onNavigationToDevLogin: () -> Unit = {},
     authViewModel: OAuthViewModel = hiltViewModel(),
 ) {
-
-    val context = LocalContext.current // 이것도 여기서 쓰면 안됨
-
+    val context = LocalContext.current
     val loginStatus by authViewModel.loginStatus.collectAsStateWithLifecycle()
     val currentUserId by authViewModel.currentUserId.collectAsStateWithLifecycle()
 
-
-    // 뒤로가기 버튼을 눌렀을 때 앱 종료
     BackHandler {
-        // 앱 종료 처리
         (context as? android.app.Activity)?.finishAffinity()
     }
 
-    // 이미 로그인된 사용자가 뒤로가기로 온 경우 자동 네비게이션 방지
-    // 새로운 로그인 시에만 네비게이션 체크
-    LaunchedEffect(loginStatus) {
-        if (loginStatus.contains("성공") && currentUserId != null) {
+    LaunchedEffect(loginStatus, currentUserId) {
+        val isLoginSuccess = loginStatus.contains("성공") ||
+            loginStatus.contains("success", ignoreCase = true)
+
+        if (isLoginSuccess && currentUserId != null) {
             Log.d("LoginScreen", "Login successful, checking group and navigating.")
             authViewModel.checkUserGroupAndNavigate(
                 onNavigationToGroup = onNavigationToGroup,
-                onNavigationToHome = onNavigationToHome
+                onNavigationToHome = onNavigationToHome,
             )
         }
-        if (context is MainActivity) {
-            context.requestNotificationPermission()
+
+        (context as? android.app.Activity)?.let { activity ->
+            authViewModel.requestNotificationPermission(activity)
         }
     }
 
     GgriggriTheme {
         Surface(
             modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
+            color = MaterialTheme.colorScheme.background,
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 16.dp)
                     .statusBarsPadding(),
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Spacer(Modifier.height(160.dp))
                 AppLogo()
@@ -88,7 +84,7 @@ fun LoginScreen(
                 LoginText(
                     text = stringResource(R.string.login_header_title),
                     style = MaterialTheme.typography.displayMedium,
-                    fontFamily = NanumSquareBold
+                    fontFamily = NanumSquareBold,
                 )
                 Spacer(Modifier.height(80.dp))
                 SocialLoginDivider()
@@ -99,24 +95,21 @@ fun LoginScreen(
                     modifier = Modifier
                         .clickable {
                             authViewModel.handleKakaoLogin(context)
-
                         }
                         .fillMaxWidth()
-                        .height(60.dp)
+                        .height(60.dp),
                 )
 
                 Spacer(Modifier.height(20.dp))
 
-                // 개발용 로그인 버튼 (개발 빌드에서만 표시)
                 Button(
                     onClick = { onNavigationToDevLogin() },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(60.dp)
+                        .height(60.dp),
                 ) {
-                    Text("개발용 로그인")
+                    Text("개발자 로그인")
                 }
-
             }
         }
     }

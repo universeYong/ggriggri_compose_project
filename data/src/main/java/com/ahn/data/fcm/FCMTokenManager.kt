@@ -7,6 +7,7 @@ import com.ahn.domain.repository.UserRepository
 import com.google.firebase.messaging.FirebaseMessaging
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.tasks.await
 
@@ -19,28 +20,55 @@ class FCMTokenManager @Inject constructor(
         FirebaseMessaging.getInstance().token.await()
     }.getOrNull()
 
-    // í† í°ì„ ì„œë²„ì— ì „ì†¡í•˜ëŠ” í•¨ìˆ˜ (Flow ì‚¬ìš©)
+    // ÅäÅ«À» ¼¼¼ÇÀÇ ÇöÀç »ç¿ëÀÚ ID ±âÁØÀ¸·Î ÀúÀåÇÑ´Ù.
     suspend fun sendTokenToServer() {
         val token = getCurrentToken()
-        if (token != null) {
-            val currentUser = sessionManager.currentUserFlow.first()
-            currentUser?.let { user ->
-                userRepository.updateFcmToken(user.userId, token)
-                    .collect { result ->
-                        when (result) {
-                            is DataResourceResult.Success -> {
-                                Log.d("FCM", "Token sent to server successfully")
-                            }
-                            is DataResourceResult.Failure -> {
-                                Log.e("FCM", "Failed to send token:")
-                            }
-                            else -> {
-                                Log.d("FCM", "Sending token to server...")
-                            }
+        if (token.isNullOrBlank()) {
+            Log.e("FCM", "Failed to get FCM token")
+            return
+        }
+
+        val currentUser = sessionManager.currentUserFlow.first()
+        currentUser?.let { user ->
+            userRepository.updateFcmToken(user.userId, token)
+                .collect { result ->
+                    when (result) {
+                        is DataResourceResult.Success -> {
+                            Log.d("FCM", "Token sent to server successfully")
+                        }
+                        is DataResourceResult.Failure -> {
+                            Log.e("FCM", "Failed to send token", result.exception)
+                        }
+                        else -> {
+                            Log.d("FCM", "Sending token to server...")
                         }
                     }
-            }
+                }
+        } ?: Log.w("FCM", "Current user is null. Skip token upload.")
+    }
+
+    // ·Î±×ÀÎ Á÷ÈÄÃ³·³ userId¸¦ ÀÌ¹Ì ¾Ë°í ÀÖ´Â °æ¿ì Å¸ÀÌ¹Ö ÀÌ½´ ¾øÀÌ ÀúÀåÇÑ´Ù.
+    suspend fun sendTokenToServer(userId: String) {
+        val token = getCurrentToken()
+        if (token.isNullOrBlank()) {
+            Log.e("FCM", "Failed to get FCM token")
+            return
         }
+
+        userRepository.updateFcmToken(userId, token)
+            .collect { result ->
+                when (result) {
+                    is DataResourceResult.Success -> {
+                        Log.d("FCM", "Token sent to server successfully for userId=$userId")
+                    }
+                    is DataResourceResult.Failure -> {
+                        Log.e("FCM", "Failed to send token for userId=$userId", result.exception)
+                    }
+                    else -> {
+                        Log.d("FCM", "Sending token to server for userId=$userId...")
+                    }
+                }
+            }
     }
 
     suspend fun saveTokenToServer(token: String) {
@@ -53,14 +81,14 @@ class FCMTokenManager @Inject constructor(
                             Log.d("FCM", "Token saved successfully")
                         }
                         is DataResourceResult.Failure -> {
-                            Log.e("FCM", "Failed to save token: ")
+                            Log.e("FCM", "Failed to save token", result.exception)
                         }
                         else -> {
                             Log.d("FCM", "Saving token...")
                         }
                     }
                 }
-        }
+        } ?: Log.w("FCM", "Current user is null. Skip token save.")
     }
 
     suspend fun refreshToken() {
@@ -68,4 +96,3 @@ class FCMTokenManager @Inject constructor(
         token?.let { saveTokenToServer(it) }
     }
 }
-

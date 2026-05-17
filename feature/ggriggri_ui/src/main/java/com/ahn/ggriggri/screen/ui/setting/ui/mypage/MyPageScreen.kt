@@ -1,5 +1,8 @@
-package com.ahn.ggriggri.screen.setting.mypage
+﻿package com.ahn.ggriggri.screen.setting.mypage
 
+import android.content.Intent
+import android.os.Build
+import android.provider.Settings
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,14 +23,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.ahn.common_ui.R
 import com.ahn.ggriggri.screen.ui.setting.viewmodel.MyPageViewModel
@@ -36,12 +40,11 @@ import com.ahn.ggriggri.screen.ui.setting.viewmodel.MyPageViewModel
 fun MyPageScreen(
     onNavigateToGroupSetting: () -> Unit = {},
     onNavigateToLogin: () -> Unit = {},
-    myPageviewModel: MyPageViewModel = hiltViewModel()
+    myPageviewModel: MyPageViewModel = hiltViewModel(),
 ) {
-
+    val context = LocalContext.current
     val uiState by myPageviewModel.uiState.collectAsStateWithLifecycle()
 
-    // 화면이 다시 포커스될 때 그룹 정보 새로고침
     DisposableEffect(Unit) {
         myPageviewModel.refreshGroupInfo()
         onDispose { }
@@ -50,7 +53,7 @@ fun MyPageScreen(
     if (uiState.isLoading) {
         Box(
             modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             CircularProgressIndicator()
         }
@@ -61,48 +64,71 @@ fun MyPageScreen(
                 .fillMaxSize()
                 .padding(vertical = 24.dp, horizontal = 20.dp),
         ) {
-            // 프로필 이미지
             Box(
                 modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 AsyncImage(
-                    model = if (user.userProfileImage.isNotEmpty()) user.userProfileImage else R.drawable.outline_account_circle_24,
-                    contentDescription = "프로필 이미지",
+                    model = if (user.userProfileImage.isNotEmpty()) {
+                        user.userProfileImage
+                    } else {
+                        R.drawable.outline_account_circle_24
+                    },
+                    contentDescription = "profile",
                     modifier = Modifier
                         .size(150.dp)
                         .clip(CircleShape),
-                    contentScale = ContentScale.Crop
+                    contentScale = ContentScale.Crop,
                 )
             }
+
             Spacer(modifier = Modifier.height(12.dp))
-            // 이름
+
             Text(
                 text = user.userName,
                 style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
+                modifier = Modifier.align(Alignment.CenterHorizontally),
             )
-            // 그룹명
+
             Text(
                 text = "그룹명",
                 style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
+                modifier = Modifier.align(Alignment.CenterHorizontally),
             )
 
             Text(
                 text = uiState.group?.groupName ?: "그룹 없음",
                 style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
+                modifier = Modifier.align(Alignment.CenterHorizontally),
             )
+
             Spacer(modifier = Modifier.height(32.dp))
-            // 메뉴 리스트
-            SettingMenuItem(title = "알림 on/off", onClick = {})
+
+            SettingMenuItem(
+                title = "알림 on/off",
+                onClick = {
+                    val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                        putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+                            putExtra("app_package", context.packageName)
+                            putExtra("app_uid", context.applicationInfo.uid)
+                        }
+                    }
+                    context.startActivity(intent)
+                },
+            )
             HorizontalDivider()
-            SettingMenuItem(title = "그룹 설정", onClick = { onNavigateToGroupSetting() })
+
+            SettingMenuItem(
+                title = "그룹 설정",
+                onClick = { onNavigateToGroupSetting() },
+            )
             HorizontalDivider()
-            SettingMenuItem(title = "로그아웃", onClick = { 
-                myPageviewModel.logout(onNavigateToLogin)
-            } )
+
+            SettingMenuItem(
+                title = "로그아웃",
+                onClick = { myPageviewModel.logout(onNavigateToLogin) },
+            )
         }
     }
 }
@@ -115,17 +141,17 @@ fun SettingMenuItem(title: String, onClick: () -> Unit) {
             .height(56.dp)
             .padding(horizontal = 8.dp)
             .clickable { onClick() },
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             text = title,
             style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
         )
         Icon(
             imageVector = Icons.Default.ChevronRight,
             contentDescription = null,
-            modifier = Modifier.size(18.dp)
+            modifier = Modifier.size(18.dp),
         )
     }
 }

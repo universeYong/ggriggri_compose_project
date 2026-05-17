@@ -7,7 +7,7 @@ import com.ahn.domain.repository.ResponseRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
-import javax.inject.Inject
+import jakarta.inject.Inject
 
 class FirestoreResponseRepositoryImpl @Inject constructor(
     private val responseDataSource: ResponseDataSource

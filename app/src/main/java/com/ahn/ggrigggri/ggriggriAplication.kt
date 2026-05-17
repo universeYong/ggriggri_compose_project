@@ -42,9 +42,10 @@ class ggriggriAplication : Application(), SingletonImageLoader.Factory,
     override fun onCreate() {
         super.onCreate()
 
+        KakaoSdk.init(this, BuildConfig.KAKAO_NATIVE_APP_KEY)
+
         notificationChannelManager.createNotificationChannels()
 
-//        Log.e("TAG", KakaoSdk.keyHash)
     }
 
     override fun newImageLoader(context: PlatformContext): ImageLoader =

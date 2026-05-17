@@ -8,7 +8,7 @@ data class UserDTO(
     var _userName: String = "",
     var _userState: Int = 1,
     var _userJoinTime: Long = 0L,
-    var _userFcmCode: MutableList<String> = mutableListOf(),
+    var _userFcmToken: MutableList<String> = mutableListOf(),
     var _userProfileImage: String = "",
     var _userGroupDocumentId: String = "",
     var _userAutoLoginToken: String = "",

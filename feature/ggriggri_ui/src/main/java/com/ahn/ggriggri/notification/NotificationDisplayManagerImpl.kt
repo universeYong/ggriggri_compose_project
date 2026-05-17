@@ -1,6 +1,7 @@
 package com.ahn.ggriggri.notification
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
@@ -36,6 +37,7 @@ class NotificationDisplayManagerImpl @Inject constructor(
         }
     }
 
+    @SuppressLint("MissingPermission")
     override fun showNotification(
         title: String?,
         body: String?,
@@ -46,10 +48,11 @@ class NotificationDisplayManagerImpl @Inject constructor(
             return
         }
 
+        val id = notificationId++
         val intent = createNotificationIntent(data)
         val pendingIntent = PendingIntent.getActivity(
             context,
-            notificationId++,
+            id,
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
@@ -67,22 +70,30 @@ class NotificationDisplayManagerImpl @Inject constructor(
             .build()
 
         try {
-            notificationManager.notify(notificationId++, notification)
+            notificationManager.notify(id, notification)
         } catch (e: SecurityException) {
             Log.e("NotificationDisplayManager", "Failed to show notification", e)
         }
     }
 
     private fun createNotificationIntent(data: Map<String, String>): Intent {
-        val intent = Intent()
-        intent.setClassName(context, "com.ahn.ggrigggri.MainActivity")
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        val launchIntent = context.packageManager
+            .getLaunchIntentForPackage(context.packageName)
+            ?.apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                data.forEach { (key, value) ->
+                    putExtra(key, value)
+                }
+            }
 
-        data.forEach { (key, value) ->
-            intent.putExtra(key, value)
+        return launchIntent ?: Intent(Intent.ACTION_MAIN).apply {
+            addCategory(Intent.CATEGORY_LAUNCHER)
+            setPackage(context.packageName)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            data.forEach { (key, value) ->
+                putExtra(key, value)
+            }
         }
-
-        return intent
     }
 
     private fun getChannelId(type: String?): String {
