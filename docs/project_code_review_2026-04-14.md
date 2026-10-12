@@ -19,7 +19,7 @@
 
 ## ⚙️ 2. ViewModel 및 코루틴 사용성
 
-### 2-1. `runBlocking` 사용 및 메인 스레드 차단 (중요도: 매우 상)
+### 2-1. `runBlocking` 사용 및 메인 스레드 차단 (중요도: 매우 상) — ✅ 해결 (b5a3d1a, 2026-10-12)
 `HomeViewModel.kt`에서 `runBlocking`을 사용해 `getUserName`을 호출하고 있으며, 이를 `ActiveRequestCard.kt`의 컴포즈 `derivedStateOf` 안에서 실행하고 있습니다.
 *   **문제점:** 컴포지션 과정에서 UI 스레드를 직접 차단하여 앱이 심하게 버벅이거나 ANR(App Not Responding)이 발생할 수 있는 치명적인 원인입니다.
 *   **개선 방안:** `getUserName`을 비동기적으로 처리하거나, 애초에 `requests`나 `profiles` 데이터를 가져올 때 이름 정보를 포함한 UI 모델로 가공하여 `StateFlow`로 노출해야 합니다.
@@ -50,6 +50,6 @@
 
 ## ✅ 향후 개선을 위한 우선순위 가이드
 
-1.  **최우선:** `HomeViewModel`의 `runBlocking` 제거 및 `ActiveRequestCard`의 `userName` 로드 로직 비동기화.
+1.  **최우선:** `HomeViewModel`의 `runBlocking` 제거 및 `ActiveRequestCard`의 `userName` 로드 로직 비동기화. — ✅ 해결 (b5a3d1a, 2026-10-12)
 2.  **우선:** `:feature` 모듈에서 `:data` 모듈 의존성 제거 및 `domain` 모듈 중심의 의존성 재정렬.
 3.  **차선:** ViewModel 내부의 복잡한 로직을 `UseCase`로 분리하여 코드 가독성 및 유지보수성 확보.

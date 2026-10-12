@@ -19,6 +19,7 @@ import com.ahn.domain.repository.ResponseRepository
 import com.ahn.domain.repository.UserRepository
 import com.ahn.ggriggri.screen.ui.main.worker.DateChangeNotifier
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -32,7 +33,6 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 data class Profile(
@@ -425,15 +425,16 @@ class HomeViewModel @Inject constructor(
         loadRequests()
     }
 
-    fun getUserName(userId: String): String {
+    suspend fun getUserName(userId: String): String {
         return try {
-            runBlocking {
-                when (val result = userRepository.getUserByIdSync(userId)) {
-                    is DataResourceResult.Success -> result.data?.userName ?: "알 수 없음"
-                    else -> "알 수 없음"
-                }
+            when (val result = userRepository.getUserByIdSync(userId)) {
+                is DataResourceResult.Success -> result.data?.userName ?: "알 수 없음"
+                else -> "알 수 없음"
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
+            Log.e("HomeViewModel", "Failed to load user name for $userId", e)
             "알 수 없음"
         }
     }
