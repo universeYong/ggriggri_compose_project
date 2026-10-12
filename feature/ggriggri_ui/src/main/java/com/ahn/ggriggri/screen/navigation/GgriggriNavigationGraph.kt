@@ -19,7 +19,7 @@ import com.ahn.ggriggri.screen.main.answer.AnswerScreen
 import com.ahn.ggriggri.screen.main.home.HomeScreen
 import com.ahn.ggriggri.screen.main.request.RequestScreen
 import com.ahn.ggriggri.screen.main.response.ResponseScreen
-import com.ahn.ggriggri.screen.setting.modifygroupname.ModifyGroupNameScreen
+import com.ahn.ggriggri.screen.setting.modifygroupname.ModifyGroupNameRoute
 import com.ahn.ggriggri.screen.setting.modifygrouppw.ModifyGroupPwScreen
 import com.ahn.ggriggri.screen.setting.mypage.MyPageScreen
 import com.ahn.ggriggri.screen.setting.settinggroup.SettingGroupScreen
@@ -191,7 +191,7 @@ fun NavGraphBuilder.GgriggriNavigationGraph(
         )
     }
     composable<GgriggriNavigationRouteUi.ModifyGroupName> {
-        ModifyGroupNameScreen(
+        ModifyGroupNameRoute(
             onNavigateBack = { navController.popBackStack() },
             onNavigateToSettingGroup = { 
                 navController.navigate(GgriggriNavigationRouteUi.SettingGroup) {
