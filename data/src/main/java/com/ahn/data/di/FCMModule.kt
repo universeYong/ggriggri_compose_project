@@ -5,11 +5,9 @@ import com.ahn.data.fcm.FCMTokenManager
 import com.ahn.data.fcm.NotificationHandler
 import com.ahn.data.fcm.PermissionManager
 import com.ahn.data.local.NotificationPreferenceManager
-import com.ahn.data.local.SessionManagerImpl
 import com.ahn.domain.common.SessionManager
 import com.ahn.domain.notification.NotificationDisplayManager
 import com.ahn.domain.repository.UserRepository
-import com.squareup.moshi.Moshi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -39,13 +37,6 @@ object FCMModule {
     ): NotificationHandler {
         return NotificationHandler(context, notificationPreferenceManager,notificationDisplayManager)
     }
-
-    @Provides
-    @Singleton
-    fun provideSessionManager(
-        @ApplicationContext context: Context,
-        moshi: Moshi,
-    ): SessionManager = SessionManagerImpl(context, moshi)
 
     @Provides
     @Singleton
