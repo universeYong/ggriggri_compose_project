@@ -23,14 +23,12 @@ import jakarta.inject.Inject
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    private lateinit var oauthViewModel: OAuthViewModel
+    private val oauthViewModel: OAuthViewModel by viewModels()
     private lateinit var requestPermissionLauncher: ActivityResultLauncher<String>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
-        oauthViewModel = hiltViewModel()
 
         // Activity Result API 설정
         requestPermissionLauncher = registerForActivityResult(

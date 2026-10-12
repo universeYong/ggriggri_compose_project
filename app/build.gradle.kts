@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -7,6 +9,13 @@ plugins {
     alias(libs.plugins.hilt.gradle)
     alias(libs.plugins.google.ksp)
 }
+
+// secrets 플러그인은 BuildConfig만 채우고 AndroidManifest는 치환하지 않는다.
+// manifest의 카카오 AppKey / 리다이렉트 scheme에 값을 넣기 위해 직접 읽는다.
+val kakaoNativeAppKey: String = Properties().apply {
+    val secretFile = rootProject.file("secret.properties")
+    if (secretFile.exists()) secretFile.inputStream().use { load(it) }
+}.getProperty("KAKAO_NATIVE_APP_KEY").orEmpty()
 
 android {
     namespace = "com.ahn.ggrigggri"
@@ -21,6 +30,9 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // AndroidManifest의 ${KAKAO_NATIVE_APP_KEY} 자리를 실제 키로 치환한다.
+        manifestPlaceholders["KAKAO_NATIVE_APP_KEY"] = kakaoNativeAppKey
     }
 
     buildTypes {

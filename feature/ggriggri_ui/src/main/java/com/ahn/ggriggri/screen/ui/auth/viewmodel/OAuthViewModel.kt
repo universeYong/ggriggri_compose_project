@@ -158,12 +158,19 @@ class OAuthViewModel @Inject constructor(
                     "existingUser after read: $existingUser, for userIdString: $userIdString"
                 )
 
-                val appUser = User(
+                // update()는 User의 전 필드를 Firestore에 덮어쓴다.
+                // 그래서 기존 사용자는 반드시 copy()로 만들어야 userState/userJoinTime/userFcmCode가 보존된다.
+                // 새로 생성할 때만 가입 시각을 기록한다.
+                val appUser = existingUser?.copy(
+                    userName = profile?.nickname ?: existingUser.userName,
+                    userProfileImage = profile?.profileImageUrl ?: existingUser.userProfileImage,
+                    userAutoLoginToken = kakaoOAuthToken.accessToken
+                ) ?: User(
                     userId = userIdString,
-                    userName = profile?.nickname ?: existingUser?.userName ?: "UnKnown",
-                    userProfileImage = profile?.profileImageUrl ?: existingUser?.userProfileImage
-                    ?: "",
-                    userGroupDocumentId = existingUser?.userGroupDocumentId ?: "",
+                    userName = profile?.nickname ?: "UnKnown",
+                    userProfileImage = profile?.profileImageUrl ?: "",
+                    userJoinTime = System.currentTimeMillis(),
+                    userGroupDocumentId = "",
                     userAutoLoginToken = kakaoOAuthToken.accessToken
                 )
                 Log.d(
@@ -193,6 +200,7 @@ class OAuthViewModel @Inject constructor(
                             "Calling sessionManager.loginUser with user: $appUser"
                         ) // <--- 로그 추가 권장
                         sessionManager.loginUser(appUser)
+                        fcmTokenManager.sendTokenToServer(appUser.userId)
                         _loginStatus.value =
                             if (existingUser != null) "회원 정보 업데이트 성공" else "회원 정보 생성 성공"
                         Log.d("oauth", _loginStatus.value) // 생성 또는 업데이트 로그 확인
@@ -266,22 +274,32 @@ class OAuthViewModel @Inject constructor(
             _loginStatus.value = "개발용 로그인 처리 중..."
 
             try {
-                val devUser = User(
+                // 기존 사용자 확인
+                val existingUser = userRepository.getUserByIdSync(userId)
+                Log.d("OAuthViewModel", "기존 사용자 확인 결과: $existingUser")
+
+                val existingUserData =
+                    (existingUser as? DataResourceResult.Success)?.data
+
+                // 카카오 로그인과 동일하게, 기존 사용자는 copy()로 만들어 필드 유실을 막는다.
+                val devUser = existingUserData?.copy(
+                    userName = userName,
+                    userProfileImage = userProfileImage,
+                    userGroupDocumentId = userGroupDocumentId,
+                    userAutoLoginToken = userAutoLoginToken
+                ) ?: User(
                     userId = userId,
                     userName = userName,
                     userProfileImage = userProfileImage,
+                    userJoinTime = System.currentTimeMillis(),
                     userGroupDocumentId = userGroupDocumentId,
                     userAutoLoginToken = userAutoLoginToken
                 )
 
                 Log.d("OAuthViewModel", "개발용 로그인 시도 - 사용자: $devUser")
 
-                // 기존 사용자 확인
-                val existingUser = userRepository.getUserByIdSync(userId)
-                Log.d("OAuthViewModel", "기존 사용자 확인 결과: $existingUser")
-
                 val dbOperationResultFlow =
-                    if (existingUser is DataResourceResult.Success && existingUser.data != null) {
+                    if (existingUserData != null) {
                         Log.d("OAuthViewModel", "기존 사용자 업데이트: $devUser")
                         userRepository.update(devUser)
                     } else {
@@ -330,6 +348,7 @@ class OAuthViewModel @Inject constructor(
                         }
 
                         sessionManager.loginUser(devUser)
+                        fcmTokenManager.sendTokenToServer(devUser.userId)
                         _loginStatus.value = "개발용 로그인 성공"
                         Log.d("OAuthViewModel", "개발용 로그인 완료 - 사용자: $devUser")
                     }

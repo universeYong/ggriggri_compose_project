@@ -267,6 +267,17 @@ class SettingGroupViewModel @Inject constructor(
         }
     }
 
+    /**
+     * 그룹 비밀번호를 변경한다.
+     *
+     * 그룹 비밀번호는 개인 자격증명이 아니라 구성원이 공유하는 참여 관문이며,
+     * 현재 값은 그룹 설정 화면에 그대로 표시된다.
+     * 따라서 변경 시 현재 비밀번호를 다시 입력받지 않는다 — 화면에 보이는 값을
+     * 옮겨 적게 하는 것은 방어가 아니라 마찰일 뿐이고, 잊었을 때 막다른 길이 된다.
+     * 실수로 인한 변경은 화면의 확인 다이얼로그가 막는다.
+     *
+     * 외부인의 무단 변경은 클라이언트가 아니라 Firestore 보안 규칙으로 막아야 한다.
+     */
     fun updateGroupPassword(newPassword: String) {
         viewModelScope.launch {
             val currentGroup = _currentGroup.value
@@ -277,6 +288,12 @@ class SettingGroupViewModel @Inject constructor(
 
             if (newPassword.isBlank()) {
                 _errorMessage.value = "새 비밀번호를 입력해주세요."
+                return@launch
+            }
+
+            // 같은 값으로의 변경은 사용자의 착각이므로 불필요한 쓰기를 막는다.
+            if (newPassword == currentGroup.groupPw) {
+                _errorMessage.value = "새 비밀번호가 현재 비밀번호와 같습니다."
                 return@launch
             }
 

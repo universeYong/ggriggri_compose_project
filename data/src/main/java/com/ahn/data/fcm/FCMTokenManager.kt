@@ -43,6 +43,30 @@ class FCMTokenManager @Inject constructor(
         }
     }
 
+    // 로그인 직후처럼 userId를 이미 알고 있는 경우 타이밍 이슈 없이 전송한다.
+    suspend fun sendTokenToServer(userId: String) {
+        val token = getCurrentToken()
+        if (token.isNullOrBlank()) {
+            Log.e("FCM", "Failed to get FCM token")
+            return
+        }
+
+        userRepository.updateFcmToken(userId, token)
+            .collect { result ->
+                when (result) {
+                    is DataResourceResult.Success -> {
+                        Log.d("FCM", "Token sent to server successfully for userId=$userId")
+                    }
+                    is DataResourceResult.Failure -> {
+                        Log.e("FCM", "Failed to send token for userId=$userId", result.exception)
+                    }
+                    else -> {
+                        Log.d("FCM", "Sending token to server for userId=$userId...")
+                    }
+                }
+            }
+    }
+
     suspend fun saveTokenToServer(token: String) {
         val currentUser = sessionManager.currentUserFlow.first()
         currentUser?.let { user ->

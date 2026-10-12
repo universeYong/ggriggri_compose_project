@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 
@@ -33,6 +34,8 @@ fun CommonDialog(
     onConfirmation: () -> Unit,
     // 제목
     title: String,
+    // 본문 설명. 제목만으로 부족할 때만 전달한다.
+    message: String? = null,
     // 아이콘
     icon: ImageVector = Icons.Default.Info,
     confirmButtonText: String = "확인",
@@ -62,8 +65,19 @@ fun CommonDialog(
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
                 )
+
+                if (message != null) {
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        text = message,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                }
 
                 Spacer(Modifier.height(24.dp))
 
@@ -117,5 +131,18 @@ fun CommonDialog(
  *     title = "해당정보를 가진 사용자를 찾을 수 없습니다",
  *     confirmButtonText = "확인"
  *     // onDismissClick 파라미터를 전달하지 않음
+ * )
+ *
+ *
+ *
+ * 되돌릴 수 없는 동작을 확인받는 경우 — message로 결과를 설명한다
+ * CommonDialog(
+ *     onDismissRequest = { showDialog = false },
+ *     onConfirmation = { showDialog = false; viewModel.doSomething() },
+ *     title = "그룹 비밀번호를 변경할까요?",
+ *     message = "변경 후에는 새 비밀번호로만 그룹에 참여할 수 있습니다.",
+ *     confirmButtonText = "변경",
+ *     dismissButtonText = "취소",
+ *     onDismissClick = { showDialog = false }
  * )
  */

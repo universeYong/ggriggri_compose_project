@@ -13,6 +13,7 @@
 .externalNativeBuild
 .cxx
 local.properties
-android/app/google-services.json
+secret.properties
+google-services.json
 /docs/
 /CLAUDE.md

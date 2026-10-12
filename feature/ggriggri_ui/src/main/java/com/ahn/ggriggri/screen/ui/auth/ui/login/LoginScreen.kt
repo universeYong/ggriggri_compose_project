@@ -65,8 +65,8 @@ fun LoginScreen(
                 onNavigationToHome = onNavigationToHome
             )
         }
-        if (context is MainActivity) {
-            context.requestNotificationPermission()
+        if (context is Activity) {
+            authViewModel.requestNotificationPermission(context)
         }
     }
 

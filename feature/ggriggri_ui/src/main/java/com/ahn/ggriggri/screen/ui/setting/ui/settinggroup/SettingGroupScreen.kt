@@ -75,6 +75,27 @@ fun SettingGroupScreen(
                 )
             }
 
+            // 그룹 비밀번호 섹션
+            // 구성원이 공유하는 참여 관문이므로 그룹 코드와 함께 노출한다.
+            // 이 값이 보이기 때문에 변경 화면에서 현재 비밀번호를 다시 묻지 않는다.
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "그룹 비밀번호 : ",
+                    fontSize = 20.sp,
+                    fontFamily = NanumSquareRegular
+                )
+                Text(
+                    text = currentGroup?.groupPw ?: "로딩 중...",
+                    fontSize = 20.sp,
+                    fontFamily = NanumSquareRegular
+                )
+            }
+
             // 그룹명 표시
             currentGroup?.groupName?.let { groupName ->
                 Row(

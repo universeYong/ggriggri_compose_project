@@ -44,7 +44,9 @@ class ggriggriAplication : Application(), SingletonImageLoader.Factory,
 
         notificationChannelManager.createNotificationChannels()
 
-//        Log.e("TAG", KakaoSdk.keyHash)
+        // 카카오 SDK는 로그인 API를 쓰기 전에 반드시 초기화되어야 한다.
+        // 키는 secret.properties → BuildConfig 경로로 주입된다.
+        KakaoSdk.init(this, BuildConfig.KAKAO_NATIVE_APP_KEY)
     }
 
     override fun newImageLoader(context: PlatformContext): ImageLoader =

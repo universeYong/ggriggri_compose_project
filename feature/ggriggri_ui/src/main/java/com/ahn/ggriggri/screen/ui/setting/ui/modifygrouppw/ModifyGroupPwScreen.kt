@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ahn.common_ui.components.CommonButton
+import com.ahn.common_ui.components.CommonDialog
 import com.ahn.common_ui.components.PasswordTextField
 import com.ahn.ggriggri.screen.ui.setting.viewmodel.SettingGroupViewModel
 import theme.GgriggriTheme
@@ -35,6 +36,7 @@ fun ModifyGroupPwScreen(
 
     var newPassword by remember { mutableStateOf("") }
     var confirmNewPassword by remember { mutableStateOf("") }
+    var showConfirmDialog by remember { mutableStateOf(false) }
 
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val errorMessage by viewModel.errorMessage.collectAsStateWithLifecycle()
@@ -54,11 +56,13 @@ fun ModifyGroupPwScreen(
         }
     }
 
-    // 성공 메시지 표시
+    // 성공 메시지 표시 후에만 화면을 벗어난다.
+    // 버튼에서 곧바로 이동하면 실패 메시지를 볼 수 없다.
     LaunchedEffect(successMessage) {
         successMessage?.let { message ->
             snackbarHostState.showSnackbar(message)
             viewModel.clearSuccessMessage()
+            onNavigateToSettingGroup()
         }
     }
     GgriggriTheme {
@@ -98,10 +102,10 @@ fun ModifyGroupPwScreen(
 
                 // 변경하기 버튼
                 CommonButton(
-                    onClick = { 
+                    onClick = {
+                        // 바로 저장하지 않고 확인을 한 번 받는다. 실수로 인한 변경을 막기 위한 것이다.
                         if (isNewPasswordValid) {
-                            viewModel.updateGroupPassword(newPassword)
-                            onNavigateToSettingGroup()
+                            showConfirmDialog = true
                         }
                     },
                     modifier = Modifier
@@ -120,6 +124,22 @@ fun ModifyGroupPwScreen(
                         )
                     }
                 }
+            }
+
+            // 변경 전 확인 — 현재 비밀번호 재입력을 대신하는 사고 방지 장치
+            if (showConfirmDialog) {
+                CommonDialog(
+                    onDismissRequest = { showConfirmDialog = false },
+                    onConfirmation = {
+                        showConfirmDialog = false
+                        viewModel.updateGroupPassword(newPassword)
+                    },
+                    title = "그룹 비밀번호를 변경할까요?",
+                    message = "변경 후에는 새 비밀번호로만 그룹에 참여할 수 있습니다. 기존 구성원에게 새 비밀번호를 알려주세요.",
+                    confirmButtonText = "변경",
+                    dismissButtonText = "취소",
+                    onDismissClick = { showConfirmDialog = false }
+                )
             }
         }
     }
