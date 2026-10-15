@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
@@ -48,8 +49,12 @@ class RequestListViewModel @Inject constructor(
         loadArchivedRequests()
     }
 
+    // 실시간 리스너(collect)가 끝나지 않으므로 다시 호출되면 이전 구독을 취소한다.
+    private var archivedRequestsJob: Job? = null
+
     fun loadArchivedRequests() {
-        viewModelScope.launch {
+        archivedRequestsJob?.cancel()
+        archivedRequestsJob = viewModelScope.launch {
             _isLoading.value = true
             _error.value = null
 

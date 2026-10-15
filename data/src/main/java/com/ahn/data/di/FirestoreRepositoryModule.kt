@@ -1,5 +1,6 @@
 package com.ahn.data.di
 
+import com.ahn.data.repository.FirebaseFCMRepositoryImpl
 import com.ahn.data.repository.FirebaseStorageRepositoryImpl
 import com.ahn.data.repository.FirestoreAnswerRepositoryImpl
 import com.ahn.data.repository.FirestoreGroupRepositoryImpl
@@ -10,6 +11,7 @@ import com.ahn.data.repository.FirestoreResponseRepositoryImpl
 import com.ahn.data.repository.FirestoreUserRepositoryImpl
 import com.ahn.data.repository.StorageRepository
 import com.ahn.domain.repository.AnswerRepository
+import com.ahn.domain.repository.FCMRepository
 import com.ahn.domain.repository.GroupRepository
 import com.ahn.domain.repository.QuestionListRepository
 import com.ahn.domain.repository.QuestionRepository
@@ -29,6 +31,11 @@ abstract class FirestoreRepositoryModule {
     abstract fun bindUserRepository(
         firestoreUserRepositoryImpl: FirestoreUserRepositoryImpl
     ): UserRepository
+
+    @Binds
+    abstract fun bindFCMRepository(
+        firebaseFCMRepositoryImpl: FirebaseFCMRepositoryImpl
+    ): FCMRepository
 
     @Binds
     abstract fun bindGroupRepository(

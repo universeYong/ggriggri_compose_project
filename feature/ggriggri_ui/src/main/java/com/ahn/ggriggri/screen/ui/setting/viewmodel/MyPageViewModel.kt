@@ -9,6 +9,8 @@ import com.ahn.domain.model.User
 import com.ahn.domain.model.Group
 import com.ahn.domain.repository.UserRepository
 import com.ahn.domain.repository.GroupRepository
+import com.ahn.domain.repository.FCMRepository
+import kotlinx.coroutines.withTimeoutOrNull
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
@@ -36,6 +38,7 @@ class MyPageViewModel @Inject constructor(
     private val sessionManager: SessionManager,
     private val groupRepository: GroupRepository,
     private val userRepository: UserRepository,
+    private val fcmRepository: FCMRepository,
 ): ViewModel(){
 
     private val _currentGroup = MutableStateFlow<Group?>(null)
@@ -136,6 +139,11 @@ class MyPageViewModel @Inject constructor(
 
     fun logout(onNavigateToLogin: () -> Unit) {
         viewModelScope.launch {
+            // 세션을 지우기 전에 이 기기의 FCM 토큰을 서버에서 정리한다.
+            // 네트워크가 느려도 로그아웃이 막히지 않도록 시간 제한을 두고, 실패해도 계속 진행한다.
+            runCatching {
+                withTimeoutOrNull(3_000) { fcmRepository.unregisterCurrentUserToken() }
+            }
             sessionManager.logoutUser()
             onNavigateToLogin()
         }

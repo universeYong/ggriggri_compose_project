@@ -68,8 +68,22 @@ class FirestoreUserRepositoryImpl @Inject constructor(
     override suspend fun updateFcmToken(userId: String, token: String): Flow<DataResourceResult<Boolean>> = flow {
         emit(DataResourceResult.Loading)
 
+        val userCollection = Firebase.firestore.collection("user_data")
+
+        // 같은 기기에서 계정을 바꿔 로그인한 경우, 이 토큰이 이전 계정 문서에 남아 있으면
+        // 이전 계정의 알림이 이 기기로 온다. 다른 사용자 문서에서 먼저 지운다.
+        val previousOwners = userCollection
+            .whereArrayContains("_userFcmToken", token)
+            .get()
+            .await()
+        previousOwners.documents
+            .filter { it.id != userId }
+            .forEach { doc ->
+                doc.reference.update("_userFcmToken", FieldValue.arrayRemove(token)).await()
+            }
+
         // Functions는 user_data._userFcmToken을 읽기 때문에 Firestore 저장이 우선 보장되어야 한다.
-        Firebase.firestore.collection("user_data")
+        userCollection
             .document(userId)
             .set(
                 mapOf("_userFcmToken" to FieldValue.arrayUnion(token)),
@@ -84,6 +98,15 @@ class FirestoreUserRepositoryImpl @Inject constructor(
             Log.w("FirestoreUserRepository", "FCM token API sync failed, but Firestore update succeeded.")
         }
 
+        emit(DataResourceResult.Success(true))
+    }.catch { emit(DataResourceResult.Failure(it)) }
+
+    override suspend fun removeFcmToken(userId: String, token: String): Flow<DataResourceResult<Boolean>> = flow {
+        emit(DataResourceResult.Loading)
+        Firebase.firestore.collection("user_data")
+            .document(userId)
+            .update("_userFcmToken", FieldValue.arrayRemove(token))
+            .await()
         emit(DataResourceResult.Success(true))
     }.catch { emit(DataResourceResult.Failure(it)) }
 

@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneId
@@ -54,8 +55,12 @@ class QuestionListViewModel @Inject constructor(
         loadArchivedQuestions()
     }
 
+    // 실시간 리스너(collect)가 끝나지 않으므로 다시 호출되면 이전 구독을 취소한다.
+    private var archivedQuestionsJob: Job? = null
+
     fun loadArchivedQuestions() {
-        viewModelScope.launch {
+        archivedQuestionsJob?.cancel()
+        archivedQuestionsJob = viewModelScope.launch {
             _isLoading.value = true
             _error.value = null
 

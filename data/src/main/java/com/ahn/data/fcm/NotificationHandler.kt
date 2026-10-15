@@ -32,8 +32,10 @@ class NotificationHandler @Inject constructor(
 
     fun handleNotification(remoteMessage: RemoteMessage) {
         val notificationType = remoteMessage.data["type"]
-        val title = remoteMessage.notification?.title
-        val body = remoteMessage.notification?.body
+        // 서버는 data 전용 메시지로 보내며 title/body를 data에 담는다(백그라운드에서도 여기를 거쳐
+        // 알림 설정과 채널이 적용되도록). 예전 서버 형식(notification 페이로드)도 계속 읽는다.
+        val title = remoteMessage.data["title"] ?: remoteMessage.notification?.title
+        val body = remoteMessage.data["body"] ?: remoteMessage.notification?.body
         val data = remoteMessage.data
 
         scope.launch {

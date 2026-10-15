@@ -91,5 +91,23 @@ class FCMTokenManager @Inject constructor(
         val token = getCurrentToken()
         token?.let { saveTokenToServer(it) }
     }
+
+    // 로그아웃 직전에 호출한다(세션에 사용자가 남아 있어야 문서를 찾을 수 있음).
+    // 서버 문서에서 토큰을 지운 뒤 기기 토큰을 폐기한다. 실패해도 로그아웃은 계속되어야 하므로 예외는 삼킨다.
+    suspend fun unregisterToken() {
+        val currentUser = sessionManager.currentUserFlow.first()
+        val token = getCurrentToken()
+        if (currentUser != null && !token.isNullOrBlank()) {
+            userRepository.removeFcmToken(currentUser.userId, token)
+                .first { it is DataResourceResult.Success || it is DataResourceResult.Failure }
+                .let { result ->
+                    if (result is DataResourceResult.Failure) {
+                        Log.e("FCM", "Failed to remove token on logout", result.exception)
+                    }
+                }
+        }
+        runCatching { FirebaseMessaging.getInstance().deleteToken().await() }
+            .onFailure { Log.e("FCM", "Failed to delete FCM token", it) }
+    }
 }
 

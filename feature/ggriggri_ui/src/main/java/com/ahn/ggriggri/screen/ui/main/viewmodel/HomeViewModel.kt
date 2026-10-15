@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.ZoneId
@@ -208,6 +209,17 @@ class HomeViewModel @Inject constructor(
     }
 
     private suspend fun fetchOrGenerateTodayQuestionRecord() {
+        if (isCreatingQuestion) return
+        try {
+            fetchOrGenerateTodayQuestionRecordInternal()
+        } finally {
+            // 중간에 예외가 나도 플래그가 남아 이후 질문 로딩이 영원히 막히지 않게 한다.
+            isCreatingQuestion = false
+            _isLoading.value = false
+        }
+    }
+
+    private suspend fun fetchOrGenerateTodayQuestionRecordInternal() {
         // 중복 생성 방지
         if (isCreatingQuestion) {
             Log.d("HomeViewModel", "이미 질문 생성 중이므로 중복 호출 방지")
@@ -249,23 +261,18 @@ class HomeViewModel @Inject constructor(
                     finalQuestionRecord = createNewQuestionRecordForToday(currentGroupId, todayStartTimestamp)
                 }
             }
+            // 조회에 실패했을 때는 오늘 질문이 이미 있는지 알 수 없으므로 새로 만들지 않는다.
+            // (만들면 질문이 중복되고 그룹 전체에 푸시가 다시 나간다.)
             is DataResourceResult.Failure -> {
                 Log.e("HomeViewModel", "질문 레코드 조회 실패: ${questionRecordResult.exception.message}")
-                finalQuestionRecord = createNewQuestionRecordForToday(currentGroupId, todayStartTimestamp)
-                if (finalQuestionRecord == null) {
-                    _errorMessage.value = "오늘의 질문 정보를 가져오거나 생성하는데 실패했습니다."
-                }
+                _errorMessage.value = "오늘의 질문 정보를 가져오는데 실패했습니다."
             }
             null -> {
                 Log.w("HomeViewModel", "질문 레코드 조회 결과가 null")
-                finalQuestionRecord = createNewQuestionRecordForToday(currentGroupId, todayStartTimestamp)
-                if (finalQuestionRecord == null) {
-                    _errorMessage.value = "오늘의 질문 정보를 가져오지 못했습니다(null result)."
-                }
+                _errorMessage.value = "오늘의 질문 정보를 가져오지 못했습니다."
             }
             else -> {
                 Log.w("HomeViewModel", "예상치 못한 질문 레코드 결과: $questionRecordResult")
-                finalQuestionRecord = createNewQuestionRecordForToday(currentGroupId, todayStartTimestamp)
             }
         }
 
@@ -301,7 +308,8 @@ class HomeViewModel @Inject constructor(
                 }
             }
             else -> {
-                Log.d("HomeViewModel", "기존 질문 확인 중 오류 또는 null, 새로 생성 진행")
+                Log.w("HomeViewModel", "기존 질문 확인 실패, 중복 생성을 피하기 위해 생성하지 않음")
+                return null
             }
         }
         
@@ -388,8 +396,13 @@ class HomeViewModel @Inject constructor(
     }
 
 
+    // requestRepository.read()는 Firestore 실시간 리스너라 끝나지 않는다.
+    // 다시 호출될 때마다 이전 구독을 취소해 리스너가 쌓이지 않게 한다.
+    private var requestsJob: Job? = null
+
     fun loadRequests() {
-        viewModelScope.launch {
+        requestsJob?.cancel()
+        requestsJob = viewModelScope.launch {
             _isLoading.value = true
             _errorMessage.value = null
             

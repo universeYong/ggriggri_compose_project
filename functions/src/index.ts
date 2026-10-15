@@ -65,23 +65,29 @@ const pruneInvalidTokens = async (
     return;
   }
 
-  const userSnapshot = await userCollection.get();
-  const updates: Array<Promise<unknown>> = [];
+  // 전체 user_data를 스캔하지 않고, 무효 토큰을 가진 문서만 찾는다.
+  // array-contains-any는 한 번에 최대 30개 값까지 받는다.
+  const snapshots = await Promise.all(
+    chunk(uniqueInvalidTokens, 30).map((tokenChunk) => {
+      return userCollection
+        .where("_userFcmToken", "array-contains-any", tokenChunk)
+        .get();
+    }),
+  );
 
-  for (const doc of userSnapshot.docs) {
-    const userTokens = normalizeTokens(doc.data()?._userFcmToken);
-    const tokensToRemove = userTokens.filter((token) => {
-      return uniqueInvalidTokens.includes(token);
-    });
-
-    if (tokensToRemove.length === 0) {
-      continue;
+  const touchedDocs = new Map<string, admin.firestore.DocumentReference>();
+  for (const snapshot of snapshots) {
+    for (const doc of snapshot.docs) {
+      touchedDocs.set(doc.id, doc.ref);
     }
-
-    updates.push(doc.ref.update({
-      _userFcmToken: admin.firestore.FieldValue.arrayRemove(...tokensToRemove),
-    }));
   }
+
+  const updates = [...touchedDocs.values()].map((ref) => {
+    return ref.update({
+      _userFcmToken:
+        admin.firestore.FieldValue.arrayRemove(...uniqueInvalidTokens),
+    });
+  });
 
   await Promise.all(updates);
   logger.info("Pruned invalid FCM tokens", {
@@ -130,28 +136,44 @@ const sendPushToTokens = async (
     return;
   }
 
-  const message: admin.messaging.MulticastMessage = {
-    tokens,
-    notification: {title, body},
-    data: toStringData(data),
-  };
+  // data 전용 메시지로 보낸다. notification 페이로드가 있으면 앱이 백그라운드일 때
+  // 시스템이 직접 알림을 띄워서, 앱의 알림 설정(타입별 ON/OFF)과 채널이 무시된다.
+  // title/body는 data에 담고, 앱(NotificationHandler)이 읽어서 표시한다.
+  // priority high: 기기가 Doze 상태여도 data 메시지가 바로 전달되도록 한다.
+  const payload = toStringData({...data, title, body});
 
-  const result = await messaging.sendEachForMulticast(message);
+  let successCount = 0;
+  let failureCount = 0;
   const invalidTokens: string[] = [];
 
-  result.responses.forEach((response, index) => {
-    if (!response.success && response.error) {
-      if (PRUNE_ERROR_CODES.has(response.error.code)) {
-        invalidTokens.push(tokens[index]);
+  // sendEachForMulticast는 한 번에 최대 500개 토큰까지만 받는다.
+  for (const tokenChunk of chunk(tokens, 500)) {
+    const message: admin.messaging.MulticastMessage = {
+      tokens: tokenChunk,
+      data: payload,
+      android: {priority: "high"},
+    };
+
+    const result = await messaging.sendEachForMulticast(message);
+    successCount += result.successCount;
+    failureCount += result.failureCount;
+
+    result.responses.forEach((response, index) => {
+      if (!response.success && response.error) {
+        if (PRUNE_ERROR_CODES.has(response.error.code)) {
+          invalidTokens.push(tokenChunk[index]);
+        } else {
+          logger.warn("FCM send failed", {code: response.error.code});
+        }
       }
-    }
-  });
+    });
+  }
 
   await pruneInvalidTokens(invalidTokens);
 
   logger.info("FCM send result", {
-    successCount: result.successCount,
-    failureCount: result.failureCount,
+    successCount,
+    failureCount,
     targetCount: tokens.length,
     prunedInvalidCount: invalidTokens.length,
   });
@@ -181,8 +203,8 @@ export const notifyDailyQuestionCreated = onDocumentCreated(
 
     await sendPushToTokens(
       tokens,
-      "New daily question",
-      "Check today's question now.",
+      "오늘의 질문",
+      "오늘의 질문이 도착했어요. 지금 답해보세요!",
       {
         type: "daily_question",
         groupId,
