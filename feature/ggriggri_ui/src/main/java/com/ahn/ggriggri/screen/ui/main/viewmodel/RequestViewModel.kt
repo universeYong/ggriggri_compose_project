@@ -138,22 +138,21 @@ class RequestViewModel @Inject constructor(
                     
                     Log.d("RequestViewModel", "압축된 이미지 URI: $compressedUri")
                     
-                    // 압축된 이미지 업로드
+                    // 압축된 이미지 업로드 - 업로드가 실패하면 요청을 만들지 않고 중단한다.
                     val uploadResult = storageRepository.uploadImage(compressedUri, "requests")
-                    uploadResult.collect { result ->
-                        when (result) {
-                            is DataResourceResult.Success -> {
-                                imageUrl = result.data
-                                Log.d("RequestViewModel", "이미지 업로드 성공: $imageUrl")
-                            }
-                            is DataResourceResult.Failure -> {
-                                Log.e("RequestViewModel", "이미지 업로드 실패: ${result.exception}")
-                                _errorMessage.value = "이미지 업로드에 실패했습니다: ${result.exception.message}"
-                                _isLoading.value = false
-                                return@collect
-                            }
-                            else -> { }
+                        .first { it is DataResourceResult.Success || it is DataResourceResult.Failure }
+                    when (uploadResult) {
+                        is DataResourceResult.Success -> {
+                            imageUrl = uploadResult.data
+                            Log.d("RequestViewModel", "이미지 업로드 성공: $imageUrl")
                         }
+                        is DataResourceResult.Failure -> {
+                            Log.e("RequestViewModel", "이미지 업로드 실패: ${uploadResult.exception}")
+                            _errorMessage.value = "이미지 업로드에 실패했습니다: ${uploadResult.exception.message}"
+                            _isLoading.value = false
+                            return@runCatching
+                        }
+                        else -> { }
                     }
                 }
 

@@ -126,25 +126,25 @@ class ResponseViewModel @Inject constructor(
                         
                         Log.d("ResponseViewModel", "압축된 이미지 URI: $compressedUri")
                         Log.d("ResponseViewModel", "이미지 업로드 시작")
-                        // 압축된 이미지 업로드
+                        // 압축된 이미지 업로드 - 업로드가 실패하면 응답을 만들지 않고 중단한다.
                         val uploadResult = storageRepository.uploadImage(compressedUri, "response")
-                        uploadResult.collect { result ->
-                            when (result) {
-                                is DataResourceResult.Success -> {
-                                    imageUrl = result.data
-                                    Log.d("ResponseViewModel", "이미지 업로드 성공: $imageUrl")
-                                }
-                                is DataResourceResult.Failure -> {
-                                    _errorMessage.value = "이미지 업로드에 실패했습니다: ${result.exception.message}"
-                                    _isLoading.value = false
-                                    Log.e("ResponseViewModel", "이미지 업로드 실패", result.exception)
-                                    return@collect
-                                }
-                                else -> { 
-                                    Log.d("ResponseViewModel", "이미지 업로드 로딩 중...")
-                                }
+                            .filter { it is DataResourceResult.Success || it is DataResourceResult.Failure }
+                            .first()
+                        when (uploadResult) {
+                            is DataResourceResult.Success -> {
+                                imageUrl = uploadResult.data
+                                Log.d("ResponseViewModel", "이미지 업로드 성공: $imageUrl")
                             }
+                            is DataResourceResult.Failure -> {
+                                _errorMessage.value = "이미지 업로드에 실패했습니다: ${uploadResult.exception.message}"
+                                _isLoading.value = false
+                                Log.e("ResponseViewModel", "이미지 업로드 실패", uploadResult.exception)
+                                return@launch
+                            }
+                            else -> { }
                         }
+                    } catch (e: kotlinx.coroutines.CancellationException) {
+                        throw e
                     } catch (e: Exception) {
                         _errorMessage.value = "이미지 업로드 중 오류가 발생했습니다: ${e.message}"
                         _isLoading.value = false

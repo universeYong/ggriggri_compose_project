@@ -34,17 +34,21 @@ data class MyPageUiState(
 @HiltViewModel
 class MyPageViewModel @Inject constructor(
     private val sessionManager: SessionManager,
-    private val groupRepository: GroupRepository
+    private val groupRepository: GroupRepository,
+    private val userRepository: UserRepository,
 ): ViewModel(){
 
     private val _currentGroup = MutableStateFlow<Group?>(null)
     val currentGroup: StateFlow<Group?> = _currentGroup.asStateFlow()
 
+    private val _errorMessage = MutableStateFlow<String?>(null)
+
     val uiState: StateFlow<MyPageUiState> = combine(
         sessionManager.currentUserFlow,
-        _currentGroup
-    ) { user, group ->
-        MyPageUiState(user = user, group = group, isLoading = false)
+        _currentGroup,
+        _errorMessage
+    ) { user, group, error ->
+        MyPageUiState(user = user, group = group, isLoading = false, errorMessage = error)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
@@ -101,15 +105,33 @@ class MyPageViewModel @Inject constructor(
 
     fun updateUserProfileData(newName: String, newProfileImageUrl: String) {
         viewModelScope.launch {
-            val currentUser = uiState.value.user
-            if (currentUser != null) {
-                sessionManager.updateUserProfile(newName, newProfileImageUrl)
+            val currentUser = sessionManager.currentUserFlow.first()
+            if (currentUser == null) {
+                _errorMessage.value = "로그인이 필요합니다."
+                return@launch
             }
-            val updateUserForFirestore = currentUser!!.copy(
+            val updatedUser = currentUser.copy(
                 userName = newName,
                 userProfileImage = newProfileImageUrl
             )
+            // 서버(Firestore)에 먼저 저장하고, 성공했을 때만 로컬 세션을 갱신한다.
+            val result = userRepository.update(updatedUser)
+                .first { it is DataResourceResult.Success || it is DataResourceResult.Failure }
+            when (result) {
+                is DataResourceResult.Success -> {
+                    sessionManager.updateUserProfile(newName, newProfileImageUrl)
+                    _errorMessage.value = null
+                }
+                is DataResourceResult.Failure -> {
+                    _errorMessage.value = "프로필 저장에 실패했습니다: ${result.exception.message}"
+                }
+                else -> { }
+            }
         }
+    }
+
+    fun clearErrorMessage() {
+        _errorMessage.value = null
     }
 
     fun logout(onNavigateToLogin: () -> Unit) {

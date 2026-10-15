@@ -192,12 +192,12 @@ fun MakeGroupScreen(
                     else PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     trailingIcon = {
-                        val image = if (passwordVisible)
+                        val image = if (confirmPasswordVisible)
                             Icons.Filled.Visibility
                         else Icons.Filled.VisibilityOff
 
                         IconButton(onClick = {
-                            passwordVisible = !passwordVisible
+                            confirmPasswordVisible = !confirmPasswordVisible
                         }) {
                             Icon(imageVector = image, contentDescription = "")
                         }
