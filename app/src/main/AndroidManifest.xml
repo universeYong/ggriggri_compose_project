@@ -61,6 +61,22 @@
             </intent-filter>
         </service>
 
+        <!--
+          ggriggriAplication이 Configuration.Provider로 HiltWorkerFactory를 제공하므로
+          기본 WorkManager 초기화를 끈다. 그대로 두면 기본 팩토리가 먼저 초기화되어
+          @HiltWorker(DailyQuestionWorker)를 만들지 못한다.
+        -->
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup"
+                tools:node="remove" />
+        </provider>
+
     </application>
 
 </manifest>

@@ -44,7 +44,6 @@ dependencies {
 
     implementation(platform(libs.firebase.bom))
     implementation(libs.bundles.firebase.libraries)
-    implementation(libs.firebase.messaging.ktx)
 
     implementation(libs.retrofit)
     implementation(libs.converter.gson)

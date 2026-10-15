@@ -56,13 +56,12 @@ dependencies {
 
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
-    implementation(libs.androidx.compose.runtime.runtime)
     implementation(libs.bundles.work.libraries)
 
 
     // Compose Preview를 위해 아래 두 의존성을 추가합니다.
-    debugImplementation(libs.ui.tooling)
-    debugImplementation("androidx.compose.ui:ui-test-manifest")
+    debugImplementation(libs.androidx.ui.tooling)
+    debugImplementation(libs.androidx.ui.test.manifest)
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
@@ -82,6 +81,8 @@ dependencies {
     // Hilt Navigation (ViewModel 주입에 필요)
     implementation(libs.hilt.navigation.compose)
     implementation(libs.hilt.work)
+    // @HiltWorker(DailyQuestionWorker)의 팩토리를 생성한다. 없으면 HiltWorkerFactory가 Worker를 만들지 못한다.
+    ksp(libs.androidx.hilt.compiler)
 
     implementation(libs.coil.network.okhttp)
     implementation(libs.coil.compose)

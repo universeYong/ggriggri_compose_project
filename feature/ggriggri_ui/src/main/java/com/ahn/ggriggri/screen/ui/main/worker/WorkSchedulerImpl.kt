@@ -2,16 +2,17 @@ package com.ahn.ggriggri.screen.ui.main.worker
 
 import android.content.Context
 import android.util.Log
-import androidx.hilt.work.HiltWorker
 import androidx.work.*
-import dagger.assisted.AssistedInject
 import dagger.hilt.android.qualifiers.ApplicationContext
+import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-@HiltWorker
-class WorkSchedulerImpl @AssistedInject constructor(
+// Worker가 아니라 Worker를 예약하는 일반 클래스이므로 @HiltWorker가 아닌 @Inject 생성자를 쓴다.
+// AppWorkScheduler 바인딩은 di/WorkSchedulerModule 참고.
+@Singleton
+class WorkSchedulerImpl @Inject constructor(
     @ApplicationContext private val context: Context
 ) : AppWorkScheduler {
 

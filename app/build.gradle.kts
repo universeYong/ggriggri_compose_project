@@ -87,8 +87,7 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.material.icons.extended)
 
-    implementation(libs.firebase.firestore.ktx)
-    implementation(platform(libs.firebase.bom))
+    // Firebase는 :data가 BOM과 함께 가져온다(app 코드에서 직접 쓰지 않음).
     implementation(libs.bundles.moshi.libraries)
     implementation(libs.bundles.work.libraries)
 
