@@ -11,6 +11,7 @@ import coil3.disk.DiskCache
 import coil3.disk.directory
 import coil3.memory.MemoryCache
 import com.ahn.domain.notification.NotificationChannelManager
+import com.ahn.ggriggri.screen.ui.main.worker.AppWorkScheduler
 import com.kakao.sdk.common.KakaoSdk
 import dagger.hilt.android.HiltAndroidApp
 import jakarta.inject.Inject
@@ -33,6 +34,9 @@ class ggriggriAplication : Application(), SingletonImageLoader.Factory,
     @Inject
     lateinit var workerFactory: HiltWorkerFactory
 
+    @Inject
+    lateinit var appWorkScheduler: AppWorkScheduler
+
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()
             .setWorkerFactory(workerFactory) // 주입받은 HiltWorkerFactory 사용
@@ -47,6 +51,10 @@ class ggriggriAplication : Application(), SingletonImageLoader.Factory,
         // 카카오 SDK는 로그인 API를 쓰기 전에 반드시 초기화되어야 한다.
         // 키는 secret.properties → BuildConfig 경로로 주입된다.
         KakaoSdk.init(this, BuildConfig.KAKAO_NATIVE_APP_KEY)
+
+        // 매일 자정에 오늘의 질문을 만드는 Worker 예약(KEEP이라 이미 예약돼 있으면 그대로 둔다).
+        // 질문 문서 ID가 {groupId}_{yyyyMMdd}로 고정돼 있어 그룹원 기기마다 실행돼도 질문과 푸시는 한 번만 생긴다.
+        appWorkScheduler.scheduleDailyTasks()
     }
 
     override fun newImageLoader(context: PlatformContext): ImageLoader =
