@@ -12,3 +12,10 @@ plugins {
     alias(libs.plugins.google.gms.google.services) apply false
     alias(libs.plugins.google.ksp) apply false
 }
+
+// 데몬은 file.encoding=COMPAT(gradle.properties 참고)이지만 테스트 JVM의 기본 문자셋은 UTF-8로 고정한다.
+subprojects {
+    tasks.withType<Test>().configureEach {
+        defaultCharacterEncoding = "UTF-8"
+    }
+}

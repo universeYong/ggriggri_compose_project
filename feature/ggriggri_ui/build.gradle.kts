@@ -34,6 +34,10 @@ android {
         compose = true
 //        buildConfig = true
     }
+    testOptions {
+        // ViewModel 단위 테스트에서 android.util.Log 호출이 "Method ... not mocked" 예외를 내지 않게 한다.
+        unitTests.isReturnDefaultValues = true
+    }
 }
 kotlin {
     jvmToolchain(21)
@@ -88,6 +92,7 @@ dependencies {
 
 
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 }
