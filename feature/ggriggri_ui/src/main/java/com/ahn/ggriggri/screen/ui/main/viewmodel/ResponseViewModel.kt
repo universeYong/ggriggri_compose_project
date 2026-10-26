@@ -90,7 +90,7 @@ class ResponseViewModel @Inject constructor(
 
             try {
                 val currentUser = sessionManager.currentUserFlow.first()
-                Log.d("ResponseViewModel", "현재 사용자: $currentUser")
+                Log.d("ResponseViewModel", "현재 사용자: ${currentUser?.userId}")
                 if (currentUser == null) {
                     _errorMessage.value = "사용자 정보를 찾을 수 없습니다."
                     _isLoading.value = false

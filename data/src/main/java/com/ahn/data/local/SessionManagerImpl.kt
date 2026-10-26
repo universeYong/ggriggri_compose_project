@@ -34,23 +34,16 @@ class SessionManagerImpl(
             }
         }
         .map { preferences ->
+            // 사용자 JSON에는 세션 토큰이 들어 있으므로 로그로 남기지 않는다.
             val userJson = preferences[DataStoreKeys.USER_OBJECT_JSON]
-            Log.d("SessionManager", "currentUserFlow - userJson: $userJson")
-            
             if (userJson != null) {
                 runCatching {
-                    val user = userJsonAdapter.fromJson(userJson)
-                    Log.d(
-                        "SessionManager",
-                        "currentUserFlow emitted user: ${user?.userId}"
-                    ) // User 객체 emit 로그
-                    user
+                    userJsonAdapter.fromJson(userJson)
                 }.getOrElse { exception ->
                     Log.e("SessionManager", "JSON 파싱 실패", exception)
                     null
                 }
             } else {
-                Log.d("SessionManager", "currentUserFlow emitted null user - userJson is null") // null User 객체 emit 로그
                 null
             }
         }
@@ -81,19 +74,11 @@ class SessionManagerImpl(
             groupId
         }
 
+    // 토큰과 사용자 JSON(토큰 포함)은 로그에 남기지 않는다.
     override suspend fun loginUser(user: User) {
-        Log.d(
-            "SessionManager",
-            "loginUser called with user: ${user.userId}, token: ${user.userAutoLoginToken}"
-        ) // 함수 진입 로그
         val tokenToSave = user.userAutoLoginToken
         if (tokenToSave.isBlank()) {
-            Log.w(
-                "SessionManager",
-                "Token is blank, loginUser will not save session and set isLoggedIn to false."
-            ) // 토큰 비어있을 경우 로그
-            
-            // 토큰이 비어있으면 로그인 상태를 false로 설정
+            Log.w("SessionManager", "loginUser: 토큰이 비어 있어 세션을 지우고 로그아웃 상태로 둔다.")
             context.dataStore.edit { settings ->
                 settings[DataStoreKeys.IS_LOGGED_IN] = false
                 settings.remove(DataStoreKeys.USER_OBJECT_JSON)
@@ -104,26 +89,39 @@ class SessionManagerImpl(
         }
         runCatching {
             context.dataStore.edit { settings ->
-                Log.d("SessionManager", "DataStore.edit block ENTERED for user: ${user.userId}") // <--- (2) edit 블록 진입 확인
-                val userJson = userJsonAdapter.toJson(user)
-                Log.d("SessionManager", "User JSON to save: $userJson") // <--- (3) 생성된 JSON 확인
-                settings[DataStoreKeys.USER_OBJECT_JSON] = userJson
+                settings[DataStoreKeys.USER_OBJECT_JSON] = userJsonAdapter.toJson(user)
                 settings[DataStoreKeys.USER_TOKEN] = tokenToSave
                 settings[DataStoreKeys.IS_LOGGED_IN] = true
                 if (!user.userGroupDocumentId.isNullOrBlank()) {
                     settings[DataStoreKeys.USER_GROUP_ID] = user.userGroupDocumentId
-                    Log.d("SessionManager", "User group ID saved: ${user.userGroupDocumentId}")
-                } else {
-                    Log.d("SessionManager", "User group ID is null or blank")
                 }
-                Log.d(
-                    "SessionManager",
-                    "User session saved to DataStore for user: ${user.userId}"
-                ) // DataStore 저장 성공 로그
             }
-            Log.d("SessionManager", "DataStore.edit block EXITED NORMALLY for user: ${user.userId}") // <--- (6) edit 블록 정상 종료 확인
-        }.getOrElse { exception -> 
-            Log.e("SessionManager", "Failed to save user session to DataStore", exception) // <--- (7) 예외 발생 시 확인
+        }.getOrElse { exception ->
+            Log.e("SessionManager", "Failed to save user session to DataStore", exception)
+            throw exception
+        }
+    }
+
+    override suspend fun updateUser(user: User) {
+        runCatching {
+            context.dataStore.edit { settings ->
+                val existingToken = settings[DataStoreKeys.USER_TOKEN]
+                if (existingToken.isNullOrBlank() || settings[DataStoreKeys.IS_LOGGED_IN] != true) {
+                    Log.w("SessionManager", "updateUser: 로그인 세션이 없어 갱신하지 않는다.")
+                    return@edit
+                }
+                // 서버에서 읽은 User에는 토큰이 없으므로 로컬 세션 토큰을 그대로 유지한다.
+                val merged = user.copy(userAutoLoginToken = existingToken)
+                settings[DataStoreKeys.USER_OBJECT_JSON] = userJsonAdapter.toJson(merged)
+                // 그룹 탈퇴처럼 그룹 ID가 비면 세션의 그룹 ID도 지운다.
+                if (user.userGroupDocumentId.isNullOrBlank()) {
+                    settings.remove(DataStoreKeys.USER_GROUP_ID)
+                } else {
+                    settings[DataStoreKeys.USER_GROUP_ID] = user.userGroupDocumentId
+                }
+            }
+        }.getOrElse { exception ->
+            Log.e("SessionManager", "Failed to update user session in DataStore", exception)
             throw exception
         }
     }
@@ -177,11 +175,9 @@ class SessionManagerImpl(
     override suspend fun refreshUserInfo() {
         // 사용자 정보를 다시 로드하여 currentUserFlow를 업데이트
         // 이 함수는 currentUserFlow를 관찰하는 모든 ViewModel에서 그룹 정보를 새로고침하게 함
-        Log.d("SessionManager", "refreshUserInfo() 호출됨")
         context.dataStore.edit { settings ->
             // DataStore를 다시 읽어서 currentUserFlow를 트리거
             val currentUserJson = settings[DataStoreKeys.USER_OBJECT_JSON]
-            Log.d("SessionManager", "refreshUserInfo() - currentUserJson: $currentUserJson")
             if (currentUserJson != null) {
                 // 사용자 정보를 다시 파싱해서 저장하여 Flow를 트리거
                 runCatching {
@@ -189,7 +185,6 @@ class SessionManagerImpl(
                     if (user != null) {
                         // 사용자 정보를 다시 저장하여 Flow 업데이트 트리거
                         settings[DataStoreKeys.USER_OBJECT_JSON] = userJsonAdapter.toJson(user)
-                        Log.d("SessionManager", "refreshUserInfo() - 사용자 정보 재저장 완료")
                     }
                 }.getOrElse { exception ->
                     Log.e("SessionManager", "refreshUserInfo() - 사용자 정보 재저장 실패", exception)

@@ -49,12 +49,15 @@ class GroupViewModel @Inject constructor(
     private suspend fun <T> Flow<DataResourceResult<T>>.awaitResult(): DataResourceResult<T> =
         filter { it is DataResourceResult.Success || it is DataResourceResult.Failure }.first()
 
-    /** Firebase에서 최신 사용자 정보를 가져와 SessionManager를 갱신한다. 실패해도 흐름은 계속된다. */
+    /**
+     * Firebase에서 최신 사용자 정보를 가져와 SessionManager를 갱신한다. 실패해도 흐름은 계속된다.
+     * 서버의 User에는 로그인 토큰이 없으므로 loginUser가 아니라 updateUser(토큰 유지)를 쓴다.
+     */
     private suspend fun refreshSessionUser(userId: String, tag: String) {
         try {
             when (val updatedUserResult = userRepository.getUserById(userId).awaitResult()) {
                 is DataResourceResult.Success -> {
-                    updatedUserResult.data?.let { sessionManager.loginUser(it) }
+                    updatedUserResult.data?.let { sessionManager.updateUser(it) }
                 }
                 is DataResourceResult.Failure -> {
                     Log.e(tag, "최신 사용자 정보 가져오기 실패", updatedUserResult.exception)
@@ -117,9 +120,10 @@ class GroupViewModel @Inject constructor(
                 }
 
                 // 4. 세션 갱신 후 성공 처리
+                // 성공 안내는 화면(MakeGroupScreen)이 createResult를 보고 스낵바를 띄운 뒤 이동한다.
+                // 여기서 함께 emit하면 같은 안내가 두 번 뜨거나, 즉시 이동해 보이지 않는다.
                 refreshSessionUser(userId, "GroupVM_Create")
                 _createResult.value = DataResourceResult.Success(Unit)
-                _snackBarMessage.emit("그룹이 성공적으로 생성되었습니다!")
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -138,26 +142,15 @@ class GroupViewModel @Inject constructor(
         }
         viewModelScope.launch {
             _isGroupCodeDuplicate.value = DataResourceResult.Loading
-            Log.d("GroupVM_CheckCode", "Checking duplicate for group code: $groupCode")
 
+            // 결과(사용 가능/이미 사용 중)는 화면이 isGroupCodeDuplicate를 보고 입력란 아래 텍스트로 보여준다.
+            // 스낵바는 조회 자체가 실패했을 때만 띄워 같은 안내가 두 번 보이지 않게 한다.
             groupRepository.isGroupCodeExist(groupCode)
                 .collect { result ->
                     _isGroupCodeDuplicate.value = result
-                    when (result) {
-                        is DataResourceResult.Success -> {
-                            if (result.data == true) {
-                                Log.i("GroupVM_CheckCode", "Group code '$groupCode' already exists.")
-                                showSnackBar("이미 사용중인 코드입니다")
-                            } else {
-                                Log.i("GroupVM_CheckCode", "Group code '$groupCode' is available.")
-                                showSnackBar("사용 가능한 코드입니다.")
-                            }
-                        }
-                        is DataResourceResult.Failure -> {
-                            Log.e("GroupVM_CheckCode", "Failed to check group code: $groupCode", result.exception)
-                            showSnackBar("사용할 수 없는 코드입니다.")
-                        }
-                        else -> {}
+                    if (result is DataResourceResult.Failure) {
+                        Log.e("GroupVM_CheckCode", "Failed to check group code: $groupCode", result.exception)
+                        _snackBarMessage.emit("코드 확인 중 오류가 발생했습니다. 다시 시도해주세요.")
                     }
                 }
         }

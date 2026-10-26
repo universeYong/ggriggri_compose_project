@@ -77,8 +77,13 @@ class HomeViewModel @Inject constructor(
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage
 
-    private val _isLoading = MutableStateFlow(true)
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+    // 오늘의 질문 로딩과 요청 목록 로딩은 따로 둔다.
+    // (하나를 같이 쓰면 요청 목록을 다시 불러오는 동안 질문 카드에 스피너가 돈다.)
+    private val _isQuestionLoading = MutableStateFlow(true)
+    val isQuestionLoading: StateFlow<Boolean> = _isQuestionLoading.asStateFlow()
+
+    private val _isRequestLoading = MutableStateFlow(false)
+    val isRequestLoading: StateFlow<Boolean> = _isRequestLoading.asStateFlow()
 
     private val _todayQuestionRecord = MutableStateFlow<Question?>(null)
     private val _allQuestionLists = MutableStateFlow<List<QuestionList>>(emptyList())
@@ -123,6 +128,8 @@ class HomeViewModel @Inject constructor(
                         Log.w("HomeViewModel", "Group ID is null or empty, clearing profiles.")
                         _profiles.value = emptyList()
                         _requests.value = emptyList()
+                        // 그룹이 없으면 오늘의 질문을 불러오지 않으므로 질문 스피너도 멈춘다.
+                        _isQuestionLoading.value = false
                     }
                 }
         }
@@ -233,7 +240,7 @@ class HomeViewModel @Inject constructor(
         } finally {
             // 중간에 예외가 나도 플래그가 남아 이후 질문 로딩이 영원히 막히지 않게 한다.
             isCreatingQuestion = false
-            _isLoading.value = false
+            _isQuestionLoading.value = false
         }
     }
 
@@ -246,7 +253,7 @@ class HomeViewModel @Inject constructor(
         
         isCreatingQuestion = true
         Log.d("HomeViewModel", "fetchOrGenerateTodayQuestionRecord 시작")
-        _isLoading.value = true
+        _isQuestionLoading.value = true
         _todayQuestionRecord.value = null
 
         val currentGroupId = sessionManager.currentUserGroupIdFlow.first()
@@ -254,7 +261,7 @@ class HomeViewModel @Inject constructor(
         if (currentGroupId.isNullOrEmpty()) {
             Log.e("HomeViewModel", "그룹 ID가 null이거나 비어있음")
             _errorMessage.value = "그룹 정보를 찾을 수 없습니다."
-            _isLoading.value = false
+            _isQuestionLoading.value = false
             isCreatingQuestion = false
             return
         }
@@ -295,7 +302,7 @@ class HomeViewModel @Inject constructor(
         }
 
         _todayQuestionRecord.value = finalQuestionRecord
-        _isLoading.value = false
+        _isQuestionLoading.value = false
         isCreatingQuestion = false // 플래그 해제
 
         if (finalQuestionRecord != null) {
@@ -478,31 +485,31 @@ class HomeViewModel @Inject constructor(
         cardRefreshKey.update { it + 1 }
         requestsJob?.cancel()
         requestsJob = viewModelScope.launch {
-            _isLoading.value = true
+            _isRequestLoading.value = true
             _errorMessage.value = null
             
             val currentGroupId = sessionManager.currentUserGroupIdFlow.filterNotNull().firstOrNull()
             if (currentGroupId.isNullOrEmpty()) {
                 _errorMessage.value = "그룹 정보를 찾을 수 없습니다."
-                _isLoading.value = false
+                _isRequestLoading.value = false
                 return@launch
             }
             
             requestRepository.read(currentGroupId).collect { result ->
                 when (result) {
                     is DataResourceResult.Loading -> {
-                        _isLoading.value = true
+                        _isRequestLoading.value = true
                     }
                     is DataResourceResult.Success -> {
                         _requests.value = result.data ?: emptyList()
-                        _isLoading.value = false
+                        _isRequestLoading.value = false
                     }
                     is DataResourceResult.Failure -> {
-                        _errorMessage.value = "질문을 불러오는데 실패하였습니다."
-                        _isLoading.value = false
+                        _errorMessage.value = "요청을 불러오는데 실패하였습니다."
+                        _isRequestLoading.value = false
                     }
                     else -> {
-                        _isLoading.value = false
+                        _isRequestLoading.value = false
                     }
                 }
             }

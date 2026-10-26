@@ -4,7 +4,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.withTimeoutOrNull
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -17,6 +19,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.ahn.ggriggri.screen.ui.setting.viewmodel.SettingGroupViewModel
 import com.ahn.common_ui.theme.GgriggriTheme
 import com.ahn.common_ui.theme.NanumSquareRegular
+
+// 그룹 나가기 성공 안내를 보여주고 이동하기까지의 시간
+private const val LEAVE_GROUP_SNACKBAR_MILLIS = 1_500L
 
 @Composable
 fun SettingGroupScreen(
@@ -46,11 +51,22 @@ fun SettingGroupScreen(
     }
 
     // 성공 메시지: 스낵바로 보여준 뒤 clear 한다.
-    // (그룹 나가기는 성공 즉시 화면을 떠나므로 이 화면에서는 메시지가 보이지 않을 수 있다.)
     LaunchedEffect(successMessage) {
         successMessage?.let { message ->
             snackbarHostState.showSnackbar(message)
             viewModel.clearSuccessMessage()
+        }
+    }
+
+    // 그룹 나가기 성공(일회성 이벤트): 안내 스낵바를 잠깐 보여준 뒤 그룹 선택 화면으로 이동한다.
+    val currentOnNavigateToLeaveGroup by rememberUpdatedState(onNavigateToLeaveGroup)
+    LaunchedEffect(viewModel) {
+        viewModel.leaveGroupSuccess.collect { message ->
+            snackbarHostState.currentSnackbarData?.dismiss()
+            withTimeoutOrNull(LEAVE_GROUP_SNACKBAR_MILLIS) {
+                snackbarHostState.showSnackbar(message)
+            }
+            currentOnNavigateToLeaveGroup()
         }
     }
 
@@ -157,7 +173,7 @@ fun SettingGroupScreen(
                     SettingMenuItem(
                         text = "그룹 나가기",
                         onClick = { 
-                            viewModel.leaveGroup(onNavigateToLeaveGroup)
+                            viewModel.leaveGroup()
                         }
                     )
                 }

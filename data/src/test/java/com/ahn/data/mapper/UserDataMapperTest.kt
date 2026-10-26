@@ -15,8 +15,7 @@ class UserDataMapperTest {
         _userState = 2,
         _userJoinTime = 1_690_000_000_000L,
         _userProfileImage = "https://example.com/p.png",
-        _userGroupDocumentId = "group-1",
-        _userAutoLoginToken = "auto-token"
+        _userGroupDocumentId = "group-1"
     )
 
     private fun user(id: String = "kakao-1") = User(
@@ -25,8 +24,7 @@ class UserDataMapperTest {
         userState = 2,
         userJoinTime = 1_690_000_000_000L,
         userProfileImage = "https://example.com/p.png",
-        userGroupDocumentId = "group-1",
-        userAutoLoginToken = "auto-token"
+        userGroupDocumentId = "group-1"
     )
 
     @Test
@@ -57,8 +55,7 @@ class UserDataMapperTest {
                 "_userState" to 2,
                 "_userJoinTime" to 1_690_000_000_000L,
                 "_userProfileImage" to "https://example.com/p.png",
-                "_userGroupDocumentId" to "group-1",
-                "_userAutoLoginToken" to "auto-token"
+                "_userGroupDocumentId" to "group-1"
             ),
             result
         )
@@ -73,6 +70,20 @@ class UserDataMapperTest {
     }
 
     @Test
+    fun `Firestore 맵에는 카카오 자동로그인 토큰이 담기지 않는다`() {
+        val withToken = user().copy(userAutoLoginToken = "kakao-access-token")
+        val result = withToken.toFirestoreUserDTO()
+        assertFalse(result.containsKey("_userAutoLoginToken"))
+        assertFalse(result.containsValue("kakao-access-token"))
+    }
+
+    @Test
+    fun `DTO를 도메인으로 변환하면 자동로그인 토큰은 항상 비어 있다`() {
+        val result = dto().toDomainUser()
+        assertEquals("", result.userAutoLoginToken)
+    }
+
+    @Test
     fun `도메인을 맵으로 저장했다가 DTO로 읽어 도메인으로 바꾸면 원본과 같다`() {
         val map = user().toFirestoreUserDTO()
         val restoredDto = UserDTO(
@@ -81,8 +92,7 @@ class UserDataMapperTest {
             _userState = map["_userState"] as Int,
             _userJoinTime = map["_userJoinTime"] as Long,
             _userProfileImage = map["_userProfileImage"] as String,
-            _userGroupDocumentId = map["_userGroupDocumentId"] as String,
-            _userAutoLoginToken = map["_userAutoLoginToken"] as String
+            _userGroupDocumentId = map["_userGroupDocumentId"] as String
         )
         val result = restoredDto.toDomainUser()
         assertEquals(user(), result)

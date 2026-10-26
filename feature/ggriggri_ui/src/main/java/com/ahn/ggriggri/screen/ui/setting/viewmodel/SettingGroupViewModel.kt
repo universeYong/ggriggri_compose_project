@@ -10,7 +10,10 @@ import com.ahn.domain.model.User
 import com.ahn.domain.repository.GroupRepository
 import com.ahn.domain.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -40,6 +43,14 @@ class SettingGroupViewModel @Inject constructor(
     private val _successMessage = MutableStateFlow<String?>(null)
     val successMessage: StateFlow<String?> = _successMessage.asStateFlow()
 
+    // 그룹 나가기 성공 이벤트(일회성). 값은 화면에 보여줄 안내 메시지.
+    private val _leaveGroupSuccess = Channel<String>(Channel.BUFFERED)
+    val leaveGroupSuccess: Flow<String> = _leaveGroupSuccess.receiveAsFlow()
+
+    // 그룹을 나간 뒤에는 세션의 그룹 ID가 비는 것이 정상이므로 "그룹에 가입되지 않았습니다" 오류를 띄우지 않는다.
+    // 또한 이동 전 중복 탭으로 다시 나가기를 시도하지 않게 막는다.
+    private var hasLeftGroup = false
+
     val currentUser: StateFlow<User?> = sessionManager.currentUserFlow
         .stateIn(
             scope = viewModelScope,
@@ -51,7 +62,7 @@ class SettingGroupViewModel @Inject constructor(
         // currentUser를 관찰하여 사용자 정보가 변경될 때마다 그룹 정보 로드
         viewModelScope.launch {
             currentUser.collect { user ->
-                Log.d("SettingGroupViewModel", "currentUser 변경 감지: $user")
+                Log.d("SettingGroupViewModel", "currentUser 변경 감지: ${user?.userId}")
                 if (user != null) {
                     loadCurrentGroupForUser(user)
                 } else {
@@ -75,9 +86,11 @@ class SettingGroupViewModel @Inject constructor(
                 Log.d("SettingGroupViewModel", "그룹 ID: $groupId")
                 
                 if (groupId.isNullOrEmpty()) {
-                    _errorMessage.value = "그룹에 가입되지 않았습니다."
                     _isLoading.value = false
-                    Log.e("SettingGroupViewModel", "그룹 ID가 null 또는 비어있음")
+                    if (!hasLeftGroup) {
+                        _errorMessage.value = "그룹에 가입되지 않았습니다."
+                        Log.e("SettingGroupViewModel", "그룹 ID가 null 또는 비어있음")
+                    }
                     return@launch
                 }
 
@@ -172,7 +185,12 @@ class SettingGroupViewModel @Inject constructor(
     }
 
 
-    fun leaveGroup(onNavigateToGroup: () -> Unit = {}) {
+    /**
+     * 그룹을 나간다. 성공하면 [leaveGroupSuccess]로 안내 메시지를 한 번 내보내며,
+     * 화면이 그 메시지를 보여준 뒤 그룹 선택 화면으로 이동한다.
+     */
+    fun leaveGroup() {
+        if (hasLeftGroup) return
         viewModelScope.launch {
             val currentUser = currentUser.first()
             val currentGroup = _currentGroup.value
@@ -195,41 +213,22 @@ class SettingGroupViewModel @Inject constructor(
                 val groupResult = groupRepository.removeUserFromGroup(currentGroup.groupDocumentId, currentUser.userId)
                     .filter { it !is DataResourceResult.Loading }
                     .first()
-                
+
                 when (groupResult) {
                     is DataResourceResult.Success -> {
                         // 2. 사용자의 userGroupDocumentId 비우기
                         val userResult = userRepository.updateUserGroupDocumentId(currentUser.userId, "")
                             .filter { it !is DataResourceResult.Loading }
                             .first()
-                        
+
                         when (userResult) {
                             is DataResourceResult.Success -> {
-                                // Firebase에서 최신 사용자 정보를 가져와서 SessionManager 업데이트
-                                try {
-                                    val updatedUserResult = userRepository.getUserById(currentUser.userId)
-                                        .filter { it !is DataResourceResult.Loading }
-                                        .first()
-                                    when (updatedUserResult) {
-                                        is DataResourceResult.Success -> {
-                                            updatedUserResult.data?.let { updatedUser ->
-                                                sessionManager.loginUser(updatedUser)
-                                                Log.d("SettingGroupViewModel", "SessionManager에 최신 사용자 정보 업데이트 성공")
-                                            }
-                                        }
-                                        else -> {
-                                            Log.e("SettingGroupViewModel", "최신 사용자 정보 가져오기 실패")
-                                        }
-                                    }
-                                } catch (e: kotlinx.coroutines.CancellationException) {
-                                    throw e
-                                } catch (e: Exception) {
-                                    Log.e("SettingGroupViewModel", "사용자 정보 업데이트 실패", e)
-                                }
-                                _successMessage.value = "그룹에서 성공적으로 나갔습니다."
+                                // 세션 갱신으로 그룹 ID가 비면 currentUser 관찰이 "그룹에 가입되지 않았습니다"
+                                // 오류를 띄우지 않도록 먼저 표시해 둔다.
+                                hasLeftGroup = true
+                                refreshSessionUser(currentUser.userId)
                                 _isLoading.value = false
-                                Log.d("SettingGroupViewModel", "그룹 나가기 성공 - 그룹과 사용자 정보 모두 업데이트됨")
-                                onNavigateToGroup()
+                                _leaveGroupSuccess.send("그룹에서 성공적으로 나갔습니다.")
                             }
                             is DataResourceResult.Failure -> {
                                 _errorMessage.value = "사용자 정보 업데이트에 실패했습니다: ${userResult.exception.message}"
@@ -257,6 +256,31 @@ class SettingGroupViewModel @Inject constructor(
                 _isLoading.value = false
                 Log.e("SettingGroupViewModel", "그룹 나가기 중 예외 발생", e)
             }
+        }
+    }
+
+    /**
+     * Firebase에서 최신 사용자 정보를 가져와 세션을 갱신한다. 실패해도 흐름은 계속된다.
+     * 서버의 User에는 로그인 토큰이 없으므로 loginUser가 아니라 updateUser(토큰 유지)를 쓴다.
+     */
+    private suspend fun refreshSessionUser(userId: String) {
+        try {
+            val updatedUserResult = userRepository.getUserById(userId)
+                .filter { it !is DataResourceResult.Loading }
+                .first()
+            when (updatedUserResult) {
+                is DataResourceResult.Success -> {
+                    updatedUserResult.data?.let { sessionManager.updateUser(it) }
+                }
+                is DataResourceResult.Failure -> {
+                    Log.e("SettingGroupViewModel", "최신 사용자 정보 가져오기 실패", updatedUserResult.exception)
+                }
+                else -> Unit
+            }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e("SettingGroupViewModel", "사용자 정보 업데이트 실패", e)
         }
     }
 

@@ -124,17 +124,10 @@ class OAuthViewModel @Inject constructor(
                     userRepository.read()
                         .filter { it !is DataResourceResult.Loading }
                         .first()
-                Log.d(
-                    "OAuthViewModel",
-                    "Firestore read result (after filtering Loading): $userReadResult"
-                )
 
+                // 사용자 객체(토큰 포함)는 로그로 남기지 않는다.
                 val existingUser = when (userReadResult) {
                     is DataResourceResult.Success -> {
-                        Log.d(
-                            "OAuthViewModel",
-                            "Firestore read successful. Data: ${userReadResult.data}"
-                        )
                         userReadResult.data.find { it.userId == userIdString }
                     }
 
@@ -148,11 +141,6 @@ class OAuthViewModel @Inject constructor(
 
                     else -> null
                 }
-                Log.d(
-                    "OAuthViewModel",
-                    "existingUser after read: $existingUser, for userIdString: $userIdString"
-                )
-
                 // update()는 User의 전 필드를 Firestore에 덮어쓴다.
                 // 그래서 기존 사용자는 반드시 copy()로 만들어야 userState/userJoinTime/userFcmCode가 보존된다.
                 // 새로 생성할 때만 가입 시각을 기록한다.
@@ -168,15 +156,10 @@ class OAuthViewModel @Inject constructor(
                     userGroupDocumentId = "",
                     userAutoLoginToken = kakaoOAuthToken.accessToken
                 )
-                Log.d(
-                    "OAuthViewModel",
-                    "Attempting to call userRepository.${if (existingUser != null) "update" else "create"}(appUser).first()"
-                )
+                // 토큰은 toFirestoreUserDTO에서 빠지므로 서버에는 저장되지 않고, 아래 loginUser로 로컬 세션에만 저장된다.
                 val dbOperationResultFlow = if (existingUser != null) {
-                    Log.d("OAuthViewModel", "Updating existing user: $appUser")
                     userRepository.update(appUser)
                 } else {
-                    Log.d("OAuthViewModel", "Creating new user: $appUser")
                     userRepository.create(appUser)
                 }
 
@@ -184,16 +167,8 @@ class OAuthViewModel @Inject constructor(
                     .filter { it !is DataResourceResult.Loading }
                     .first()
 
-                Log.d("OAuthViewModel", "dbOperationResult received: $dbOperationResult")
-
                 when (dbOperationResult) {
                     is DataResourceResult.Success -> {
-                        Log.d("OAuthViewModel", "Firestore operation successful.")
-
-                        Log.d(
-                            "OAuthViewModel",
-                            "Calling sessionManager.loginUser with user: $appUser"
-                        ) // <--- 로그 추가 권장
                         sessionManager.loginUser(appUser)
                         fcmRepository.sendTokenToServer(appUser.userId)
                         _loginStatus.value =
@@ -236,7 +211,8 @@ class OAuthViewModel @Inject constructor(
                 is DataResourceResult.Success -> {
                     val latestUser = latestUserResult.data
                     if (latestUser != null) {
-                        sessionManager.loginUser(latestUser)
+                        // 서버의 User에는 토큰이 없으므로 로컬 세션 토큰을 유지한 채 사용자 정보만 갱신한다.
+                        sessionManager.updateUser(latestUser)
                         val groupId = latestUser.userGroupDocumentId
                         if (groupId.isNullOrEmpty()) {
                             onNavigationToGroup()
@@ -271,7 +247,6 @@ class OAuthViewModel @Inject constructor(
             try {
                 // 기존 사용자 확인
                 val existingUser = userRepository.getUserByIdSync(userId)
-                Log.d("OAuthViewModel", "기존 사용자 확인 결과: $existingUser")
 
                 val existingUserData =
                     (existingUser as? DataResourceResult.Success)?.data
@@ -291,15 +266,11 @@ class OAuthViewModel @Inject constructor(
                     userAutoLoginToken = userAutoLoginToken
                 )
 
-                Log.d("OAuthViewModel", "개발용 로그인 시도 - 사용자: $devUser")
-
+                // 카카오 로그인과 마찬가지로 토큰은 서버에 저장되지 않고 loginUser로 로컬 세션에만 저장된다.
                 val dbOperationResultFlow =
                     if (existingUserData != null) {
-                        Log.d("OAuthViewModel", "기존 사용자 업데이트: $devUser")
                         userRepository.update(devUser)
                     } else {
-                        Log.d("OAuthViewModel", "새 사용자 생성: $devUser")
-                        Log.d("OAuthViewModel", "사용자 생성 시작 - userId: $userId")
                         userRepository.create(devUser)
                     }
 
@@ -345,7 +316,7 @@ class OAuthViewModel @Inject constructor(
                         sessionManager.loginUser(devUser)
                         fcmRepository.sendTokenToServer(devUser.userId)
                         _loginStatus.value = "개발용 로그인 성공"
-                        Log.d("OAuthViewModel", "개발용 로그인 완료 - 사용자: $devUser")
+                        Log.d("OAuthViewModel", "개발용 로그인 완료 - userId: ${devUser.userId}")
                     }
 
                     is DataResourceResult.Failure -> {

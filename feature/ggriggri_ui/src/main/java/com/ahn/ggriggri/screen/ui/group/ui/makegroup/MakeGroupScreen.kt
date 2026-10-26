@@ -39,7 +39,11 @@ import com.ahn.common_ui.components.CommonOutlinedTextField
 import com.ahn.domain.common.DataResourceResult
 import com.ahn.ggriggri.screen.ui.group.viewmodel.GroupViewModel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import com.ahn.common_ui.theme.GgriggriTheme
+
+// 그룹 생성 성공 안내를 보여주고 홈으로 이동하기까지의 시간
+private const val SUCCESS_SNACKBAR_MILLIS = 1_500L
 
 @Composable
 fun MakeGroupScreen(
@@ -62,15 +66,21 @@ fun MakeGroupScreen(
 
 
     val createResult by groupViewModel.createResult.collectAsStateWithLifecycle()
+    val isCreating = createResult is DataResourceResult.Loading ||
+        createResult is DataResourceResult.Success
 
-    // 성공 시 화면 이동
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // 성공 시 안내 스낵바를 잠깐 보여준 뒤 화면 이동
     LaunchedEffect(createResult) {
         if (createResult is DataResourceResult.Success) {
+            snackbarHostState.currentSnackbarData?.dismiss()
+            withTimeoutOrNull(SUCCESS_SNACKBAR_MILLIS) {
+                snackbarHostState.showSnackbar("그룹이 성공적으로 생성되었습니다!")
+            }
             onNavigateToHome()
         }
     }
-    
-    val snackbarHostState = remember { SnackbarHostState() }
 
     // SnackBar 메시지 표시
     // snackBarMessage는 replay 없는 SharedFlow(일회성 이벤트)라 따로 clear 할 상태가 없다.
@@ -218,6 +228,8 @@ fun MakeGroupScreen(
                 Spacer(modifier = Modifier.weight(1f))
 
                 CommonButton(
+                    // 생성 중이거나 성공 안내 후 이동 대기 중에는 다시 누르지 못하게 한다.
+                    enabled = !isCreating,
                     onClick = {
                         // 중복확인이 완료되고 사용 가능한 코드인지 확인
                         val duplicateResult = isCodeDuplicateResult

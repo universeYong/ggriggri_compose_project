@@ -44,7 +44,7 @@ class RequestViewModel @Inject constructor(
         // SessionManager 상태 확인을 위한 로그
         viewModelScope.launch {
             currentUser.collect { user ->
-                Log.d("RequestViewModel", "currentUser StateFlow 업데이트: $user")
+                Log.d("RequestViewModel", "currentUser StateFlow 업데이트: ${user?.userId}")
             }
         }
         
@@ -111,12 +111,12 @@ class RequestViewModel @Inject constructor(
             
             // 현재 사용자 정보 가져오기 - StateFlow에서 첫 번째 값을 가져옴
             val currentUser = currentUser.first()
-            Log.d("RequestViewModel", "현재 사용자: $currentUser")
+            Log.d("RequestViewModel", "현재 사용자: ${currentUser?.userId}")
             
             if (!isLoggedIn || currentUser == null) {
                 _isLoading.value = false
                 _errorMessage.value = "로그인이 필요합니다."
-                Log.e("RequestViewModel", "사용자가 로그인되지 않음 - isLoggedIn: $isLoggedIn, currentUser: $currentUser")
+                Log.e("RequestViewModel", "사용자가 로그인되지 않음 - isLoggedIn: $isLoggedIn, currentUser: ${currentUser?.userId}")
                 return@launch
             }
 

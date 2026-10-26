@@ -44,7 +44,8 @@ fun HomeScreen(
 
     val profiles by homeViewModel.profiles.collectAsStateWithLifecycle()
     val todayQuestion by homeViewModel.todayQuestionContent.collectAsStateWithLifecycle()
-    val isLoadingTodayQuestion by homeViewModel.isLoading.collectAsStateWithLifecycle()
+    // 질문 카드 스피너는 오늘의 질문 로딩만 따른다(요청 목록 로딩과 분리).
+    val isLoadingTodayQuestion by homeViewModel.isQuestionLoading.collectAsStateWithLifecycle()
     val errorMessage by homeViewModel.errorMessage.collectAsStateWithLifecycle()
 
     android.util.Log.d("HomeScreen", "HomeViewModel 상태 수집 완료 - 로딩: $isLoadingTodayQuestion, 오류: $errorMessage")
