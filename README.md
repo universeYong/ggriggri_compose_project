@@ -110,3 +110,47 @@
 ❗추억들
 
 - 그동안 그룹에 쌓여온 요청과 질문에 대한 답변들을 모아서 볼 수 있음
+
+## 🧩 모듈 구조
+
+| 모듈 | 역할 |
+|---|---|
+| `:app` | 진입점. `Application`(알림 채널 등록, 카카오 SDK 초기화, WorkManager 설정), `MainActivity` |
+| `:feature:ggriggri_ui` | 화면(Compose)과 ViewModel, 내비게이션, 알림 표시, 일일 질문 Worker |
+| `:feature:common_ui` | 공통 Compose 컴포넌트와 앱 테마 |
+| `:data` | Firestore/Storage/DataStore 기반 Repository 구현, FCM 수신·토큰 관리, Hilt 모듈 |
+| `:domain` | 순수 Kotlin. 모델과 Repository 인터페이스 |
+| `functions/` | Cloud Functions(TypeScript). 질문/요청/응답 생성 시 FCM 푸시 발송. Gradle 빌드와 별개 |
+
+의존 방향: `app → feature:ggriggri_ui → feature:common_ui, domain`, `data → domain` (feature는 data를 직접 참조하지 않음)
+
+## 🛠 빌드 방법
+
+준비물 (둘 다 git에 올리지 않음)
+- 저장소 루트의 `secret.properties`: `secret.properties.example`을 복사해 `KAKAO_NATIVE_APP_KEY`에 카카오 네이티브 앱 키를 넣는다.
+- `app/google-services.json`: Firebase 콘솔에서 받은 설정 파일.
+
+```
+gradlew.bat assembleDebug      # Windows
+./gradlew assembleDebug        # macOS/Linux
+```
+
+JDK 21이 필요하다(Android Studio 내장 JDK 사용 가능). 사용자 폴더 경로에 한글이 있는 Windows 환경을 위해 `gradle.properties`에 관련 설정이 들어 있으니 지우지 않는다.
+
+Cloud Functions는 `functions/` 폴더에서 따로 빌드·배포한다.
+
+```
+cd functions
+npm run build
+npm run deploy
+```
+
+## ✅ 테스트
+
+```
+gradlew.bat test                                   # 전체 단위 테스트
+gradlew.bat :data:testDebugUnitTest                # 데이터 매퍼 테스트
+gradlew.bat :feature:ggriggri_ui:testDebugUnitTest # ViewModel 테스트
+```
+
+현재 단위 테스트는 데이터 매퍼(`data/src/test`)와 일부 ViewModel(`feature/ggriggri_ui/src/test`)에 있다. UI 테스트는 아직 없다.
