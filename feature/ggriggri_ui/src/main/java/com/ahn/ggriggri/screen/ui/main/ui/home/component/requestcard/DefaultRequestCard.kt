@@ -12,11 +12,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.ahn.common_ui.theme.MainColor
+import com.ahn.common_ui.theme.GgriggriTheme
+import com.ahn.common_ui.theme.RequestActiveDot
+import androidx.compose.material3.MaterialTheme
 import com.ahn.common_ui.theme.NanumSquareBold
 import com.ahn.common_ui.theme.NanumSquareRegular
 
@@ -33,7 +34,7 @@ fun DefaultRequestCard(
             .fillMaxWidth()
             .padding(horizontal = 20.dp),
         shape = RoundedCornerShape(15.dp),
-        colors = CardDefaults.cardColors(containerColor = MainColor)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
     ) {
         Column(
             modifier = Modifier.padding(15.dp),
@@ -43,7 +44,7 @@ fun DefaultRequestCard(
                 text = "요청",
                 fontSize = 16.sp,
                 fontFamily = NanumSquareBold,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onPrimaryContainer
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -52,7 +53,7 @@ fun DefaultRequestCard(
                 text = "요청이 없습니다!!!",
                 fontSize = 14.sp,
                 fontFamily = NanumSquareRegular,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onPrimaryContainer
             )
 
             Spacer(modifier = Modifier.height(30.dp))
@@ -71,5 +72,7 @@ fun DefaultRequestCard(
 @Preview(name = "요청 없음", showBackground = true)
 @Composable
 private fun DefaultRequestCardPreview() {
-    DefaultRequestCard()
+    GgriggriTheme {
+        DefaultRequestCard()
+    }
 }

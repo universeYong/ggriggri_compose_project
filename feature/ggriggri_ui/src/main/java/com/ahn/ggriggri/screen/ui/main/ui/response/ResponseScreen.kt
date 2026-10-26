@@ -16,7 +16,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.ahn.ggriggri.screen.ui.main.ui.response.component.ImageUploadSection
 import com.ahn.ggriggri.screen.ui.main.ui.response.component.MessageInputSection
 import com.ahn.ggriggri.screen.ui.main.viewmodel.ResponseViewModel
-import com.ahn.common_ui.theme.GgriggriTheme
 
 @Composable
 fun ResponseScreen(
@@ -66,57 +65,55 @@ fun ResponseScreen(
         }
     )
 
-    GgriggriTheme {
-        Scaffold(
-            modifier = Modifier.fillMaxSize(),
-            containerColor = MaterialTheme.colorScheme.background,
-            snackbarHost = { SnackbarHost(snackbarHostState) }
-        ) { paddingValues ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(horizontal = 20.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        containerColor = MaterialTheme.colorScheme.background,
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(horizontal = 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(70.dp))
+
+            // 이미지 업로드
+            ImageUploadSection(
+                selectedImageUri = selectedImageUri,
+                onImageSelected = { 
+                    photoPickerLauncher.launch(
+                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                    )
+                },
+                onImageRemoved = viewModel::removeImage
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            MessageInputSection(
+                message = responseMessage,
+                onMessageChanged = viewModel::updateMessage,
+                currentLength = currentMessageLength,
+                maxLength = 100
+            )
+
+            Spacer(modifier = Modifier.height(30.dp))
+
+            // 응답하기 버튼
+            Button(
+                onClick = { viewModel.createResponse() },
+                enabled = isResponseButtonEnabled && !isLoading,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Spacer(modifier = Modifier.height(70.dp))
-
-                // 이미지 업로드
-                ImageUploadSection(
-                    selectedImageUri = selectedImageUri,
-                    onImageSelected = { 
-                        photoPickerLauncher.launch(
-                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                        )
-                    },
-                    onImageRemoved = viewModel::removeImage
-                )
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                MessageInputSection(
-                    message = responseMessage,
-                    onMessageChanged = viewModel::updateMessage,
-                    currentLength = currentMessageLength,
-                    maxLength = 100
-                )
-
-                Spacer(modifier = Modifier.height(30.dp))
-
-                // 응답하기 버튼
-                Button(
-                    onClick = { viewModel.createResponse() },
-                    enabled = isResponseButtonEnabled && !isLoading,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    if (isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(20.dp),
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
-                    } else {
-                        Text("응답하기")
-                    }
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                } else {
+                    Text("응답하기")
                 }
             }
         }

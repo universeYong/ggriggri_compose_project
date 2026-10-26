@@ -24,7 +24,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -108,115 +107,113 @@ fun AnswerContent(
 ) {
     val isButtonEnabled = answerText.isNotBlank() && !isLoading && !isSubmitting && questionDetails != null
 
-    GgriggriTheme {
-        Scaffold(
-            modifier = modifier.fillMaxSize(),
-            containerColor = MaterialTheme.colorScheme.background,
-            snackbarHost = { SnackbarHost(snackbarHostState) }
-        ) { paddingValues ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(horizontal = 20.dp), // 좌우 공통 여백
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Spacer(modifier = Modifier.height(50.dp))
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        containerColor = MaterialTheme.colorScheme.background,
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(horizontal = 20.dp), // 좌우 공통 여백
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(50.dp))
 
-                when {
-                    // 초기 로딩 (질문 정보 로딩)
-                    questionDetails == null && isLoading -> {
-                        Spacer(modifier = Modifier.height(50.dp))
-                        CircularProgressIndicator()
-                        Spacer(modifier = Modifier.height(20.dp))
-                        Text("질문 정보를 불러오는 중...")
+            when {
+                // 초기 로딩 (질문 정보 로딩)
+                questionDetails == null && isLoading -> {
+                    Spacer(modifier = Modifier.height(50.dp))
+                    CircularProgressIndicator()
+                    Spacer(modifier = Modifier.height(20.dp))
+                    Text("질문 정보를 불러오는 중...")
+                }
+                // 질문 정보 로드 실패
+                questionDetails == null && error != null -> {
+                    Spacer(modifier = Modifier.height(50.dp))
+                    Text(
+                        text = error,
+                        color = MaterialTheme.colorScheme.error,
+                        textAlign = TextAlign.Center
+                    )
+                }
+                questionDetails != null -> {
+                    Spacer(modifier = Modifier.height(30.dp))
+
+                    questionDetails.imageUrl?.let {
+                        LoadAnimatedApngFromUrlComposable(
+                            imageUrl = it,
+                            modifier = Modifier.size(200.dp)
+                        )
+                    } ?: Box(
+                        modifier = Modifier
+                            .size(200.dp)
+                            .padding(16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("이미지 없음")
                     }
-                    // 질문 정보 로드 실패
-                    questionDetails == null && error != null -> {
-                        Spacer(modifier = Modifier.height(50.dp))
+
+                    Spacer(modifier = Modifier.height(50.dp))
+
+                    Text(
+                        text = questionDetails.content,
+                        modifier = Modifier.widthIn(max = 300.dp), // 최대 너비 제한
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontSize = 16.sp,
+                        fontFamily = NanumSquareBold,
+                        textAlign = TextAlign.Center
+                    )
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    // 답변 목록 로드 에러 (질문 정보 로드 에러는 위에서 처리)
+                    if (error != null) {
                         Text(
                             text = error,
                             color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(vertical = 8.dp),
                             textAlign = TextAlign.Center
                         )
                     }
-                    questionDetails != null -> {
-                        Spacer(modifier = Modifier.height(30.dp))
 
-                        questionDetails.imageUrl?.let {
-                            LoadAnimatedApngFromUrlComposable(
-                                imageUrl = it,
-                                modifier = Modifier.size(200.dp)
+                    CommonOutlinedTextField(
+                        value = answerText,
+                        onValueChange = onAnswerTextChange,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    // 버튼을 하단에 고정하기 위한 Spacer
+                    Spacer(modifier = Modifier.weight(1f))
+
+                    CommonButton(
+                        onClick = onSubmitClick,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 20.dp),
+                        enabled = isButtonEnabled,
+                    ) {
+                        if (isSubmitting) {
+                            CircularProgressIndicator(
+                                modifier = Modifier
+                                    .padding(vertical = 4.dp)
+                                    .size(20.dp),
+                                strokeWidth = 2.dp
                             )
-                        } ?: Box(
-                            modifier = Modifier
-                                .size(200.dp)
-                                .padding(16.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text("이미지 없음")
-                        }
-
-                        Spacer(modifier = Modifier.height(50.dp))
-
-                        Text(
-                            text = questionDetails.content,
-                            modifier = Modifier.widthIn(max = 300.dp), // 최대 너비 제한
-                            color = Color.Black,
-                            fontSize = 16.sp,
-                            fontFamily = NanumSquareBold,
-                            textAlign = TextAlign.Center
-                        )
-
-                        Spacer(modifier = Modifier.height(20.dp))
-
-                        // 답변 목록 로드 에러 (질문 정보 로드 에러는 위에서 처리)
-                        if (error != null) {
+                        } else {
                             Text(
-                                text = error,
-                                color = MaterialTheme.colorScheme.error,
-                                modifier = Modifier.padding(vertical = 8.dp),
-                                textAlign = TextAlign.Center
+                                text = "답변하기",
+                                fontSize = 16.sp,
+                                fontFamily = NanumSquareBold
                             )
                         }
-
-                        CommonOutlinedTextField(
-                            value = answerText,
-                            onValueChange = onAnswerTextChange,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-
-                        // 버튼을 하단에 고정하기 위한 Spacer
-                        Spacer(modifier = Modifier.weight(1f))
-
-                        CommonButton(
-                            onClick = onSubmitClick,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 20.dp),
-                            enabled = isButtonEnabled,
-                        ) {
-                            if (isSubmitting) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier
-                                        .padding(vertical = 4.dp)
-                                        .size(20.dp),
-                                    strokeWidth = 2.dp
-                                )
-                            } else {
-                                Text(
-                                    text = "답변하기",
-                                    fontSize = 16.sp,
-                                    fontFamily = NanumSquareBold
-                                )
-                            }
-                        }
                     }
-                    else -> {
-                        // 질문 정보가 없고 로딩도 에러도 아닌 경우 (이론상 잘 안 옴)
-                        Spacer(modifier = Modifier.height(50.dp))
-                        Text("질문 정보를 표시할 수 없습니다.")
-                    }
+                }
+                else -> {
+                    // 질문 정보가 없고 로딩도 에러도 아닌 경우 (이론상 잘 안 옴)
+                    Spacer(modifier = Modifier.height(50.dp))
+                    Text("질문 정보를 표시할 수 없습니다.")
                 }
             }
         }
@@ -232,55 +229,63 @@ private val previewQuestion = CurrentQuestionDetails(
 @Preview(name = "질문 로딩", showBackground = true)
 @Composable
 private fun AnswerContentLoadingPreview() {
-    AnswerContent(
-        questionDetails = null,
-        isLoading = true,
-        isSubmitting = false,
-        error = null,
-        answerText = "",
-        onAnswerTextChange = {},
-        onSubmitClick = {}
-    )
+    GgriggriTheme {
+        AnswerContent(
+            questionDetails = null,
+            isLoading = true,
+            isSubmitting = false,
+            error = null,
+            answerText = "",
+            onAnswerTextChange = {},
+            onSubmitClick = {}
+        )
+    }
 }
 
 @Preview(name = "답변 입력", showBackground = true)
 @Composable
 private fun AnswerContentSuccessPreview() {
-    AnswerContent(
-        questionDetails = previewQuestion,
-        isLoading = false,
-        isSubmitting = false,
-        error = null,
-        answerText = "아이유 노래요",
-        onAnswerTextChange = {},
-        onSubmitClick = {}
-    )
+    GgriggriTheme {
+        AnswerContent(
+            questionDetails = previewQuestion,
+            isLoading = false,
+            isSubmitting = false,
+            error = null,
+            answerText = "아이유 노래요",
+            onAnswerTextChange = {},
+            onSubmitClick = {}
+        )
+    }
 }
 
 @Preview(name = "제출 중", showBackground = true)
 @Composable
 private fun AnswerContentSubmittingPreview() {
-    AnswerContent(
-        questionDetails = previewQuestion,
-        isLoading = false,
-        isSubmitting = true,
-        error = null,
-        answerText = "아이유 노래요",
-        onAnswerTextChange = {},
-        onSubmitClick = {}
-    )
+    GgriggriTheme {
+        AnswerContent(
+            questionDetails = previewQuestion,
+            isLoading = false,
+            isSubmitting = true,
+            error = null,
+            answerText = "아이유 노래요",
+            onAnswerTextChange = {},
+            onSubmitClick = {}
+        )
+    }
 }
 
 @Preview(name = "질문 로드 실패", showBackground = true)
 @Composable
 private fun AnswerContentErrorPreview() {
-    AnswerContent(
-        questionDetails = null,
-        isLoading = false,
-        isSubmitting = false,
-        error = "오늘의 질문 기록을 불러오는데 실패했습니다.",
-        answerText = "",
-        onAnswerTextChange = {},
-        onSubmitClick = {}
-    )
+    GgriggriTheme {
+        AnswerContent(
+            questionDetails = null,
+            isLoading = false,
+            isSubmitting = false,
+            error = "오늘의 질문 기록을 불러오는데 실패했습니다.",
+            answerText = "",
+            onAnswerTextChange = {},
+            onSubmitClick = {}
+        )
+    }
 }

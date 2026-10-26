@@ -1,26 +1,30 @@
 package com.ahn.common_ui.theme
 
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.graphics.Color
 
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
     secondary = PurpleGrey80,
-    tertiary = Pink80
+    tertiary = Pink80,
+    // 브랜드 노랑 버튼/카드는 다크 모드에서도 그대로 유지한다(기본값인 보라 컨테이너로 바뀌지 않게).
+    primaryContainer = MainColor, // CommonButton 배경색, 노랑 카드
+    onPrimaryContainer = BtnContentColor // CommonButton 텍스트 색
 )
 
 private val LightColorScheme = lightColorScheme(
     primary = Purple40, // 주요 버튼, 로고 등
     secondary = PurpleGrey40, // 주 색상 위에 표시될 콘텐츠(텍스트, 아이콘)의 색상
     tertiary = Pink40,
-    primaryContainer = MainColor, // CommonButton 배경색
+    primaryContainer = MainColor, // CommonButton 배경색, 노랑 카드
     onPrimaryContainer = BtnContentColor // CommonButton 텍스트 색
 
     /* Other default colors to override
@@ -34,29 +38,105 @@ private val LightColorScheme = lightColorScheme(
     */
 )
 
+/**
+ * colorScheme에 대응 토큰이 없는 회색 계열 커스텀 색.
+ * 라이트 값은 기존 하드코딩 색과 같고, 다크 값은 어두운 배경에서 읽히도록 정했다.
+ * 사용: `GgriggriTheme.colors.textSecondary`
+ */
+@Immutable
+data class GgriggriColors(
+    /** 보조 텍스트/아이콘 (라이트 #666666) */
+    val textSecondary: Color,
+    /** 3차 텍스트/아이콘, 안내 문구 (라이트 #888888 = Color.Gray) */
+    val textTertiary: Color,
+    /** 힌트/부가 설명 텍스트 (라이트 #999999) */
+    val textHint: Color,
+    /** 입력창 포커스 테두리·라벨 (라이트 #444444 = Color.DarkGray) */
+    val borderFocused: Color,
+    /** 기본 테두리·구분선 (라이트 #888888 = Color.Gray) */
+    val border: Color,
+    /** 옅은 테두리 (라이트 #CCCCCC = Color.LightGray) */
+    val borderLight: Color,
+    /** 이미지 없음 자리·빈 카드 배경 (라이트 #E0E0E0) */
+    val placeholder: Color,
+    /** 섹션 사이 두꺼운 구분 띠 (라이트 #F0F0F0) */
+    val sectionDivider: Color,
+    /** 화면 전체 옅은 회색 배경 (라이트 #F5F5F5) */
+    val surfaceSubtle: Color,
+    /** 옅은 회색 카드 (라이트 #F8F9FA) */
+    val surfaceRaised: Color,
+    /** 비활성 버튼 배경/내용 (라이트 #CCCCCC / 흰색) */
+    val disabledContainer: Color,
+    val onDisabledContainer: Color,
+    /** CommonButton 비활성 배경/내용 (라이트 #888888 / #CCCCCC) */
+    val buttonDisabledContainer: Color,
+    val buttonOnDisabledContainer: Color,
+)
+
+private val LightGgriggriColors = GgriggriColors(
+    textSecondary = Gray666,
+    textTertiary = Gray888,
+    textHint = Gray999,
+    borderFocused = Gray444,
+    border = Gray888,
+    borderLight = GrayCCC,
+    placeholder = GrayE0,
+    sectionDivider = GrayF0,
+    surfaceSubtle = GrayF5,
+    surfaceRaised = GrayF8,
+    disabledContainer = GrayCCC,
+    onDisabledContainer = Color(0xFFFFFFFF),
+    buttonDisabledContainer = Gray888,
+    buttonOnDisabledContainer = GrayCCC,
+)
+
+private val DarkGgriggriColors = GgriggriColors(
+    textSecondary = Color(0xFFB3B3B3),
+    textTertiary = Color(0xFF9E9E9E),
+    textHint = Color(0xFF8C8C8C),
+    borderFocused = Color(0xFFC4C4C4),
+    border = Color(0xFF7A7A7A),
+    borderLight = Color(0xFF4A4A4A),
+    placeholder = Color(0xFF3A3A3A),
+    sectionDivider = Color(0xFF2A2A2A),
+    surfaceSubtle = Color(0xFF1C1B1F),
+    surfaceRaised = Color(0xFF2B2930),
+    disabledContainer = Color(0xFF3A3A3A),
+    onDisabledContainer = Color(0xFF8C8C8C),
+    buttonDisabledContainer = Color(0xFF3A3A3A),
+    buttonOnDisabledContainer = Color(0xFF7A7A7A),
+)
+
+// 테마 밖(Preview 등)에서도 라이트 값으로 동작하도록 기본값을 둔다.
+private val LocalGgriggriColors = staticCompositionLocalOf { LightGgriggriColors }
+
+/**
+ * 앱 전체 테마. MainActivity에서 한 번만 감싼다(각 Screen은 다시 감싸지 않고, Preview에서만 감싼다).
+ * 브랜드 색을 유지하기 위해 Android 12+ dynamic color는 사용하지 않는다.
+ */
 @Composable
 fun GgriggriTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    // dynamicColor 를 false 처리해서 시스템 색상이 우리 테마를 덮어쓰지 못하게 해야함
-    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
+    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+    val ggriggriColors = if (darkTheme) DarkGgriggriColors else LightGgriggriColors
 
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+    CompositionLocalProvider(LocalGgriggriColors provides ggriggriColors) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = Typography,
+            content = content
+        )
     }
+}
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        content = content
-    )
+/** `GgriggriTheme.colors`로 커스텀 색 토큰에 접근한다. */
+object GgriggriTheme {
+    val colors: GgriggriColors
+        @Composable
+        @ReadOnlyComposable
+        get() = LocalGgriggriColors.current
 }
 
 /**

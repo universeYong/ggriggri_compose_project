@@ -9,7 +9,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import com.ahn.common_ui.theme.GgriggriTheme
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.ahn.common_ui.R
@@ -24,19 +24,19 @@ fun SocialLoginDivider() {
         HorizontalDivider(
             modifier = Modifier.weight(1f),
             thickness = 1.dp,
-            color = Color.Gray
+            color = GgriggriTheme.colors.border
         )
         Text(
             text = stringResource(R.string.login_social_login_title),
             fontFamily = NanumSquareRegular,
             style = MaterialTheme.typography.bodyLarge,
-            color = Color.Gray,
+            color = GgriggriTheme.colors.textTertiary,
             modifier = Modifier.padding(horizontal = 4.dp)
         )
         HorizontalDivider(
             modifier = Modifier.weight(1f),
             thickness = 1.dp,
-            color = Color.Gray
+            color = GgriggriTheme.colors.border
         )
     }
 }

@@ -40,7 +40,6 @@ import com.ahn.domain.common.DataResourceResult
 import com.ahn.ggriggri.screen.ui.group.viewmodel.GroupViewModel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
-import com.ahn.common_ui.theme.GgriggriTheme
 
 // 그룹 생성 성공 안내를 보여주고 홈으로 이동하기까지의 시간
 private const val SUCCESS_SNACKBAR_MILLIS = 1_500L
@@ -93,173 +92,171 @@ fun MakeGroupScreen(
         }
     }
 
-    GgriggriTheme {
-        Scaffold(
-            modifier = Modifier.fillMaxSize(),
-            containerColor = MaterialTheme.colorScheme.background,
-            snackbarHost = { SnackbarHost(snackbarHostState) }
-        ) { paddingValues ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        containerColor = MaterialTheme.colorScheme.background,
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
 
-                // 그룹명
+            // 그룹명
+            CommonOutlinedTextField(
+                value = groupName,
+                onValueChange = { groupName = it },
+                label = { Text(stringResource(R.string.group_name)) },
+                singleLine = true
+            )
+
+            // 그룹코드
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+
+            ) {
                 CommonOutlinedTextField(
-                    value = groupName,
-                    onValueChange = { groupName = it },
-                    label = { Text(stringResource(R.string.group_name)) },
+                    modifier = Modifier.weight(1f),
+                    value = groupCode,
+                    onValueChange = { 
+                        groupCode = it
+                        // 그룹코드가 변경되면 중복확인 결과 초기화
+                        groupViewModel.clearDuplicateCheckResult()
+                    },
+                    label = { Text(stringResource(R.string.group_code)) },
                     singleLine = true
                 )
-
-                // 그룹코드
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-
-                ) {
-                    CommonOutlinedTextField(
-                        modifier = Modifier.weight(1f),
-                        value = groupCode,
-                        onValueChange = { 
-                            groupCode = it
-                            // 그룹코드가 변경되면 중복확인 결과 초기화
-                            groupViewModel.clearDuplicateCheckResult()
-                        },
-                        label = { Text(stringResource(R.string.group_code)) },
-                        singleLine = true
+                CommonButton(
+                    onClick = { groupViewModel.checkGroupCodeDuplicate(groupCode) }
+                ) { Text(stringResource(R.string.button_check_id_duplication)) }
+            }
+            
+            // 그룹코드 중복확인 결과 표시
+            val duplicateResult = isCodeDuplicateResult
+            when (duplicateResult) {
+                is DataResourceResult.Loading -> {
+                    Text(
+                        text = "코드 확인 중...",
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.bodySmall
                     )
-                    CommonButton(
-                        onClick = { groupViewModel.checkGroupCodeDuplicate(groupCode) }
-                    ) { Text(stringResource(R.string.button_check_id_duplication)) }
                 }
-                
-                // 그룹코드 중복확인 결과 표시
-                val duplicateResult = isCodeDuplicateResult
-                when (duplicateResult) {
-                    is DataResourceResult.Loading -> {
+                is DataResourceResult.Success -> {
+                    if (duplicateResult.data) {
                         Text(
-                            text = "코드 확인 중...",
+                            text = "이미 사용중인 코드입니다",
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    } else {
+                        Text(
+                            text = "사용 가능한 코드입니다",
                             color = MaterialTheme.colorScheme.primary,
                             style = MaterialTheme.typography.bodySmall
                         )
                     }
-                    is DataResourceResult.Success -> {
-                        if (duplicateResult.data) {
-                            Text(
-                                text = "이미 사용중인 코드입니다",
-                                color = MaterialTheme.colorScheme.error,
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        } else {
-                            Text(
-                                text = "사용 가능한 코드입니다",
-                                color = MaterialTheme.colorScheme.primary,
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
-                    }
-                    is DataResourceResult.Failure -> {
-                        Text(
-                            text = "코드 확인에 실패했습니다",
-                            color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
-                    else -> {
-                        // 아무것도 표시하지 않음
-                    }
                 }
+                is DataResourceResult.Failure -> {
+                    Text(
+                        text = "코드 확인에 실패했습니다",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+                else -> {
+                    // 아무것도 표시하지 않음
+                }
+            }
 
-                // 그룹코드 비밀번호
-                CommonOutlinedTextField(
-                    value = groupPw,
-                    onValueChange = { groupPw = it },
-                    label = { Text(stringResource(R.string.group_pw)) },
-                    singleLine = true,
-                    visualTransformation =
-                        if (passwordVisible) VisualTransformation.None
-                        else PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                    trailingIcon = {
-                        val image = if (passwordVisible)
-                            Icons.Filled.Visibility
-                        else Icons.Filled.VisibilityOff
-
-                        IconButton(onClick = {
-                            passwordVisible = !passwordVisible
-                        }) {
-                            Icon(imageVector = image, contentDescription = "")
-                        }
-                    }
-                )
-
-                // 그룹코드 비밀번호 확인
-                CommonOutlinedTextField(
-                    value = groupConfirmPw,
-                    onValueChange = { groupConfirmPw = it },
-                    label = { Text(stringResource(R.string.group_confirm_pw)) },
-                    singleLine = true,
-                    isError = isPasswordMismatch,
-                    supportingText = {
-                        if (isPasswordMismatch)
-                            Text(stringResource(R.string.password_mismatch_error))
-                    },
-                    visualTransformation = if (confirmPasswordVisible) VisualTransformation.None
+            // 그룹코드 비밀번호
+            CommonOutlinedTextField(
+                value = groupPw,
+                onValueChange = { groupPw = it },
+                label = { Text(stringResource(R.string.group_pw)) },
+                singleLine = true,
+                visualTransformation =
+                    if (passwordVisible) VisualTransformation.None
                     else PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                    trailingIcon = {
-                        val image = if (confirmPasswordVisible)
-                            Icons.Filled.Visibility
-                        else Icons.Filled.VisibilityOff
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                trailingIcon = {
+                    val image = if (passwordVisible)
+                        Icons.Filled.Visibility
+                    else Icons.Filled.VisibilityOff
 
-                        IconButton(onClick = {
-                            confirmPasswordVisible = !confirmPasswordVisible
-                        }) {
-                            Icon(imageVector = image, contentDescription = "")
-                        }
+                    IconButton(onClick = {
+                        passwordVisible = !passwordVisible
+                    }) {
+                        Icon(imageVector = image, contentDescription = "")
                     }
-                )
-
-                Spacer(modifier = Modifier.weight(1f))
-
-                CommonButton(
-                    // 생성 중이거나 성공 안내 후 이동 대기 중에는 다시 누르지 못하게 한다.
-                    enabled = !isCreating,
-                    onClick = {
-                        // 중복확인이 완료되고 사용 가능한 코드인지 확인
-                        val duplicateResult = isCodeDuplicateResult
-                        val isCodeAvailable = when (duplicateResult) {
-                            is DataResourceResult.Success -> duplicateResult.data == false
-                            else -> false
-                        }
-                        
-                        if (groupPw == groupConfirmPw && groupName.isNotBlank() &&
-                            groupCode.isNotBlank() && isCodeAvailable
-                        ) {
-                            groupViewModel.createGroupAndUpdateUser(
-                                userId = userId,
-                                groupName,
-                                groupCode,
-                                groupPw
-                            )
-                        } else if (!isCodeAvailable && groupCode.isNotBlank()) {
-                            // 중복확인이 안된 경우 안내 메시지
-                            groupViewModel.showSnackBar("그룹코드 중복확인을 먼저 해주세요")
-                        }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 8.dp)
-                        .padding(bottom = 32.dp)
-
-                ) {
-                    Text(stringResource(R.string.group_btn_makeGroup))
                 }
+            )
+
+            // 그룹코드 비밀번호 확인
+            CommonOutlinedTextField(
+                value = groupConfirmPw,
+                onValueChange = { groupConfirmPw = it },
+                label = { Text(stringResource(R.string.group_confirm_pw)) },
+                singleLine = true,
+                isError = isPasswordMismatch,
+                supportingText = {
+                    if (isPasswordMismatch)
+                        Text(stringResource(R.string.password_mismatch_error))
+                },
+                visualTransformation = if (confirmPasswordVisible) VisualTransformation.None
+                else PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                trailingIcon = {
+                    val image = if (confirmPasswordVisible)
+                        Icons.Filled.Visibility
+                    else Icons.Filled.VisibilityOff
+
+                    IconButton(onClick = {
+                        confirmPasswordVisible = !confirmPasswordVisible
+                    }) {
+                        Icon(imageVector = image, contentDescription = "")
+                    }
+                }
+            )
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            CommonButton(
+                // 생성 중이거나 성공 안내 후 이동 대기 중에는 다시 누르지 못하게 한다.
+                enabled = !isCreating,
+                onClick = {
+                    // 중복확인이 완료되고 사용 가능한 코드인지 확인
+                    val duplicateResult = isCodeDuplicateResult
+                    val isCodeAvailable = when (duplicateResult) {
+                        is DataResourceResult.Success -> duplicateResult.data == false
+                        else -> false
+                    }
+                    
+                    if (groupPw == groupConfirmPw && groupName.isNotBlank() &&
+                        groupCode.isNotBlank() && isCodeAvailable
+                    ) {
+                        groupViewModel.createGroupAndUpdateUser(
+                            userId = userId,
+                            groupName,
+                            groupCode,
+                            groupPw
+                        )
+                    } else if (!isCodeAvailable && groupCode.isNotBlank()) {
+                        // 중복확인이 안된 경우 안내 메시지
+                        groupViewModel.showSnackBar("그룹코드 중복확인을 먼저 해주세요")
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp)
+                    .padding(bottom = 32.dp)
+
+            ) {
+                Text(stringResource(R.string.group_btn_makeGroup))
             }
         }
     }

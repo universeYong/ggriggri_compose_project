@@ -36,7 +36,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -46,7 +45,8 @@ import com.ahn.domain.model.Request
 import com.ahn.domain.model.Response
 import com.ahn.ggriggri.screen.ui.archive.viewmodel.requestdetail.RequestDetailViewModel
 import com.ahn.common_ui.theme.GgriggriTheme
-import com.ahn.common_ui.theme.MainColor
+import com.ahn.common_ui.theme.OnMainColorAvatarPlaceholder
+import com.ahn.common_ui.theme.OnMainColorSecondary
 import com.ahn.common_ui.theme.NanumSquareBold
 import com.ahn.common_ui.theme.NanumSquareRegular
 import java.text.SimpleDateFormat
@@ -69,70 +69,68 @@ fun RequestDetailScreen(
         }
     }
 
-    GgriggriTheme {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = Color(0xFFF5F5F5)
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = GgriggriTheme.colors.surfaceSubtle
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize()
         ) {
-            Column(
-                modifier = Modifier.fillMaxSize()
-            ) {
 
-                // 메인 콘텐츠
-                when {
-                    isLoading -> {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator()
-                        }
+            // 메인 콘텐츠
+            when {
+                isLoading -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
                     }
+                }
 
-                    error != null -> {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "오류: $error",
-                                color = Color.Red,
-                                modifier = Modifier.padding(16.dp)
-                            )
-                        }
-                    }
-
-                    request != null -> {
-                        RequestDetailContent(
-                            request = request!!,
-                            viewModel = viewModel
+                error != null -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "오류: $error",
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(16.dp)
                         )
                     }
+                }
 
-                    requestId.isBlank() -> {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "요청 ID가 없습니다.",
-                                color = Color.Red,
-                                modifier = Modifier.padding(16.dp)
-                            )
-                        }
+                request != null -> {
+                    RequestDetailContent(
+                        request = request!!,
+                        viewModel = viewModel
+                    )
+                }
+
+                requestId.isBlank() -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "요청 ID가 없습니다.",
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(16.dp)
+                        )
                     }
+                }
 
-                    else -> {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "요청을 찾을 수 없습니다.",
-                                color = Color.Red,
-                                modifier = Modifier.padding(16.dp)
-                            )
-                        }
+                else -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "요청을 찾을 수 없습니다.",
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(16.dp)
+                        )
                     }
                 }
             }
@@ -169,7 +167,7 @@ fun RequestDetailContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(15.dp)
-                    .background(Color(0xFFF0F0F0))
+                    .background(GgriggriTheme.colors.sectionDivider)
             )
 
         LazyColumn(
@@ -180,7 +178,7 @@ fun RequestDetailContent(
             // 응답 목록
             if (responses.isNotEmpty()) {
 
-                items(responses) { response ->
+                items(responses, key = { it.responseId.ifBlank { "${it.responseUserDocumentID}_${it.responseTime}" } }) { response ->
                     ResponseCard(
                         response = response,
                         viewModel = viewModel,
@@ -193,7 +191,7 @@ fun RequestDetailContent(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 4.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5)),
+                        colors = CardDefaults.cardColors(containerColor = GgriggriTheme.colors.surfaceSubtle),
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Box(
@@ -206,7 +204,7 @@ fun RequestDetailContent(
                                 text = "아직 답변이 없습니다.",
                                 fontSize = 14.sp,
                                 fontFamily = NanumSquareRegular,
-                                color = Color(0xFF666666)
+                                color = GgriggriTheme.colors.textSecondary
                             )
                         }
                     }
@@ -226,7 +224,7 @@ fun RequestInfoCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 4.dp),
-        colors = CardDefaults.cardColors(containerColor = MainColor),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
@@ -244,7 +242,7 @@ fun RequestInfoCard(
                         modifier = Modifier
                             .size(50.dp)
                             .clip(CircleShape)
-                            .border(2.dp, Color(0xFFE0E0E0), CircleShape),
+                            .border(2.dp, OnMainColorAvatarPlaceholder, CircleShape),
                         contentScale = ContentScale.Crop
                     )
                 } else {
@@ -252,14 +250,14 @@ fun RequestInfoCard(
                         modifier = Modifier
                             .size(50.dp)
                             .clip(CircleShape)
-                            .background(Color(0xFFE0E0E0)),
+                            .background(OnMainColorAvatarPlaceholder),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.Person,
                             contentDescription = "프로필 이미지",
                             modifier = Modifier.size(24.dp),
-                            tint = Color(0xFF666666)
+                            tint = OnMainColorSecondary
                         )
                     }
                 }
@@ -271,13 +269,13 @@ fun RequestInfoCard(
                         text = userName ?: "알 수 없음",
                         fontSize = 16.sp,
                         fontFamily = NanumSquareBold,
-                        color = Color.Black
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                     Text(
                         text = formatTime(request.requestTime),
                         fontSize = 12.sp,
                         fontFamily = NanumSquareRegular,
-                        color = Color(0xFF666666)
+                        color = OnMainColorSecondary
                     )
                 }
             }
@@ -289,7 +287,7 @@ fun RequestInfoCard(
                 text = request.requestMessage,
                 fontSize = 15.sp,
                 fontFamily = NanumSquareRegular,
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
                 lineHeight = 22.sp
             )
 
@@ -320,7 +318,7 @@ fun ResponseCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 4.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F9FA)),
+        colors = CardDefaults.cardColors(containerColor = GgriggriTheme.colors.surfaceRaised),
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -351,14 +349,14 @@ fun ResponseCard(
                         modifier = Modifier
                             .size(50.dp)
                             .clip(CircleShape)
-                            .background(Color(0xFFE0E0E0))
-                            .border(1.dp, Color(0xFFCCCCCC), CircleShape),
+                            .background(GgriggriTheme.colors.placeholder)
+                            .border(1.dp, GgriggriTheme.colors.borderLight, CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.AccountCircle,
                             contentDescription = "기본 프로필",
-                            tint = Color(0xFF666666),
+                            tint = GgriggriTheme.colors.textSecondary,
                             modifier = Modifier.size(24.dp)
                         )
                     }
@@ -372,14 +370,14 @@ fun ResponseCard(
                         text = userName,
                         fontSize = 16.sp,
                         fontFamily = NanumSquareBold,
-                        color = Color.Black
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     // 응답 시간
                     Text(
                         text = formatTime(response.responseTime),
                         fontSize = 12.sp,
                         fontFamily = NanumSquareRegular,
-                        color = Color(0xFF888888)
+                        color = GgriggriTheme.colors.textTertiary
                     )
                 }
             }
@@ -390,7 +388,7 @@ fun ResponseCard(
                     text = response.responseMessage,
                     fontSize = 14.sp,
                     fontFamily = NanumSquareRegular,
-                    color = Color.Black,
+                    color = MaterialTheme.colorScheme.onSurface,
                     lineHeight = 20.sp
                 )
 

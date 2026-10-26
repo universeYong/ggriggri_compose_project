@@ -8,7 +8,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import com.ahn.common_ui.theme.GgriggriTheme
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -29,8 +29,8 @@ fun CommonButton(
             // 버튼색을 테마에 정의
             containerColor = MaterialTheme.colorScheme.primaryContainer,
             contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-            disabledContainerColor = Color.Gray, // 예시 색상 (비활성)
-            disabledContentColor = Color.LightGray
+            disabledContainerColor = GgriggriTheme.colors.buttonDisabledContainer,
+            disabledContentColor = GgriggriTheme.colors.buttonOnDisabledContainer
         ),
         elevation = ButtonDefaults.buttonElevation(
             defaultElevation = 4.dp,  // 기본 상태 그림자

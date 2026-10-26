@@ -16,13 +16,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ahn.domain.model.Request
 import com.ahn.ggriggri.screen.ui.main.viewmodel.RequestCardUiState
-import com.ahn.common_ui.theme.MainColor
+import com.ahn.common_ui.theme.GgriggriTheme
+import com.ahn.common_ui.theme.RequestActiveDot
+import androidx.compose.material3.MaterialTheme
 import com.ahn.common_ui.theme.NanumSquareBold
 import com.ahn.common_ui.theme.NanumSquareRegular
 
@@ -42,7 +43,7 @@ fun ActiveRequestCard(
             .fillMaxWidth()
             .padding(horizontal = 20.dp),
         shape = RoundedCornerShape(15.dp),
-        colors = CardDefaults.cardColors(containerColor = MainColor)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
     ) {
         Column(
             modifier = Modifier.padding(15.dp),
@@ -52,7 +53,7 @@ fun ActiveRequestCard(
                 Box(
                     modifier = Modifier
                         .size(10.dp)
-                        .background(Color.Green, CircleShape)
+                        .background(RequestActiveDot, CircleShape)
                         .align(Alignment.TopStart)
                 )
             }
@@ -64,7 +65,7 @@ fun ActiveRequestCard(
                 text = if (state.requesterName.isNotEmpty()) "${state.requesterName}님의 요청" else "요청",
                 fontSize = 16.sp,
                 fontFamily = NanumSquareBold,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onPrimaryContainer
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -73,7 +74,7 @@ fun ActiveRequestCard(
                 text = state.request.requestMessage,
                 fontSize = 14.sp,
                 fontFamily = NanumSquareRegular,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onPrimaryContainer
             )
 
             Spacer(modifier = Modifier.height(30.dp))
@@ -106,17 +107,23 @@ private val previewCardState = RequestCardUiState(
 @Preview(name = "응답 가능", showBackground = true)
 @Composable
 private fun ActiveRequestCardPreview() {
-    ActiveRequestCard(state = previewCardState)
+    GgriggriTheme {
+        ActiveRequestCard(state = previewCardState)
+    }
 }
 
 @Preview(name = "이름/응답 여부 로딩 중", showBackground = true)
 @Composable
 private fun ActiveRequestCardLoadingPreview() {
-    ActiveRequestCard(state = previewCardState.copy(requesterName = "", isCheckingResponse = true))
+    GgriggriTheme {
+        ActiveRequestCard(state = previewCardState.copy(requesterName = "", isCheckingResponse = true))
+    }
 }
 
 @Preview(name = "이미 응답함", showBackground = true)
 @Composable
 private fun ActiveRequestCardRespondedPreview() {
-    ActiveRequestCard(state = previewCardState.copy(hasUserResponded = true))
+    GgriggriTheme {
+        ActiveRequestCard(state = previewCardState.copy(hasUserResponded = true))
+    }
 }

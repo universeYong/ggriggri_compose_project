@@ -14,7 +14,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -40,15 +39,12 @@ fun HomeScreen(
     onNavigateToRequestDetail: (Request) -> Unit = {},
     homeViewModel: HomeViewModel = hiltViewModel()
 ) {
-    android.util.Log.d("HomeScreen", "HomeScreen 컴포즈 시작")
 
     val profiles by homeViewModel.profiles.collectAsStateWithLifecycle()
     val todayQuestion by homeViewModel.todayQuestionContent.collectAsStateWithLifecycle()
     // 질문 카드 스피너는 오늘의 질문 로딩만 따른다(요청 목록 로딩과 분리).
     val isLoadingTodayQuestion by homeViewModel.isQuestionLoading.collectAsStateWithLifecycle()
     val errorMessage by homeViewModel.errorMessage.collectAsStateWithLifecycle()
-
-    android.util.Log.d("HomeScreen", "HomeViewModel 상태 수집 완료 - 로딩: $isLoadingTodayQuestion, 오류: $errorMessage")
 
     val sheetState = rememberModalBottomSheetState()
     var showBottomSheet by remember { mutableStateOf(false) }
@@ -79,128 +75,124 @@ fun HomeScreen(
         }
     }
 
-    GgriggriTheme {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            Box(modifier = Modifier.fillMaxSize()) {
-                // ScrollView + ConstraintLayout -> LazyColumn으로 대체
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize(),
-                    contentPadding = PaddingValues(vertical = 20.dp),
-                    verticalArrangement = Arrangement.spacedBy(20.dp)
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            // ScrollView + ConstraintLayout -> LazyColumn으로 대체
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize(),
+                contentPadding = PaddingValues(vertical = 20.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
+                // 프로필 목록 카드
+                item(key = "profile_summary_card_key") {
+                    ProfileSummaryCard(
+                        profiles = profiles,
+                        onSeeAllClick = { showBottomSheet = true }
+                    )
+                }
+                // 오늘의 질문 카드
+                item(
+                    key = todayQuestion?.number?.toString() ?: "today_question_empty_key"
                 ) {
-                    // 프로필 목록 카드
-                    item(key = "profile_summary_card_key") {
-                        ProfileSummaryCard(
-                            profiles = profiles,
-                            onSeeAllClick = { showBottomSheet = true }
-                        )
-                    }
-                    // 오늘의 질문 카드
-                    item(
-                        key = todayQuestion?.number?.toString() ?: "today_question_empty_key"
-                    ) {
-                        if (isLoadingTodayQuestion) {
-                            Box(
+                    if (isLoadingTodayQuestion) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 50.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    } else {
+                        todayQuestion?.let { currentNonNullQuestion ->
+                            TodayQuestionCard(
+                                question = currentNonNullQuestion,
+                                onAnswerClick = {
+                                    onNavigationToAnswer()
+                                }
+                            )
+                        } ?: run {
+                            Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(vertical = 50.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator()
-                            }
-                        } else {
-                            todayQuestion?.let { currentNonNullQuestion ->
-                                TodayQuestionCard(
-                                    question = currentNonNullQuestion,
-                                    onAnswerClick = {
-                                        onNavigationToAnswer()
-                                    }
+                                    .padding(horizontal = 20.dp)
+                                    .height(100.dp),
+                                shape = RoundedCornerShape(15.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = GgriggriTheme.colors.placeholder
                                 )
-                            } ?: run {
-                                Card(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 20.dp)
-                                        .height(100.dp),
-                                    shape = RoundedCornerShape(15.dp),
-                                    colors = CardDefaults.cardColors(
-                                        containerColor = Color(
-                                            0xFFE0E0E0
-                                        )
-                                    )
+                            ) {
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
                                 ) {
-                                    Box(
-                                        modifier = Modifier.fillMaxSize(),
-                                        contentAlignment = Alignment.Center
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally
                                     ) {
-                                        Column(
-                                            horizontalAlignment = Alignment.CenterHorizontally
-                                        ) {
+                                        Text(
+                                            text = "오늘의 질문을 불러오지 못했어요.",
+                                            fontFamily = NanumSquareRegular,
+                                            color = GgriggriTheme.colors.textSecondary
+                                        )
+                                        if (errorMessage != null) {
+                                            Spacer(modifier = Modifier.height(4.dp))
                                             Text(
-                                                text = "오늘의 질문을 불러오지 못했어요.",
+                                                text = errorMessage!!,
+                                                fontSize = 12.sp,
                                                 fontFamily = NanumSquareRegular,
-                                                color = Color(0xFF666666)
+                                                color = GgriggriTheme.colors.textHint
                                             )
-                                            if (errorMessage != null) {
-                                                Spacer(modifier = Modifier.height(4.dp))
-                                                Text(
-                                                    text = errorMessage!!,
-                                                    fontSize = 12.sp,
-                                                    fontFamily = NanumSquareRegular,
-                                                    color = Color(0xFF999999)
-                                                )
-                                            }
                                         }
                                     }
                                 }
                             }
                         }
                     }
-                    item(key = "request_card_key") {
-                        val cardState = activeRequestCard
-                        if (cardState != null) {
-                            // 활성화된 요청
-                            ActiveRequestCard(
-                                state = cardState,
-                                onNavigateToResponse = onNavigateToResponse,
-                                onNavigateToRequestDetail = onNavigateToRequestDetail
-                            )
-                        } else {
-                            // 활성화된 요청 없음
-                            DefaultRequestCard(
-                                onNavigateToRequest = onNavigateToRequest
-                            )
-                        }
+                }
+                item(key = "request_card_key") {
+                    val cardState = activeRequestCard
+                    if (cardState != null) {
+                        // 활성화된 요청
+                        ActiveRequestCard(
+                            state = cardState,
+                            onNavigateToResponse = onNavigateToResponse,
+                            onNavigateToRequestDetail = onNavigateToRequestDetail
+                        )
+                    } else {
+                        // 활성화된 요청 없음
+                        DefaultRequestCard(
+                            onNavigateToRequest = onNavigateToRequest
+                        )
                     }
                 }
+            }
 //                // 추억 캐러셀
 //                item {
 //                    MemoriesCarousel(memories = memories)
 //                }
 //                }
-                // ModalBottomSheet
-                if (showBottomSheet) {
-                    ModalBottomSheet(
-                        onDismissRequest = {
-                            showBottomSheet = false
-                        },
-                        sheetState = sheetState
-                    ) {
-                        AllProfilesSheetContent(
-                            profiles = profiles,
-                            onCloseSheet = {
-                                scope.launch { sheetState.hide() }.invokeOnCompletion {
-                                    if (!sheetState.isVisible) {
-                                        showBottomSheet = false
-                                    }
+            // ModalBottomSheet
+            if (showBottomSheet) {
+                ModalBottomSheet(
+                    onDismissRequest = {
+                        showBottomSheet = false
+                    },
+                    sheetState = sheetState
+                ) {
+                    AllProfilesSheetContent(
+                        profiles = profiles,
+                        onCloseSheet = {
+                            scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                if (!sheetState.isVisible) {
+                                    showBottomSheet = false
                                 }
                             }
-                        )
-                    }
+                        }
+                    )
                 }
             }
         }

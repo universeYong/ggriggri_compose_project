@@ -11,7 +11,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import com.ahn.common_ui.theme.GgriggriTheme
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -56,7 +56,7 @@ fun CommonOutlinedTextField(
         shape = RoundedCornerShape(8.dp),
         visualTransformation = visualTransformation,
         colors = OutlinedTextFieldDefaults.colors(
-            unfocusedLabelColor = Color.Gray
+            unfocusedLabelColor = GgriggriTheme.colors.textTertiary
         )
     )
 }

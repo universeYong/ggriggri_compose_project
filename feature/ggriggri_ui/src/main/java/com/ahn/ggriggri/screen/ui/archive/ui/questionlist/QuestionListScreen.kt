@@ -48,7 +48,10 @@ fun QuestionListScreen(
             }
         } else {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
-                itemsIndexed(archivedQuestions) { index, item: ArchivedQuestionItem -> // 타입 명시
+                itemsIndexed(
+                    archivedQuestions,
+                    key = { index, item -> item.questionRecordId.ifBlank { "blank_$index" } }
+                ) { index, item: ArchivedQuestionItem -> // 타입 명시
                     ListItem(
                         headlineContent = { Text(item.content) }, // 실제 질문 내용
                         supportingContent = { Text(item.questionNumberText) }, // 질문 번호

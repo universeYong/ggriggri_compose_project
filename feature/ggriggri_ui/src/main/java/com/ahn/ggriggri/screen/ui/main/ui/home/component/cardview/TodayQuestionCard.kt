@@ -22,6 +22,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
+import com.ahn.common_ui.theme.OnQuestionCard
+import com.ahn.common_ui.theme.QuestionCardButton
+import com.ahn.common_ui.theme.QuestionCardFallback
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.toColorInt
@@ -34,9 +37,10 @@ import com.ahn.common_ui.theme.NanumSquareRegular
 fun TodayQuestionCard(question: QuestionList, onAnswerClick: () -> Unit) {
     val stableImageUrl = remember(question.imgUrl) { question.imgUrl }
 
+    // 카드 배경색은 질문 데이터(question.color, 밝은 파스텔)에서 오므로 그 위 텍스트·버튼 색도 모드와 무관하게 고정한다.
     val cardColor = runCatching {
         Color(question.color.toColorInt())
-    }.getOrElse { Color(0xFFE0E0E0) }
+    }.getOrElse { QuestionCardFallback }
 
     Card(
         modifier = Modifier
@@ -56,7 +60,7 @@ fun TodayQuestionCard(question: QuestionList, onAnswerClick: () -> Unit) {
                         text = "오늘의 질문",
                         fontSize = 16.sp,
                         fontFamily = NanumSquareBold,
-                        color = Color.Black
+                        color = OnQuestionCard
                     )
                     Spacer(modifier = Modifier.height(20.dp))
                     Text(
@@ -65,7 +69,7 @@ fun TodayQuestionCard(question: QuestionList, onAnswerClick: () -> Unit) {
                         textAlign = TextAlign.Start,
                         fontSize = 14.sp,
                         fontFamily = NanumSquareRegular,
-                        color = Color.Black,
+                        color = OnQuestionCard,
                         lineHeight = 20.sp
                     )
                 }
@@ -82,8 +86,8 @@ fun TodayQuestionCard(question: QuestionList, onAnswerClick: () -> Unit) {
                 onClick = onAnswerClick,
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White.copy(alpha = 0.8f),
-                    contentColor = Color.Black
+                    containerColor = QuestionCardButton.copy(alpha = 0.8f),
+                    contentColor = OnQuestionCard
                 ),
                 shape = RoundedCornerShape(8.dp)
             ) {

@@ -14,7 +14,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.MaterialTheme
+import com.ahn.common_ui.theme.GgriggriTheme
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -66,10 +67,10 @@ fun PasswordTextField(
             }
         },
         colors = OutlinedTextFieldDefaults.colors( // TextInputLayout 색상 속성 대체
-            focusedBorderColor = Color.DarkGray, // app:boxStrokeColor
-            unfocusedBorderColor = Color.Gray,
-            cursorColor = Color.Black, // app:cursorColor
-            focusedLabelColor = Color.DarkGray // app:hintTextColor
+            focusedBorderColor = GgriggriTheme.colors.borderFocused, // app:boxStrokeColor
+            unfocusedBorderColor = GgriggriTheme.colors.border,
+            cursorColor = MaterialTheme.colorScheme.onSurface, // app:cursorColor
+            focusedLabelColor = GgriggriTheme.colors.borderFocused // app:hintTextColor
         )
     )
 }

@@ -13,7 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import com.ahn.common_ui.theme.GgriggriTheme
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ahn.common_ui.theme.NanumSquareRegular
@@ -45,7 +45,7 @@ fun SettingMenuItem(
             imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
             contentDescription = null, // 장식용 아이콘
             modifier = Modifier.size(18.dp),
-            tint = Color.Gray // gray_500
+            tint = GgriggriTheme.colors.textTertiary // gray_500
         )
     }
 }

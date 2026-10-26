@@ -25,7 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -107,47 +107,45 @@ fun ModifyGroupNameScreen(
     // 버튼 활성화 여부를 groupName의 내용과 로딩 상태에 따라 결정
     val isButtonEnabled = groupName.isNotEmpty() && !isLoading
 
-    GgriggriTheme {
-        Scaffold(
-            modifier = modifier,
-            snackbarHost = { SnackbarHost(snackbarHostState) }
-        ) { paddingValues ->
-            Column(
+    Scaffold(
+        modifier = modifier,
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(horizontal = 20.dp), // layout_marginHorizontal="20dp"
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(10.dp)) // layout_marginVertical="10dp"
+
+            GroupNameTextField(
+                value = groupName,
+                onValueChange = onGroupNameChange,
+                enabled = !isLoading
+            )
+
+            // 버튼을 하단에 고정하기 위한 Spacer
+            Spacer(modifier = Modifier.weight(1f))
+
+            // 변경하기 버튼
+            CommonButton(
+                onClick = onSubmitClick,
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(horizontal = 20.dp), // layout_marginHorizontal="20dp"
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .fillMaxWidth()
+                    .padding(bottom = 20.dp), // layout_margin="20dp"의 하단 부분
+                enabled = isButtonEnabled,
             ) {
-                Spacer(modifier = Modifier.height(10.dp)) // layout_marginVertical="10dp"
-
-                GroupNameTextField(
-                    value = groupName,
-                    onValueChange = onGroupNameChange,
-                    enabled = !isLoading
-                )
-
-                // 버튼을 하단에 고정하기 위한 Spacer
-                Spacer(modifier = Modifier.weight(1f))
-
-                // 변경하기 버튼
-                CommonButton(
-                    onClick = onSubmitClick,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 20.dp), // layout_margin="20dp"의 하단 부분
-                    enabled = isButtonEnabled,
-                ) {
-                    if (isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.padding(vertical = 8.dp)
-                        )
-                    } else {
-                        Text(
-                            text = "변경하기",
-                            modifier = Modifier.padding(vertical = 8.dp)
-                        )
-                    }
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                } else {
+                    Text(
+                        text = "변경하기",
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
                 }
             }
         }
@@ -185,13 +183,11 @@ private fun GroupNameTextField(
         // app:helperText=" " 와 동일한 효과 (공간 확보)
         supportingText = { Text(" ") },
         // TextInputLayout의 색상 속성들 대체
-        // NOTE: 프로젝트 테마(GgriggriTheme)에 대응하는 색상 토큰이 없어 기존 값을 유지한다.
-        //       (PasswordTextField와 동일한 값 — 추후 테마 토큰으로 통합 검토)
         colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = Color.DarkGray, // app:boxStrokeColor
-            unfocusedBorderColor = Color.Gray,
-            cursorColor = Color.Black, // app:cursorColor
-            focusedLabelColor = Color.DarkGray // app:hintTextColor
+            focusedBorderColor = GgriggriTheme.colors.borderFocused, // app:boxStrokeColor
+            unfocusedBorderColor = GgriggriTheme.colors.border,
+            cursorColor = MaterialTheme.colorScheme.onSurface, // app:cursorColor
+            focusedLabelColor = GgriggriTheme.colors.borderFocused // app:hintTextColor
         )
     )
 }
@@ -199,32 +195,38 @@ private fun GroupNameTextField(
 @Preview(name = "기본(그룹명 입력됨)", showBackground = true)
 @Composable
 private fun ModifyGroupNameScreenPreview() {
-    ModifyGroupNameScreen(
-        groupName = "끼리끼리",
-        isLoading = false,
-        onGroupNameChange = {},
-        onSubmitClick = {}
-    )
+    GgriggriTheme {
+        ModifyGroupNameScreen(
+            groupName = "끼리끼리",
+            isLoading = false,
+            onGroupNameChange = {},
+            onSubmitClick = {}
+        )
+    }
 }
 
 @Preview(name = "빈 입력(버튼 비활성)", showBackground = true)
 @Composable
 private fun ModifyGroupNameScreenEmptyPreview() {
-    ModifyGroupNameScreen(
-        groupName = "",
-        isLoading = false,
-        onGroupNameChange = {},
-        onSubmitClick = {}
-    )
+    GgriggriTheme {
+        ModifyGroupNameScreen(
+            groupName = "",
+            isLoading = false,
+            onGroupNameChange = {},
+            onSubmitClick = {}
+        )
+    }
 }
 
 @Preview(name = "로딩", showBackground = true)
 @Composable
 private fun ModifyGroupNameScreenLoadingPreview() {
-    ModifyGroupNameScreen(
-        groupName = "끼리끼리",
-        isLoading = true,
-        onGroupNameChange = {},
-        onSubmitClick = {}
-    )
+    GgriggriTheme {
+        ModifyGroupNameScreen(
+            groupName = "끼리끼리",
+            isLoading = true,
+            onGroupNameChange = {},
+            onSubmitClick = {}
+        )
+    }
 }

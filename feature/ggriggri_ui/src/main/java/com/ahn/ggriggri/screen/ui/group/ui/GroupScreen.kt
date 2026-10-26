@@ -1,8 +1,6 @@
 package com.ahn.ggriggri.screen.ui.group.ui
 
-import com.ahn.common_ui.theme.BtnContentColor
-import com.ahn.common_ui.theme.MainColor
-import android.util.Log
+import androidx.compose.material3.MaterialTheme
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,7 +27,6 @@ import com.ahn.ggriggri.screen.ui.group.ui.joingroup.JoinGroupScreen
 import com.ahn.ggriggri.screen.ui.group.ui.makegroup.MakeGroupScreen
 import com.ahn.ggriggri.screen.ui.auth.viewmodel.OAuthViewModel
 import kotlinx.coroutines.launch
-import com.ahn.common_ui.theme.GgriggriTheme
 import com.ahn.common_ui.theme.NanumSquareExtraBold
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -47,70 +44,67 @@ fun GroupScreen(
     val coroutineScope = rememberCoroutineScope()
 
     val userId by authViewModel.currentUserId.collectAsStateWithLifecycle()
-    Log.d("GroupScreen", "userId: $userId")
 
 
-    GgriggriTheme {
-        Column(
+    Column(
 
-        ) {
-            Spacer(Modifier.height(24.dp))
-            PrimaryTabRow(selectedTabIndex = pagerState.currentPage) {
-                tabItems.forEachIndexed { index, title ->
-                    Tab(
-                        selected = pagerState.currentPage == index,
-                        onClick = {
-                            coroutineScope.launch {
-                                pagerState.animateScrollToPage(index)
-                            }
-                        },
-                        text = {
-                            Text(
-                                text = title,
-                                fontFamily = NanumSquareExtraBold
-                            )
-                        },
-                        selectedContentColor = MainColor,
-                        unselectedContentColor = BtnContentColor
-                    )
-                }
+    ) {
+        Spacer(Modifier.height(24.dp))
+        PrimaryTabRow(selectedTabIndex = pagerState.currentPage) {
+            tabItems.forEachIndexed { index, title ->
+                Tab(
+                    selected = pagerState.currentPage == index,
+                    onClick = {
+                        coroutineScope.launch {
+                            pagerState.animateScrollToPage(index)
+                        }
+                    },
+                    text = {
+                        Text(
+                            text = title,
+                            fontFamily = NanumSquareExtraBold
+                        )
+                    },
+                    selectedContentColor = MaterialTheme.colorScheme.primaryContainer,
+                    unselectedContentColor = MaterialTheme.colorScheme.onSurface
+                )
             }
+        }
 
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier.fillMaxSize()
-            ) { page ->
-                when (page) {
-                    0 -> {
-                        if (!userId.isNullOrBlank()) {
-                            MakeGroupScreen(
-                                userId = userId!!,
-                                onNavigateToHome = onNavigateToHome
-                            )
-                        } else {
-                            // userId가 null일 때 로딩 표시
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator()
-                            }
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxSize()
+        ) { page ->
+            when (page) {
+                0 -> {
+                    if (!userId.isNullOrBlank()) {
+                        MakeGroupScreen(
+                            userId = userId!!,
+                            onNavigateToHome = onNavigateToHome
+                        )
+                    } else {
+                        // userId가 null일 때 로딩 표시
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
                         }
                     }
-                    1 -> {
-                        if (!userId.isNullOrBlank()) {
-                            JoinGroupScreen(
-                                userId = userId!!,
-                                onNavigateToHome = onNavigateToHome
-                            )
-                        } else {
-                            // userId가 null일 때 로딩 표시
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator()
-                            }
+                }
+                1 -> {
+                    if (!userId.isNullOrBlank()) {
+                        JoinGroupScreen(
+                            userId = userId!!,
+                            onNavigateToHome = onNavigateToHome
+                        )
+                    } else {
+                        // userId가 null일 때 로딩 표시
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
                         }
                     }
                 }

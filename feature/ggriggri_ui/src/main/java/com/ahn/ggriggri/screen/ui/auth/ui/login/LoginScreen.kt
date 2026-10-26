@@ -34,7 +34,6 @@ import com.ahn.common_ui.components.AppLogo
 import com.ahn.ggriggri.screen.ui.auth.ui.login.components.LoginText
 import com.ahn.ggriggri.screen.ui.auth.ui.login.components.SocialLoginDivider
 import com.ahn.ggriggri.screen.ui.auth.viewmodel.OAuthViewModel
-import com.ahn.common_ui.theme.GgriggriTheme
 import com.ahn.common_ui.theme.NanumSquareBold
 
 @Composable
@@ -77,54 +76,52 @@ fun LoginScreen(
         }
     }
 
-    GgriggriTheme {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
+                .statusBarsPadding(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(
+            Spacer(Modifier.height(160.dp))
+            AppLogo()
+            Spacer(Modifier.height(20.dp))
+            LoginText(
+                text = stringResource(R.string.login_header_title),
+                style = MaterialTheme.typography.displayMedium,
+                fontFamily = NanumSquareBold
+            )
+            Spacer(Modifier.height(80.dp))
+            SocialLoginDivider()
+            Spacer(Modifier.height(20.dp))
+            Image(
+                painter = painterResource(id = R.drawable.kakao_login_large_wide),
+                contentDescription = "Kakao Login",
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp)
-                    .statusBarsPadding(),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .clickable {
+                        authViewModel.handleKakaoLogin(context)
+
+                    }
+                    .fillMaxWidth()
+                    .height(60.dp)
+            )
+
+            Spacer(Modifier.height(20.dp))
+
+            // 개발용 로그인 버튼 (개발 빌드에서만 표시)
+            Button(
+                onClick = { onNavigationToDevLogin() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(60.dp)
             ) {
-                Spacer(Modifier.height(160.dp))
-                AppLogo()
-                Spacer(Modifier.height(20.dp))
-                LoginText(
-                    text = stringResource(R.string.login_header_title),
-                    style = MaterialTheme.typography.displayMedium,
-                    fontFamily = NanumSquareBold
-                )
-                Spacer(Modifier.height(80.dp))
-                SocialLoginDivider()
-                Spacer(Modifier.height(20.dp))
-                Image(
-                    painter = painterResource(id = R.drawable.kakao_login_large_wide),
-                    contentDescription = "Kakao Login",
-                    modifier = Modifier
-                        .clickable {
-                            authViewModel.handleKakaoLogin(context)
-
-                        }
-                        .fillMaxWidth()
-                        .height(60.dp)
-                )
-
-                Spacer(Modifier.height(20.dp))
-
-                // 개발용 로그인 버튼 (개발 빌드에서만 표시)
-                Button(
-                    onClick = { onNavigationToDevLogin() },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(60.dp)
-                ) {
-                    Text("개발용 로그인")
-                }
-
+                Text("개발용 로그인")
             }
+
         }
     }
 }

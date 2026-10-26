@@ -10,7 +10,8 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.MaterialTheme
+import com.ahn.common_ui.theme.GgriggriTheme
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -29,15 +30,15 @@ fun MessageInputSection(
             placeholder = { Text("요청을 입력하세요.") },
             maxLines = 4,
             colors = TextFieldDefaults.colors(
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White
+                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest
             )
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = "$currentLength/$maxLength",
             fontSize = 12.sp,
-            color = Color.Gray,
+            color = GgriggriTheme.colors.textTertiary,
             modifier = Modifier.align(Alignment.End)
         )
     }

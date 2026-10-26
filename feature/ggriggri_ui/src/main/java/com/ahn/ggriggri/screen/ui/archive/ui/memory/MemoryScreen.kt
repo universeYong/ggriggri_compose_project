@@ -1,7 +1,6 @@
 package com.ahn.ggriggri.screen.ui.archive.ui.memory
 
-import com.ahn.common_ui.theme.BtnContentColor
-import com.ahn.common_ui.theme.MainColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.pager.HorizontalPager
@@ -17,7 +16,6 @@ import com.ahn.ggriggri.screen.ui.archive.ui.questionlist.QuestionListScreen
 import com.ahn.ggriggri.screen.ui.archive.ui.requestlist.RequestListScreen
 import com.ahn.ggriggri.screen.ui.archive.viewmodel.questionlist.QuestionListViewModel
 import kotlinx.coroutines.launch
-import com.ahn.common_ui.theme.GgriggriTheme
 import com.ahn.common_ui.theme.NanumSquareExtraBold
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -30,41 +28,39 @@ fun MemoryScreen(
     val pagerState = rememberPagerState (pageCount = { tabItems.size })
     val coroutineScope = rememberCoroutineScope()
 
-    GgriggriTheme {
-        Column {
-            PrimaryTabRow(selectedTabIndex = pagerState.currentPage) {
-                tabItems.forEachIndexed { index, title ->
-                    Tab(
-                        selected = pagerState.currentPage == index,
-                        onClick = {
-                            coroutineScope.launch {
-                                pagerState.animateScrollToPage(index)
-                            }
-                        },
-                        text = {
-                            Text(
-                                text = title,
-                                fontFamily = NanumSquareExtraBold
-                            )
-                        },
-                        selectedContentColor = MainColor,
-                        unselectedContentColor = BtnContentColor
-                    )
-                }
+    Column {
+        PrimaryTabRow(selectedTabIndex = pagerState.currentPage) {
+            tabItems.forEachIndexed { index, title ->
+                Tab(
+                    selected = pagerState.currentPage == index,
+                    onClick = {
+                        coroutineScope.launch {
+                            pagerState.animateScrollToPage(index)
+                        }
+                    },
+                    text = {
+                        Text(
+                            text = title,
+                            fontFamily = NanumSquareExtraBold
+                        )
+                    },
+                    selectedContentColor = MaterialTheme.colorScheme.primaryContainer,
+                    unselectedContentColor = MaterialTheme.colorScheme.onSurface
+                )
             }
+        }
 
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier.fillMaxSize()
-            ) { page ->
-                when(page) {
-                    0 -> RequestListScreen(
-                        onNavigateToRequestDetail = onNavigateToRequestDetailActual
-                    )
-                    1 -> QuestionListScreen(
-                        onNavigateToQuestionAnswer = onNavigateToQuestionAnswerActual
-                    )
-                }
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxSize()
+        ) { page ->
+            when(page) {
+                0 -> RequestListScreen(
+                    onNavigateToRequestDetail = onNavigateToRequestDetailActual
+                )
+                1 -> QuestionListScreen(
+                    onNavigateToQuestionAnswer = onNavigateToQuestionAnswerActual
+                )
             }
         }
     }

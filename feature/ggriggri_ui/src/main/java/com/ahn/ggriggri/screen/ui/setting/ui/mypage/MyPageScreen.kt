@@ -19,7 +19,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -41,10 +41,10 @@ fun MyPageScreen(
 
     val uiState by myPageviewModel.uiState.collectAsStateWithLifecycle()
 
-    // 화면이 다시 포커스될 때 그룹 정보 새로고침
-    DisposableEffect(Unit) {
+    // 화면이 다시 보일 때(RESUMED: 다른 화면에서 돌아오거나 앱이 포그라운드로 올 때)마다 그룹 정보 새로고침
+    LifecycleResumeEffect(Unit) {
         myPageviewModel.refreshGroupInfo()
-        onDispose { }
+        onPauseOrDispose { }
     }
 
     if (uiState.isLoading) {
@@ -52,7 +52,8 @@ fun MyPageScreen(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            CircularProgressIndicator()
+            // 기존(앱 테마 시절)과 같은 브랜드 노랑을 유지한다.
+            CircularProgressIndicator(color = MaterialTheme.colorScheme.primaryContainer)
         }
     } else if (uiState.user != null) {
         val user = uiState.user!!

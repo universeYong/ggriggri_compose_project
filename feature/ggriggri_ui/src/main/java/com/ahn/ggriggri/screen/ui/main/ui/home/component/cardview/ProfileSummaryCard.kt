@@ -18,7 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -26,7 +26,6 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.ahn.common_ui.R
 import com.ahn.ggriggri.screen.ui.main.viewmodel.Profile
-import com.ahn.common_ui.theme.MainColor
 import com.ahn.common_ui.theme.NanumSquareRegular
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -37,7 +36,7 @@ fun ProfileSummaryCard(profiles: List<Profile>, onSeeAllClick: () -> Unit) {
             .fillMaxWidth()
             .padding(horizontal = 20.dp),
         shape = RoundedCornerShape(15.dp),
-        colors = CardDefaults.cardColors(containerColor = MainColor)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
     ) {
         Row(
             modifier = Modifier.padding(15.dp),
@@ -48,10 +47,6 @@ fun ProfileSummaryCard(profiles: List<Profile>, onSeeAllClick: () -> Unit) {
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 profiles.take(profiles.size).forEach { profile ->
-                    Log.d(
-                        "ProfileSummaryCard",
-                        "Profile: ${profile.name}, URL: ${profile.profileImageUrl}"
-                    ) // 로그 추가
                     AsyncImage(
                         model = profile.profileImageUrl,
                         contentDescription = "프로필 ${profile.name}",
@@ -76,7 +71,7 @@ fun ProfileSummaryCard(profiles: List<Profile>, onSeeAllClick: () -> Unit) {
                 modifier = Modifier.clickable(onClick = onSeeAllClick),
                 fontFamily = NanumSquareRegular,
                 fontSize = 14.sp,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onPrimaryContainer
             )
         }
     }

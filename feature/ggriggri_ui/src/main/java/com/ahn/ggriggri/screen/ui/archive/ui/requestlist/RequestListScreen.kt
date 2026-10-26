@@ -39,7 +39,10 @@ fun RequestListScreen(
             }
         } else {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
-                itemsIndexed(archivedRequests) { index, item: ArchivedRequestItem ->
+                itemsIndexed(
+                    archivedRequests,
+                    key = { index, item -> item.requestId.ifBlank { "blank_$index" } }
+                ) { index, item: ArchivedRequestItem ->
                     ListItem(
                         headlineContent = { Text(item.content) }, // 요청 내용
                         supportingContent = { Text("${item.userName}님") }, // 사용자명

@@ -88,27 +88,14 @@ fun LoadAnimatedApngFromUrlComposable(imageUrl: String, modifier: Modifier = Mod
     }
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
         if (isLoading) {
-            Log.d("LoadAPNG_UI", "UI State: isLoading for $imageUrl")
             CircularProgressIndicator(modifier = Modifier.size(30.dp))
         } else if (errorOccurred || apngDrawable == null) {
-            Log.d(
-                "LoadAPNG_UI",
-                "UI State: errorOccurred ($errorOccurred) or apngDrawable is null (${apngDrawable == null}) for $imageUrl"
-            )
             Image(
                 painter = painterResource(id = R.drawable.baseline_error_24),
                 contentDescription = "APNG ERROR",
                 modifier = Modifier.fillMaxSize()
             )
         } else {
-            Log.d(
-                "LoadAPNG_UI",
-                "UI State: Displaying AndroidView for $imageUrl. apngDrawable isNull: false, isRunning: ${apngDrawable?.isRunning}"
-            )
-            Log.d(
-                "LoadAPNG_AndroidView",
-                "AndroidView update block. apngDrawable isNull: ${apngDrawable == null}, isRunning: ${apngDrawable?.isRunning}"
-            ) // ★★★ 로그 추가 ★★★
             AndroidView(
                 factory = {
                     Log.d("LoadAPNG_AndroidView", "AndroidView factory block.") // ★★★ 로그 추가 ★★★

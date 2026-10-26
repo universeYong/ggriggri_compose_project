@@ -26,7 +26,6 @@ import com.ahn.ggriggri.screen.ui.archive.viewmodel.questionanswer.QuestionAnswe
 import com.ahn.ggriggri.screen.ui.archive.viewmodel.questionanswer.QuestionAnswerUiState
 import com.ahn.ggriggri.screen.ui.archive.viewmodel.questionanswer.QuestionAnswerViewModel
 import com.ahn.ggriggri.screen.ui.main.ui.home.component.Apng.LoadAnimatedApngFromUrlComposable
-import com.ahn.common_ui.theme.GgriggriTheme
 import com.ahn.common_ui.theme.NanumSquareBold
 import com.ahn.common_ui.theme.NanumSquareRegular
 
@@ -38,36 +37,34 @@ fun QuestionAnswerScreen() {
     val  questionAnswerViewModel: QuestionAnswerViewModel = hiltViewModel()
     val uiState by questionAnswerViewModel.uiState.collectAsStateWithLifecycle()
 
-    GgriggriTheme {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            when (val state = uiState) {
-                is QuestionAnswerUiState.Loading -> {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
+    ) {
+        when (val state = uiState) {
+            is QuestionAnswerUiState.Loading -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
                 }
+            }
 
-                is QuestionAnswerUiState.Error -> {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(text = "오류: ${state.message}", modifier = Modifier.padding(16.dp))
-                    }
+            is QuestionAnswerUiState.Error -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(text = "오류: ${state.message}", modifier = Modifier.padding(16.dp))
                 }
+            }
 
-                is QuestionAnswerUiState.Success -> {
-                    val details = state.details
-                    QuestionAnswerContent(details = details, paddingValues = PaddingValues(16.dp))
-                }
+            is QuestionAnswerUiState.Success -> {
+                val details = state.details
+                QuestionAnswerContent(details = details, paddingValues = PaddingValues(16.dp))
             }
         }
     }

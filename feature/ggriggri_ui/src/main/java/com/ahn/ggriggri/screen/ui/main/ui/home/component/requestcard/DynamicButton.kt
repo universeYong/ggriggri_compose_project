@@ -9,7 +9,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import com.ahn.common_ui.theme.GgriggriTheme
+import com.ahn.common_ui.theme.OnRequestButtonDefault
+import com.ahn.common_ui.theme.OnRequestButtonFilled
+import com.ahn.common_ui.theme.RequestButtonDefault
+import com.ahn.common_ui.theme.RequestButtonInactive
+import com.ahn.common_ui.theme.RequestButtonQuestioner
+import com.ahn.common_ui.theme.RequestButtonResponded
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -56,13 +62,14 @@ fun DynamicButton(
     // 실시간으로 답변 가능 여부 확인
     val isCurrentlyAnswerable = request != null && currentTime < request.answerDeadline
 
+    // 버튼은 항상 브랜드 노랑 카드(라이트/다크 동일) 위에 놓이므로 상태별 색을 모드와 무관하게 고정한다.
     val buttonColor = when {
-        request == null -> Color.White
-        isQuestioner -> Color.Blue
-        hasUserResponded -> Color.Green
-        isCheckingResponse -> Color.Gray
-        isCurrentlyAnswerable -> Color.White
-        else -> Color.Gray
+        request == null -> RequestButtonDefault
+        isQuestioner -> RequestButtonQuestioner
+        hasUserResponded -> RequestButtonResponded
+        isCheckingResponse -> RequestButtonInactive
+        isCurrentlyAnswerable -> RequestButtonDefault
+        else -> RequestButtonInactive
     }
 
     val isEnabled = when {
@@ -103,7 +110,7 @@ fun DynamicButton(
             text = buttonText,
             fontSize = 16.sp,
             fontFamily = NanumSquareBold,
-            color = if (buttonColor == Color.White) Color.Black else Color.White
+            color = if (buttonColor == RequestButtonDefault) OnRequestButtonDefault else OnRequestButtonFilled
         )
     }
 }
@@ -131,54 +138,64 @@ private fun previewRequest(deadlineOffsetMillis: Long) = Request(
 @Preview(name = "요청 없음", showBackground = true)
 @Composable
 private fun DynamicButtonNoRequestPreview() {
-    DynamicButton(
-        request = null,
-        isQuestioner = false,
-        hasUserResponded = false,
-        isCheckingResponse = false
-    )
+    GgriggriTheme {
+        DynamicButton(
+            request = null,
+            isQuestioner = false,
+            hasUserResponded = false,
+            isCheckingResponse = false
+        )
+    }
 }
 
 @Preview(name = "응답하기(남은 시간)", showBackground = true)
 @Composable
 private fun DynamicButtonAnswerablePreview() {
-    DynamicButton(
-        request = previewRequest(25 * 60 * 1000L),
-        isQuestioner = false,
-        hasUserResponded = false,
-        isCheckingResponse = false
-    )
+    GgriggriTheme {
+        DynamicButton(
+            request = previewRequest(25 * 60 * 1000L),
+            isQuestioner = false,
+            hasUserResponded = false,
+            isCheckingResponse = false
+        )
+    }
 }
 
 @Preview(name = "응답 여부 확인 중", showBackground = true)
 @Composable
 private fun DynamicButtonCheckingPreview() {
-    DynamicButton(
-        request = previewRequest(25 * 60 * 1000L),
-        isQuestioner = false,
-        hasUserResponded = false,
-        isCheckingResponse = true
-    )
+    GgriggriTheme {
+        DynamicButton(
+            request = previewRequest(25 * 60 * 1000L),
+            isQuestioner = false,
+            hasUserResponded = false,
+            isCheckingResponse = true
+        )
+    }
 }
 
 @Preview(name = "질문자/응답 완료", showBackground = true)
 @Composable
 private fun DynamicButtonQuestionerPreview() {
-    DynamicButton(
-        request = previewRequest(25 * 60 * 1000L),
-        isQuestioner = true,
-        hasUserResponded = false,
-        isCheckingResponse = false
-    )
+    GgriggriTheme {
+        DynamicButton(
+            request = previewRequest(25 * 60 * 1000L),
+            isQuestioner = true,
+            hasUserResponded = false,
+            isCheckingResponse = false
+        )
+    }
 }
 
 @Preview(name = "답변 마감", showBackground = true)
 @Composable
 private fun DynamicButtonClosedPreview() {
-    DynamicButton(
-        request = previewRequest(-60 * 1000L),
-        isQuestioner = false,
-        hasUserResponded = false,
-        isCheckingResponse = false
-    )
+    GgriggriTheme {
+        DynamicButton(
+            request = previewRequest(-60 * 1000L),
+            isQuestioner = false,
+            hasUserResponded = false,
+            isCheckingResponse = false
+        )
+    }
 }

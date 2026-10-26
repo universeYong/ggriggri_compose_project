@@ -25,7 +25,6 @@ import com.ahn.common_ui.components.CommonButton
 import com.ahn.common_ui.components.CommonDialog
 import com.ahn.common_ui.components.PasswordTextField
 import com.ahn.ggriggri.screen.ui.setting.viewmodel.SettingGroupViewModel
-import com.ahn.common_ui.theme.GgriggriTheme
 
 @Composable
 fun ModifyGroupPwScreen(
@@ -65,82 +64,80 @@ fun ModifyGroupPwScreen(
             onNavigateToSettingGroup()
         }
     }
-    GgriggriTheme {
-        androidx.compose.material3.Scaffold(
-            snackbarHost = { SnackbarHost(snackbarHostState) }
-        ) { paddingValues ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(horizontal = 20.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Spacer(modifier = Modifier.height(10.dp))
+    androidx.compose.material3.Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(horizontal = 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(10.dp))
 
-                // 새 비밀번호 입력 필드
-                PasswordTextField(
-                    value = newPassword,
-                    onValueChange = { newPassword = it },
-                    label = "새 비밀번호 입력",
-                    supportingText = " ",
-                    enabled = !isLoading
-                )
+            // 새 비밀번호 입력 필드
+            PasswordTextField(
+                value = newPassword,
+                onValueChange = { newPassword = it },
+                label = "새 비밀번호 입력",
+                supportingText = " ",
+                enabled = !isLoading
+            )
 
-                // 새 비밀번호 재입력 필드
-                PasswordTextField(
-                    value = confirmNewPassword,
-                    onValueChange = { confirmNewPassword = it },
-                    label = "새 비밀번호 재입력",
-                    isError = confirmNewPassword.isNotEmpty() && !isNewPasswordValid,
-                    supportingText = if (confirmNewPassword.isNotEmpty() && !isNewPasswordValid) "비밀번호가 일치하지 않습니다." else " ",
-                    enabled = !isLoading
-                )
+            // 새 비밀번호 재입력 필드
+            PasswordTextField(
+                value = confirmNewPassword,
+                onValueChange = { confirmNewPassword = it },
+                label = "새 비밀번호 재입력",
+                isError = confirmNewPassword.isNotEmpty() && !isNewPasswordValid,
+                supportingText = if (confirmNewPassword.isNotEmpty() && !isNewPasswordValid) "비밀번호가 일치하지 않습니다." else " ",
+                enabled = !isLoading
+            )
 
-                // 버튼을 하단에 고정하기 위한 Spacer
-                Spacer(modifier = Modifier.weight(1f))
+            // 버튼을 하단에 고정하기 위한 Spacer
+            Spacer(modifier = Modifier.weight(1f))
 
-                // 변경하기 버튼
-                CommonButton(
-                    onClick = {
-                        // 바로 저장하지 않고 확인을 한 번 받는다. 실수로 인한 변경을 막기 위한 것이다.
-                        if (isNewPasswordValid) {
-                            showConfirmDialog = true
-                        }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 20.dp),
-                    enabled = isButtonEnabled,
-                ) {
-                    if (isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.padding(vertical = 8.dp)
-                        )
-                    } else {
-                        Text(
-                            text = "변경하기",
-                            modifier = Modifier.padding(vertical = 8.dp)
-                        )
+            // 변경하기 버튼
+            CommonButton(
+                onClick = {
+                    // 바로 저장하지 않고 확인을 한 번 받는다. 실수로 인한 변경을 막기 위한 것이다.
+                    if (isNewPasswordValid) {
+                        showConfirmDialog = true
                     }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 20.dp),
+                enabled = isButtonEnabled,
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                } else {
+                    Text(
+                        text = "변경하기",
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
                 }
             }
+        }
 
-            // 변경 전 확인 — 현재 비밀번호 재입력을 대신하는 사고 방지 장치
-            if (showConfirmDialog) {
-                CommonDialog(
-                    onDismissRequest = { showConfirmDialog = false },
-                    onConfirmation = {
-                        showConfirmDialog = false
-                        viewModel.updateGroupPassword(newPassword)
-                    },
-                    title = "그룹 비밀번호를 변경할까요?",
-                    message = "변경 후에는 새 비밀번호로만 그룹에 참여할 수 있습니다. 기존 구성원에게 새 비밀번호를 알려주세요.",
-                    confirmButtonText = "변경",
-                    dismissButtonText = "취소",
-                    onDismissClick = { showConfirmDialog = false }
-                )
-            }
+        // 변경 전 확인 — 현재 비밀번호 재입력을 대신하는 사고 방지 장치
+        if (showConfirmDialog) {
+            CommonDialog(
+                onDismissRequest = { showConfirmDialog = false },
+                onConfirmation = {
+                    showConfirmDialog = false
+                    viewModel.updateGroupPassword(newPassword)
+                },
+                title = "그룹 비밀번호를 변경할까요?",
+                message = "변경 후에는 새 비밀번호로만 그룹에 참여할 수 있습니다. 기존 구성원에게 새 비밀번호를 알려주세요.",
+                confirmButtonText = "변경",
+                dismissButtonText = "취소",
+                onDismissClick = { showConfirmDialog = false }
+            )
         }
     }
 }

@@ -12,7 +12,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import com.ahn.common_ui.theme.GgriggriTheme
+import com.ahn.common_ui.theme.OnImageOverlay
+import com.ahn.common_ui.theme.UploadButtonColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -29,8 +31,8 @@ fun ImageUploadSection(
             .fillMaxWidth()
             .height(200.dp),
         shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        border = BorderStroke(1.dp, Color.Gray)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLowest),
+        border = BorderStroke(1.dp, GgriggriTheme.colors.border)
     ) {
         if (selectedImageUri != null) {
             // 선택된 이미지 표시
@@ -48,7 +50,7 @@ fun ImageUploadSection(
                     Icon(
                         Icons.Default.Close,
                         contentDescription = "이미지 제거",
-                        tint = Color.White
+                        tint = OnImageOverlay // 사진 위에 올라가는 아이콘이라 모드와 무관하게 흰색 고정
                     )
                 }
             }
@@ -65,24 +67,24 @@ fun ImageUploadSection(
                     Icons.Default.Image,
                     contentDescription = "이미지 아이콘",
                     modifier = Modifier.size(48.dp),
-                    tint = Color.Gray
+                    tint = GgriggriTheme.colors.textTertiary
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "업로드 된 이미지가 없습니다.",
                     fontSize = 14.sp,
-                    color = Color.Gray
+                    color = GgriggriTheme.colors.textTertiary
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "등록할 이미지를 업로드해주세요",
                     fontSize = 12.sp,
-                    color = Color.Gray
+                    color = GgriggriTheme.colors.textTertiary
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(
                     onClick = onImageSelected,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFF59D))
+                    colors = ButtonDefaults.buttonColors(containerColor = UploadButtonColor)
                 ) {
                     Icon(
                         Icons.Default.Upload,
