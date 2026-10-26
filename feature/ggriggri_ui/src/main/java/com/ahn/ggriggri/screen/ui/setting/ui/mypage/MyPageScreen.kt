@@ -1,4 +1,4 @@
-package com.ahn.ggriggri.screen.setting.mypage
+package com.ahn.ggriggri.screen.ui.setting.ui.mypage
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box

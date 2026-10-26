@@ -1,4 +1,4 @@
-package com.ahn.ggriggri.screen.archive.questionlist
+package com.ahn.ggriggri.screen.ui.archive.ui.questionlist
 
 import android.util.Log
 import androidx.compose.foundation.clickable

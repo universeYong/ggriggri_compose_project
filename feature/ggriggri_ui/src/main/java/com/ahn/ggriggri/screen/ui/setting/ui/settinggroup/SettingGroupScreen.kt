@@ -1,4 +1,4 @@
-package com.ahn.ggriggri.screen.setting.settinggroup
+package com.ahn.ggriggri.screen.ui.setting.ui.settinggroup
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -15,8 +15,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ahn.ggriggri.screen.ui.setting.viewmodel.SettingGroupViewModel
-import theme.GgriggriTheme
-import theme.NanumSquareRegular
+import com.ahn.common_ui.theme.GgriggriTheme
+import com.ahn.common_ui.theme.NanumSquareRegular
 
 @Composable
 fun SettingGroupScreen(

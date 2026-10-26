@@ -1,4 +1,4 @@
-package com.ahn.ggriggri.screen.group.makegroup
+package com.ahn.ggriggri.screen.ui.group.ui.makegroup
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -39,7 +39,7 @@ import com.ahn.common_ui.components.CommonOutlinedTextField
 import com.ahn.domain.common.DataResourceResult
 import com.ahn.ggriggri.screen.ui.group.viewmodel.GroupViewModel
 import kotlinx.coroutines.launch
-import theme.GgriggriTheme
+import com.ahn.common_ui.theme.GgriggriTheme
 
 @Composable
 fun MakeGroupScreen(

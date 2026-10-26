@@ -1,4 +1,4 @@
-package com.ahn.ggriggri.screen.auth.login.components
+package com.ahn.ggriggri.screen.ui.auth.ui.login.components
 
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text

@@ -12,7 +12,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import theme.NanumSquareExtraBold
+import com.ahn.common_ui.theme.NanumSquareExtraBold
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

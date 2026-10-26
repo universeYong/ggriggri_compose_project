@@ -1,4 +1,4 @@
-package com.ahn.ggriggri.screen.setting.modifygrouppw
+package com.ahn.ggriggri.screen.ui.setting.ui.modifygrouppw
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -25,7 +25,7 @@ import com.ahn.common_ui.components.CommonButton
 import com.ahn.common_ui.components.CommonDialog
 import com.ahn.common_ui.components.PasswordTextField
 import com.ahn.ggriggri.screen.ui.setting.viewmodel.SettingGroupViewModel
-import theme.GgriggriTheme
+import com.ahn.common_ui.theme.GgriggriTheme
 
 @Composable
 fun ModifyGroupPwScreen(

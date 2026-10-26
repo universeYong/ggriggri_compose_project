@@ -1,4 +1,4 @@
-package com.ahn.ggriggri.screen.auth.login.components
+package com.ahn.ggriggri.screen.ui.auth.ui.login.components
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,7 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.ahn.common_ui.R
-import theme.NanumSquareRegular
+import com.ahn.common_ui.theme.NanumSquareRegular
 
 @Composable
 fun SocialLoginDivider() {

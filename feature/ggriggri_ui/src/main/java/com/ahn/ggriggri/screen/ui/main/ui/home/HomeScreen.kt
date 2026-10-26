@@ -1,4 +1,4 @@
-package com.ahn.ggriggri.screen.main.home
+package com.ahn.ggriggri.screen.ui.main.ui.home
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -21,8 +21,8 @@ import androidx.compose.ui.unit.sp
 import com.ahn.ggriggri.screen.ui.main.ui.home.component.bottomsheet.AllProfilesSheetContent
 import com.ahn.ggriggri.screen.ui.main.viewmodel.HomeViewModel
 import kotlinx.coroutines.launch
-import theme.GgriggriTheme
-import theme.NanumSquareRegular
+import com.ahn.common_ui.theme.GgriggriTheme
+import com.ahn.common_ui.theme.NanumSquareRegular
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ahn.domain.model.Request
 import com.ahn.ggriggri.screen.ui.main.ui.home.component.cardview.ProfileSummaryCard

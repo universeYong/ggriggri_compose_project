@@ -1,4 +1,4 @@
-package com.ahn.ggriggri.screen.main.response
+package com.ahn.ggriggri.screen.ui.main.ui.response
 
 import android.net.Uri
 import android.util.Log
@@ -16,7 +16,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.ahn.ggriggri.screen.ui.main.ui.response.component.ImageUploadSection
 import com.ahn.ggriggri.screen.ui.main.ui.response.component.MessageInputSection
 import com.ahn.ggriggri.screen.ui.main.viewmodel.ResponseViewModel
-import theme.GgriggriTheme
+import com.ahn.common_ui.theme.GgriggriTheme
 
 @Composable
 fun ResponseScreen(

@@ -1,4 +1,4 @@
-package com.ahn.ggriggri.screen.auth.login
+package com.ahn.ggriggri.screen.ui.auth.ui.login
 
 import android.Manifest
 import android.util.Log
@@ -31,11 +31,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ahn.common_ui.R
 import com.ahn.common_ui.components.AppLogo
-import com.ahn.ggriggri.screen.auth.login.components.LoginText
-import com.ahn.ggriggri.screen.auth.login.components.SocialLoginDivider
+import com.ahn.ggriggri.screen.ui.auth.ui.login.components.LoginText
+import com.ahn.ggriggri.screen.ui.auth.ui.login.components.SocialLoginDivider
 import com.ahn.ggriggri.screen.ui.auth.viewmodel.OAuthViewModel
-import theme.GgriggriTheme
-import theme.NanumSquareBold
+import com.ahn.common_ui.theme.GgriggriTheme
+import com.ahn.common_ui.theme.NanumSquareBold
 
 @Composable
 fun LoginScreen(

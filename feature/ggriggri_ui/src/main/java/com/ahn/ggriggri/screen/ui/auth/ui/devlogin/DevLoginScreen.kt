@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ahn.ggriggri.screen.ui.auth.viewmodel.OAuthViewModel
-import theme.GgriggriTheme
+import com.ahn.common_ui.theme.GgriggriTheme
 
 @Composable
 fun DevLoginScreen(

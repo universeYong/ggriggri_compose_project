@@ -14,7 +14,7 @@ import androidx.activity.viewModels
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.ahn.ggrigggri.ui.theme.GgrigggriTheme
-import com.ahn.ggriggri.screen.auth.login.LoginScreen
+import com.ahn.ggriggri.screen.ui.auth.ui.login.LoginScreen
 import com.ahn.ggriggri.screen.ui.auth.viewmodel.OAuthViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import jakarta.inject.Inject

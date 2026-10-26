@@ -1,7 +1,7 @@
-package com.ahn.ggriggri.screen.archive.memory
+package com.ahn.ggriggri.screen.ui.archive.ui.memory
 
-import theme.BtnContentColor
-import theme.MainColor
+import com.ahn.common_ui.theme.BtnContentColor
+import com.ahn.common_ui.theme.MainColor
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.pager.HorizontalPager
@@ -13,12 +13,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import com.ahn.ggriggri.screen.archive.questionlist.QuestionListScreen
-import com.ahn.ggriggri.screen.archive.requestlist.RequestListScreen
+import com.ahn.ggriggri.screen.ui.archive.ui.questionlist.QuestionListScreen
+import com.ahn.ggriggri.screen.ui.archive.ui.requestlist.RequestListScreen
 import com.ahn.ggriggri.screen.ui.archive.viewmodel.questionlist.QuestionListViewModel
 import kotlinx.coroutines.launch
-import theme.GgriggriTheme
-import theme.NanumSquareExtraBold
+import com.ahn.common_ui.theme.GgriggriTheme
+import com.ahn.common_ui.theme.NanumSquareExtraBold
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

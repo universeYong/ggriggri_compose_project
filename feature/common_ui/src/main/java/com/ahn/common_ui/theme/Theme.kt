@@ -1,4 +1,4 @@
-package theme
+package com.ahn.common_ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme

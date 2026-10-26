@@ -27,8 +27,8 @@ import androidx.compose.ui.unit.sp
 import androidx.core.graphics.toColorInt
 import com.ahn.domain.model.QuestionList
 import com.ahn.ggriggri.screen.ui.main.ui.home.component.Apng.LoadAnimatedApngFromUrlComposable
-import theme.NanumSquareBold
-import theme.NanumSquareRegular
+import com.ahn.common_ui.theme.NanumSquareBold
+import com.ahn.common_ui.theme.NanumSquareRegular
 
 @Composable
 fun TodayQuestionCard(question: QuestionList, onAnswerClick: () -> Unit) {

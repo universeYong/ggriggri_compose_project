@@ -16,9 +16,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import theme.MainColor
-import theme.NanumSquareBold
-import theme.NanumSquareRegular
+import com.ahn.common_ui.theme.MainColor
+import com.ahn.common_ui.theme.NanumSquareBold
+import com.ahn.common_ui.theme.NanumSquareRegular
 
 /**
  * 답변 가능한 요청이 없을 때의 요청 카드 (stateless).

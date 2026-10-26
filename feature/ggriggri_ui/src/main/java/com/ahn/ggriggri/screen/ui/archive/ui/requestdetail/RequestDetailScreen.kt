@@ -1,4 +1,4 @@
-package com.ahn.ggriggri.screen.archive.requestdetail
+package com.ahn.ggriggri.screen.ui.archive.ui.requestdetail
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -45,10 +45,10 @@ import coil3.compose.AsyncImage
 import com.ahn.domain.model.Request
 import com.ahn.domain.model.Response
 import com.ahn.ggriggri.screen.ui.archive.viewmodel.requestdetail.RequestDetailViewModel
-import theme.GgriggriTheme
-import theme.MainColor
-import theme.NanumSquareBold
-import theme.NanumSquareRegular
+import com.ahn.common_ui.theme.GgriggriTheme
+import com.ahn.common_ui.theme.MainColor
+import com.ahn.common_ui.theme.NanumSquareBold
+import com.ahn.common_ui.theme.NanumSquareRegular
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale

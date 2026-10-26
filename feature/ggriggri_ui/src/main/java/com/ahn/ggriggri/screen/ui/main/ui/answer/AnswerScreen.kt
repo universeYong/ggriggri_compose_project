@@ -1,4 +1,4 @@
-package com.ahn.ggriggri.screen.main.answer
+package com.ahn.ggriggri.screen.ui.main.ui.answer
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,8 +36,8 @@ import com.ahn.common_ui.components.CommonOutlinedTextField
 import com.ahn.ggriggri.screen.ui.main.ui.home.component.Apng.LoadAnimatedApngFromUrlComposable
 import com.ahn.ggriggri.screen.ui.main.viewmodel.AnswerViewModel
 import com.ahn.ggriggri.screen.ui.main.viewmodel.CurrentQuestionDetails
-import theme.GgriggriTheme
-import theme.NanumSquareBold
+import com.ahn.common_ui.theme.GgriggriTheme
+import com.ahn.common_ui.theme.NanumSquareBold
 
 /**
  * 오늘의 질문 답변 화면의 Route.

@@ -1,7 +1,7 @@
-package com.ahn.ggriggri.screen.group
+package com.ahn.ggriggri.screen.ui.group.ui
 
-import theme.BtnContentColor
-import theme.MainColor
+import com.ahn.common_ui.theme.BtnContentColor
+import com.ahn.common_ui.theme.MainColor
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
@@ -25,12 +25,12 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.ahn.ggriggri.screen.group.joingroup.JoinGroupScreen
-import com.ahn.ggriggri.screen.group.makegroup.MakeGroupScreen
+import com.ahn.ggriggri.screen.ui.group.ui.joingroup.JoinGroupScreen
+import com.ahn.ggriggri.screen.ui.group.ui.makegroup.MakeGroupScreen
 import com.ahn.ggriggri.screen.ui.auth.viewmodel.OAuthViewModel
 import kotlinx.coroutines.launch
-import theme.GgriggriTheme
-import theme.NanumSquareExtraBold
+import com.ahn.common_ui.theme.GgriggriTheme
+import com.ahn.common_ui.theme.NanumSquareExtraBold
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

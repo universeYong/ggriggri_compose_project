@@ -1,4 +1,4 @@
-package com.ahn.ggriggri.screen.setting.modifygroupname
+package com.ahn.ggriggri.screen.ui.setting.ui.modifygroupname
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -32,7 +32,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ahn.common_ui.components.CommonButton
 import com.ahn.ggriggri.screen.ui.setting.viewmodel.SettingGroupViewModel
-import theme.GgriggriTheme
+import com.ahn.common_ui.theme.GgriggriTheme
 
 /**
  * 그룹명 변경 화면의 Route.

@@ -1,4 +1,4 @@
-package com.ahn.ggriggri.screen.archive.questionanswer
+package com.ahn.ggriggri.screen.ui.archive.ui.questionanswer
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -26,9 +26,9 @@ import com.ahn.ggriggri.screen.ui.archive.viewmodel.questionanswer.QuestionAnswe
 import com.ahn.ggriggri.screen.ui.archive.viewmodel.questionanswer.QuestionAnswerUiState
 import com.ahn.ggriggri.screen.ui.archive.viewmodel.questionanswer.QuestionAnswerViewModel
 import com.ahn.ggriggri.screen.ui.main.ui.home.component.Apng.LoadAnimatedApngFromUrlComposable
-import theme.GgriggriTheme
-import theme.NanumSquareBold
-import theme.NanumSquareRegular
+import com.ahn.common_ui.theme.GgriggriTheme
+import com.ahn.common_ui.theme.NanumSquareBold
+import com.ahn.common_ui.theme.NanumSquareRegular
 
 
 @OptIn(ExperimentalMaterial3Api::class)

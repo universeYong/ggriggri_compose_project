@@ -1,4 +1,4 @@
-package com.ahn.ggriggri.screen.group.joingroup
+package com.ahn.ggriggri.screen.ui.group.ui.joingroup
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -34,7 +34,7 @@ import com.ahn.common_ui.components.CommonButton
 import com.ahn.common_ui.components.CommonOutlinedTextField
 import com.ahn.domain.common.DataResourceResult
 import com.ahn.ggriggri.screen.ui.group.viewmodel.GroupViewModel
-import theme.GgriggriTheme
+import com.ahn.common_ui.theme.GgriggriTheme
 
 @Composable
 fun JoinGroupScreen(

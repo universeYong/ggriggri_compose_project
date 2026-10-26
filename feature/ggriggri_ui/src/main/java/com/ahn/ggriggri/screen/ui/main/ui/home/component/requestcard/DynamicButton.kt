@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ahn.domain.model.Request
 import kotlinx.coroutines.delay
-import theme.NanumSquareBold
+import com.ahn.common_ui.theme.NanumSquareBold
 
 /**
  * 요청 카드 하단 버튼 (stateless).

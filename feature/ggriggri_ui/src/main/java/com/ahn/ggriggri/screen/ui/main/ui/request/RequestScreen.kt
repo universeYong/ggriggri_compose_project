@@ -1,4 +1,4 @@
-package com.ahn.ggriggri.screen.main.request
+package com.ahn.ggriggri.screen.ui.main.ui.request
 
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -27,11 +27,11 @@ import coil3.compose.AsyncImage
 import com.ahn.ggriggri.screen.ui.main.ui.request.component.ImageUploadSection
 import com.ahn.ggriggri.screen.ui.main.ui.request.component.MessageInputSection
 import com.ahn.ggriggri.screen.ui.main.viewmodel.RequestViewModel
-import theme.GgriggriTheme
-import theme.MainColor
-import theme.NanumSquareBold
-import theme.NanumSquareLight
-import theme.NanumSquareRegular
+import com.ahn.common_ui.theme.GgriggriTheme
+import com.ahn.common_ui.theme.MainColor
+import com.ahn.common_ui.theme.NanumSquareBold
+import com.ahn.common_ui.theme.NanumSquareLight
+import com.ahn.common_ui.theme.NanumSquareRegular
 
 
 @Composable

@@ -22,9 +22,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ahn.domain.model.Request
 import com.ahn.ggriggri.screen.ui.main.viewmodel.RequestCardUiState
-import theme.MainColor
-import theme.NanumSquareBold
-import theme.NanumSquareRegular
+import com.ahn.common_ui.theme.MainColor
+import com.ahn.common_ui.theme.NanumSquareBold
+import com.ahn.common_ui.theme.NanumSquareRegular
 
 /**
  * 답변 가능한 요청이 있을 때의 요청 카드 (stateless).
