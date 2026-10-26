@@ -1,6 +1,7 @@
 package com.ahn.ggriggri.screen.ui.setting.viewmodel
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -100,6 +101,8 @@ class MyPageViewModel @Inject constructor(
                         _currentGroup.value = null
                     }
                 }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _currentGroup.value = null
             }
@@ -143,6 +146,10 @@ class MyPageViewModel @Inject constructor(
             // 네트워크가 느려도 로그아웃이 막히지 않도록 시간 제한을 두고, 실패해도 계속 진행한다.
             runCatching {
                 withTimeoutOrNull(3_000) { fcmRepository.unregisterCurrentUserToken() }
+            }.onFailure {
+                // 타임아웃은 withTimeoutOrNull 안에서 처리된다. 외부 취소까지 삼키면 안 되므로 다시 던진다.
+                if (it is kotlinx.coroutines.CancellationException) throw it
+                Log.e("MyPageViewModel", "FCM 토큰 정리 실패", it)
             }
             sessionManager.logoutUser()
             onNavigateToLogin()

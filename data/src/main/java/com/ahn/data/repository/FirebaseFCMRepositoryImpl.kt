@@ -19,6 +19,10 @@ class FirebaseFCMRepositoryImpl @Inject constructor(
         fcmTokenManager.saveTokenToServer(token)
     }
 
+    override suspend fun sendTokenToServer(userId: String) {
+        fcmTokenManager.sendTokenToServer(userId)
+    }
+
     override suspend fun unregisterCurrentUserToken() {
         fcmTokenManager.unregisterToken()
     }

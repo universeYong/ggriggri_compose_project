@@ -1,13 +1,11 @@
 package com.ahn.data.di
 
 import android.content.Context
-import com.ahn.data.fcm.FCMTokenManager
 import com.ahn.data.fcm.NotificationHandler
 import com.ahn.data.fcm.PermissionManager
 import com.ahn.data.local.NotificationPreferenceManager
-import com.ahn.domain.common.SessionManager
+import com.ahn.domain.common.NotificationPermissionChecker
 import com.ahn.domain.notification.NotificationDisplayManager
-import com.ahn.domain.repository.UserRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -19,14 +17,7 @@ import jakarta.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object FCMModule {
 
-    @Provides
-    @Singleton
-    fun provideFCMTokenManager(
-        userRepository: UserRepository,
-        sessionManager: SessionManager,
-    ): FCMTokenManager {
-        return FCMTokenManager(userRepository, sessionManager)
-    }
+    // FCMTokenManager는 @Inject 생성자(+ @Singleton)로 Hilt가 직접 만든다(FcmTokenLocalStore도 주입).
 
     @Provides
     @Singleton
@@ -49,5 +40,11 @@ object FCMModule {
     fun providePermissionManager(
         @ApplicationContext context: Context
     ): PermissionManager = PermissionManager(context)
+
+    @Provides
+    @Singleton
+    fun provideNotificationPermissionChecker(
+        permissionManager: PermissionManager
+    ): NotificationPermissionChecker = permissionManager
 
 }

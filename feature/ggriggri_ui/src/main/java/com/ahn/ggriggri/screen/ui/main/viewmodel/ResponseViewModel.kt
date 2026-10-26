@@ -4,7 +4,7 @@ import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.ahn.data.repository.StorageRepository
+import com.ahn.domain.repository.StorageRepository
 import com.ahn.domain.common.DataResourceResult
 import com.ahn.domain.common.SessionManager
 import com.ahn.domain.model.Response
@@ -127,7 +127,7 @@ class ResponseViewModel @Inject constructor(
                         Log.d("ResponseViewModel", "압축된 이미지 URI: $compressedUri")
                         Log.d("ResponseViewModel", "이미지 업로드 시작")
                         // 압축된 이미지 업로드 - 업로드가 실패하면 응답을 만들지 않고 중단한다.
-                        val uploadResult = storageRepository.uploadImage(compressedUri, "response")
+                        val uploadResult = storageRepository.uploadImage(compressedUri.toString(), "response")
                             .filter { it is DataResourceResult.Success || it is DataResourceResult.Failure }
                             .first()
                         when (uploadResult) {
@@ -188,6 +188,8 @@ class ResponseViewModel @Inject constructor(
                         Log.e("ResponseViewModel", "알 수 없는 결과: $result")
                     }
                 }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _errorMessage.value = "응답 등록 중 오류가 발생했습니다: ${e.message}"
                 Log.e("ResponseViewModel", "Response 생성 중 예외 발생", e)

@@ -1,29 +1,20 @@
 package com.ahn.ggriggri.screen.ui.auth.viewmodel
 
-import android.app.Activity
-import android.app.Application
 import android.content.Context
-import android.service.autofill.UserData
 import android.util.Log
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavController
-import com.ahn.data.datasource.UserDataSource
-import com.ahn.data.fcm.FCMTokenManager
-import com.ahn.data.fcm.PermissionManager
-import com.ahn.data.remote.firebase.FirestoreUserDataSourceImpl
-import com.ahn.data.repository.FirestoreUserRepositoryImpl
 import com.ahn.domain.common.DataResourceResult
+import com.ahn.domain.common.NotificationPermissionChecker
 import com.ahn.domain.common.SessionManager
 import com.ahn.domain.model.User
+import com.ahn.domain.repository.FCMRepository
 import com.ahn.domain.repository.UserRepository
 import com.ahn.domain.repository.GroupRepository
 import com.kakao.sdk.auth.model.OAuthToken
-import com.kakao.sdk.common.model.ClientError
-import com.kakao.sdk.common.model.ClientErrorCause
 import com.kakao.sdk.user.UserApiClient
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -41,8 +32,8 @@ class OAuthViewModel @Inject constructor(
     private val sessionManager: SessionManager,
     private val userRepository: UserRepository,
     private val groupRepository: GroupRepository,
-    private val permissionManager: PermissionManager,
-    private val fcmTokenManager: FCMTokenManager
+    private val notificationPermissionChecker: NotificationPermissionChecker,
+    private val fcmRepository: FCMRepository
 ) : ViewModel() {
 
     private val _loginStatus = MutableStateFlow("")
@@ -64,14 +55,18 @@ class OAuthViewModel @Inject constructor(
                 Log.d("OAuthViewModel", "currentUserId updated: $value")
             }
         }
-        _notificationPermissionState.value = permissionManager.hasNotificationPermission()
+        _notificationPermissionState.value = notificationPermissionChecker.hasNotificationPermission()
     }
 
-    fun requestNotificationPermission(activity: Activity) {
-        permissionManager.requestNotificationPermission(activity)
-    }
+    /**
+     * 알림 권한을 요청해야 하는지(Android 13+ 이고 아직 미허용).
+     * 실제 요청은 Activity가 필요하므로 화면에서 ActivityResult 런처로 수행한다.
+     */
+    fun shouldRequestNotificationPermission(): Boolean =
+        notificationPermissionChecker.shouldRequestNotificationPermission()
 
     fun handlePermissionResult(isGranted: Boolean) {
+        _notificationPermissionState.value = isGranted
         if (isGranted) {
             Log.d("LoginViewModel", "Notification permission granted")
             // 권한이 허용되었을 때 처리
@@ -200,7 +195,7 @@ class OAuthViewModel @Inject constructor(
                             "Calling sessionManager.loginUser with user: $appUser"
                         ) // <--- 로그 추가 권장
                         sessionManager.loginUser(appUser)
-                        fcmTokenManager.sendTokenToServer(appUser.userId)
+                        fcmRepository.sendTokenToServer(appUser.userId)
                         _loginStatus.value =
                             if (existingUser != null) "회원 정보 업데이트 성공" else "회원 정보 생성 성공"
                         Log.d("oauth", _loginStatus.value) // 생성 또는 업데이트 로그 확인
@@ -348,7 +343,7 @@ class OAuthViewModel @Inject constructor(
                         }
 
                         sessionManager.loginUser(devUser)
-                        fcmTokenManager.sendTokenToServer(devUser.userId)
+                        fcmRepository.sendTokenToServer(devUser.userId)
                         _loginStatus.value = "개발용 로그인 성공"
                         Log.d("OAuthViewModel", "개발용 로그인 완료 - 사용자: $devUser")
                     }
@@ -363,6 +358,8 @@ class OAuthViewModel @Inject constructor(
                         _loginStatus.value = "개발용 로그인 처리 중..."
                     }
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 val errorMsg = "개발용 로그인 중 오류 발생: ${e.message}"
                 _loginStatus.value = errorMsg

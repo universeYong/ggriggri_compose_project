@@ -114,6 +114,8 @@ class SettingGroupViewModel @Inject constructor(
                         Log.w("SettingGroupViewModel", "예상치 못한 결과: $result")
                     }
                 }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _errorMessage.value = "그룹 정보를 불러오는 중 오류가 발생했습니다: ${e.message}"
                 _isLoading.value = false
@@ -159,6 +161,8 @@ class SettingGroupViewModel @Inject constructor(
                         _isLoading.value = false
                     }
                 }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _errorMessage.value = "그룹명 변경 중 오류가 발생했습니다: ${e.message}"
                 _isLoading.value = false
@@ -217,6 +221,8 @@ class SettingGroupViewModel @Inject constructor(
                                             Log.e("SettingGroupViewModel", "최신 사용자 정보 가져오기 실패")
                                         }
                                     }
+                                } catch (e: kotlinx.coroutines.CancellationException) {
+                                    throw e
                                 } catch (e: Exception) {
                                     Log.e("SettingGroupViewModel", "사용자 정보 업데이트 실패", e)
                                 }
@@ -244,6 +250,8 @@ class SettingGroupViewModel @Inject constructor(
                         _isLoading.value = false
                     }
                 }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _errorMessage.value = "그룹 나가기 중 오류가 발생했습니다: ${e.message}"
                 _isLoading.value = false
@@ -325,6 +333,8 @@ class SettingGroupViewModel @Inject constructor(
                         Log.w("SettingGroupViewModel", "예상치 못한 결과: $result")
                     }
                 }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _errorMessage.value = "그룹 비밀번호 변경 중 오류가 발생했습니다: ${e.message}"
                 Log.e("SettingGroupViewModel", "그룹 비밀번호 변경 중 예외 발생", e)

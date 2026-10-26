@@ -48,18 +48,22 @@ fun RequestScreen(
     val isRequestButtonEnabled by viewModel.isRequestButtonEnabled.collectAsStateWithLifecycle()
     val currentMessageLength by viewModel.currentMessageLength.collectAsStateWithLifecycle()
 
-    errorMessage?.let { message ->
-        LaunchedEffect(message) {
-            // 추후 스낵바
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // 실패: 화면에 머무르며 메시지를 보여준 뒤 clear 한다.
+    LaunchedEffect(errorMessage) {
+        errorMessage?.let { message ->
+            snackbarHostState.showSnackbar(message)
             viewModel.clearErrorMessage()
         }
     }
 
-    successMessage?.let { message ->
-        LaunchedEffect(message) {
-            // 추후 스낵바
-            onNavigateBack()
+    // 성공: 메시지를 보여준 뒤에만 화면을 벗어난다.
+    LaunchedEffect(successMessage) {
+        successMessage?.let { message ->
+            snackbarHostState.showSnackbar(message)
             viewModel.clearSuccessMessage()
+            onNavigateBack()
         }
     }
 
@@ -72,13 +76,15 @@ fun RequestScreen(
     )
 
     GgriggriTheme {
-        Surface(
+        Scaffold(
             modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ) {
+            containerColor = MaterialTheme.colorScheme.background,
+            snackbarHost = { SnackbarHost(snackbarHostState) }
+        ) { paddingValues ->
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .padding(paddingValues)
                     .padding(horizontal = 20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {

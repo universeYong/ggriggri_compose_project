@@ -3,6 +3,7 @@ package com.ahn.data.mapper
 import com.ahn.data.remote.dto.UserDTO
 import com.ahn.domain.model.User
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -13,7 +14,6 @@ class UserDataMapperTest {
         _userName = "안끼리",
         _userState = 2,
         _userJoinTime = 1_690_000_000_000L,
-        _userFcmCode = mutableListOf("token-a", "token-b"),
         _userProfileImage = "https://example.com/p.png",
         _userGroupDocumentId = "group-1",
         _userAutoLoginToken = "auto-token"
@@ -24,7 +24,6 @@ class UserDataMapperTest {
         userName = "안끼리",
         userState = 2,
         userJoinTime = 1_690_000_000_000L,
-        userFcmCode = mutableListOf("token-a", "token-b"),
         userProfileImage = "https://example.com/p.png",
         userGroupDocumentId = "group-1",
         userAutoLoginToken = "auto-token"
@@ -43,9 +42,9 @@ class UserDataMapperTest {
     }
 
     @Test
-    fun `FCM 토큰 목록의 순서가 유지된다`() {
+    fun `DTO를 도메인으로 변환하면 레거시 FCM 토큰 목록은 항상 비어 있다`() {
         val result = dto().toDomainUser()
-        assertEquals(listOf("token-a", "token-b"), result.userFcmCode)
+        assertTrue(result.userFcmCode.isEmpty())
     }
 
     @Test
@@ -57,7 +56,6 @@ class UserDataMapperTest {
                 "_userName" to "안끼리",
                 "_userState" to 2,
                 "_userJoinTime" to 1_690_000_000_000L,
-                "_userFcmCode" to listOf("token-a", "token-b"),
                 "_userProfileImage" to "https://example.com/p.png",
                 "_userGroupDocumentId" to "group-1",
                 "_userAutoLoginToken" to "auto-token"
@@ -66,7 +64,14 @@ class UserDataMapperTest {
         )
     }
 
-    @Suppress("UNCHECKED_CAST")
+    @Test
+    fun `Firestore 맵에는 토큰 필드가 없어 update가 토큰 배열을 덮어쓰지 않는다`() {
+        val withTokens = user().copy(userFcmCode = mutableListOf("token-a", "token-b"))
+        val result = withTokens.toFirestoreUserDTO()
+        assertFalse(result.containsKey("_userFcmToken"))
+        assertFalse(result.containsKey("_userFcmCode"))
+    }
+
     @Test
     fun `도메인을 맵으로 저장했다가 DTO로 읽어 도메인으로 바꾸면 원본과 같다`() {
         val map = user().toFirestoreUserDTO()
@@ -75,7 +80,6 @@ class UserDataMapperTest {
             _userName = map["_userName"] as String,
             _userState = map["_userState"] as Int,
             _userJoinTime = map["_userJoinTime"] as Long,
-            _userFcmCode = (map["_userFcmCode"] as List<String>).toMutableList(),
             _userProfileImage = map["_userProfileImage"] as String,
             _userGroupDocumentId = map["_userGroupDocumentId"] as String,
             _userAutoLoginToken = map["_userAutoLoginToken"] as String

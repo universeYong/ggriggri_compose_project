@@ -30,7 +30,6 @@ android {
     }
     buildFeatures {
         compose = true
-        buildConfig = true
     }
 }
 kotlin {
@@ -40,8 +39,6 @@ kotlin {
 dependencies {
 
     implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.appcompat)
-    implementation(libs.material)
     implementation(libs.androidx.activity.compose)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

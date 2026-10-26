@@ -8,6 +8,7 @@ import android.os.Build
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.ahn.domain.common.NotificationPermissionChecker
 import dagger.hilt.android.qualifiers.ApplicationContext
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
@@ -15,7 +16,7 @@ import jakarta.inject.Singleton
 @Singleton
 class PermissionManager @Inject constructor(
     @ApplicationContext private val context: Context
-) {
+) : NotificationPermissionChecker {
 
     companion object {
         const val NOTIFICATION_PERMISSION_REQUEST_CODE = 1001
@@ -25,7 +26,7 @@ class PermissionManager @Inject constructor(
     /**
      * 알림 권한이 허용되었는지 확인
      */
-    fun hasNotificationPermission(): Boolean {
+    override fun hasNotificationPermission(): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             ContextCompat.checkSelfPermission(
                 context,
@@ -37,7 +38,7 @@ class PermissionManager @Inject constructor(
     }
 
     // Activity Result API용 메서드
-    fun shouldRequestNotificationPermission(): Boolean {
+    override fun shouldRequestNotificationPermission(): Boolean {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
                 !hasNotificationPermission()
     }

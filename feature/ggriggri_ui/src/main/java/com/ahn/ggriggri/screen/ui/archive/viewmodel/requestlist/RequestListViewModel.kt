@@ -100,6 +100,8 @@ class RequestListViewModel @Inject constructor(
                         else -> {}
                     }
                 }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _isLoading.value = false
                 _error.value = e.message ?: "알 수 없는 오류가 발생했습니다."
@@ -117,6 +119,8 @@ class RequestListViewModel @Inject constructor(
                 }
                 else -> "알 수 없는 사용자"
             }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             Log.e("RequestListViewModel", "Error getting user name for $userId", e)
             "알 수 없는 사용자"

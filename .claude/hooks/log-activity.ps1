@@ -11,17 +11,27 @@ function Append-Utf8([string]$Path, [string]$Text) {
     [System.IO.File]::AppendAllText($Path, $Text, $utf8)
 }
 
-# 서브에이전트 transcript(JSONL)에서 마지막 assistant 텍스트를 꺼낸다.
+# 서브에이전트 transcript(JSONL)에서 최종 보고서를 꺼낸다.
+# 최종 보고서는 SubagentHandback 도구 호출의 message로 전달되므로 그것을 먼저 찾고,
+# 없으면(예전 형식) 마지막 assistant 텍스트를 쓴다.
 function Get-LastAssistantText([string]$TranscriptPath) {
     if (-not $TranscriptPath -or -not (Test-Path -LiteralPath $TranscriptPath)) { return $null }
     $lines = [System.IO.File]::ReadAllLines($TranscriptPath, $utf8)
+    $lastText = $null
     for ($i = $lines.Length - 1; $i -ge 0; $i--) {
         try { $entry = $lines[$i] | ConvertFrom-Json } catch { continue }
         if ($entry.type -ne 'assistant') { continue }
-        $texts = @($entry.message.content | Where-Object { $_.type -eq 'text' } | ForEach-Object { $_.text })
-        if ($texts.Count -gt 0) { return ($texts -join "`n") }
+        foreach ($part in @($entry.message.content)) {
+            if ($part.type -eq 'tool_use' -and $part.name -eq 'SubagentHandback' -and $part.input.message) {
+                return $part.input.message
+            }
+        }
+        if (-not $lastText) {
+            $texts = @($entry.message.content | Where-Object { $_.type -eq 'text' } | ForEach-Object { $_.text })
+            if ($texts.Count -gt 0) { $lastText = ($texts -join "`n") }
+        }
     }
-    return $null
+    return $lastText
 }
 
 try {
@@ -44,9 +54,11 @@ try {
     $session = if ($j.session_id) { $j.session_id.Substring(0, [Math]::Min(8, $j.session_id.Length)) } else { '-' }
 
     if ($Kind -eq 'subagent') {
-        $agent = if ($AgentTypeOverride) { $AgentTypeOverride } elseif ($j.agent_type) { $j.agent_type } else { 'unknown' }
-        $msg = $j.last_assistant_message
-        if (-not $msg) { $msg = Get-LastAssistantText $j.agent_transcript_path }
+        # 이름(agent_type)이 없는 SubagentStop은 앱 내부 보조 작업(다음 입력 추천 등)이라 기록하지 않는다.
+        $agent = if ($AgentTypeOverride) { $AgentTypeOverride } elseif ($j.agent_type) { $j.agent_type } else { $null }
+        if (-not $agent) { exit 0 }
+        $msg = Get-LastAssistantText $j.agent_transcript_path
+        if (-not $msg) { $msg = $j.last_assistant_message }
         if (-not $msg) { $msg = '(최종 보고서를 찾지 못함)' }
         $entry = "## [$ts] $agent`n`n- session: ``$session```n`n$msg`n`n---`n`n"
         Append-Utf8 (Join-Path $logDir 'raw-log.md') $entry

@@ -13,5 +13,4 @@ kotlin {
 }
 dependencies {
     implementation(libs.kotlinx.coroutines.core)
-    implementation(libs.bundles.moshi.libraries)
 }

@@ -179,49 +179,76 @@ class AnswerViewModel @Inject constructor(
     }
 
 
-    fun submitAnswer(message: String) {
-        val currentDetails = _currentQuestionDetails.value
-        Log.d("AnswerViewModel_ID_Check", "submitAnswer called. currentDetails.id: ${currentDetails?.id}") // ★★★ 이 로그 확인 ★★★
+    // 답변 제출 진행 여부. 질문/답변 로딩용 isLoading과 분리해 중복 제출을 막고 버튼 상태에 쓴다.
+    private val _isSubmitting = MutableStateFlow(false)
+    val isSubmitting: StateFlow<Boolean> = _isSubmitting.asStateFlow()
 
+    // 제출 성공 시 한 번 보여줄 메시지. 화면은 이 값을 표시한 뒤 이동하고 clear 한다.
+    private val _submitSuccessMessage = MutableStateFlow<String?>(null)
+    val submitSuccessMessage: StateFlow<String?> = _submitSuccessMessage.asStateFlow()
+
+    // 제출 실패 메시지. 질문 로드 에러(error)와 분리해, 표시 후 clear 해도 질문 화면 상태가 바뀌지 않게 한다.
+    private val _submitErrorMessage = MutableStateFlow<String?>(null)
+    val submitErrorMessage: StateFlow<String?> = _submitErrorMessage.asStateFlow()
+
+    fun clearSubmitSuccessMessage() {
+        _submitSuccessMessage.value = null
+    }
+
+    fun clearSubmitErrorMessage() {
+        _submitErrorMessage.value = null
+    }
+
+    fun submitAnswer(message: String) {
+        if (_isSubmitting.value) return
+
+        val currentDetails = _currentQuestionDetails.value
+        Log.d("AnswerViewModel_ID_Check", "submitAnswer called. currentDetails.id: ${currentDetails?.id}")
 
         if (currentDetails == null) {
-            _error.value = "질문 ID를 알 수 없어 답변을 제출할 수 없습니다."
+            _submitErrorMessage.value = "질문 ID를 알 수 없어 답변을 제출할 수 없습니다."
+            return
+        }
+        if (message.isBlank()) {
+            _submitErrorMessage.value = "답변을 입력해주세요."
             return
         }
 
-
+        _isSubmitting.value = true
         viewModelScope.launch {
-            val userId = sessionManager.getCurrentUserIdOnce()
+            try {
+                val userId = sessionManager.getCurrentUserIdOnce()
 
-            if (userId.isNullOrEmpty()) {
-                _error.value = "사용자 정보를 알 수 없어 답변을 제출할 수 없습니다."
-                // 여기서 return@launch 를 사용하여 코루틴 실행을 중단할 수 있습니다.
-                return@launch
-            }
+                if (userId.isNullOrEmpty()) {
+                    _submitErrorMessage.value = "사용자 정보를 알 수 없어 답변을 제출할 수 없습니다."
+                    return@launch
+                }
 
-            val newAnswer = Answer(
-                answerMessage = message,
-                answerResponseTime = System.currentTimeMillis(),
-                answerRequestState = 1,
-                answerUserDocumentID = userId
-            )
-            answerRepository.create(currentDetails.id, newAnswer).collectLatest { result ->
+                val newAnswer = Answer(
+                    answerMessage = message,
+                    answerResponseTime = System.currentTimeMillis(),
+                    answerRequestState = 1,
+                    answerUserDocumentID = userId
+                )
+                val result = answerRepository.create(currentDetails.id, newAnswer)
+                    .filter { it !is DataResourceResult.Loading }
+                    .firstOrNull()
+
                 when (result) {
                     is DataResourceResult.Success -> {
-                        val createdAnswerId = result.data
-                        Log.d("AnswerViewModel", "Answer submitted successfully. ID: $createdAnswerId")
-                        loadAnswersForQuestionInternal(currentDetails.id) // 새 답변 포함 목록 다시 로드
+                        Log.d("AnswerViewModel", "Answer submitted successfully. ID: ${result.data}")
+                        _submitSuccessMessage.value = "답변이 등록되었습니다."
                     }
                     is DataResourceResult.Failure -> {
                         Log.e("AnswerViewModel", "Failed to submit answer", result.exception)
-                        _error.value = result.exception?.message ?: "답변 제출 실패"
+                        _submitErrorMessage.value = "답변 제출에 실패했습니다. 다시 시도해주세요."
                     }
-                    DataResourceResult.Loading -> {
-                        _isLoading.value = result is DataResourceResult.Loading
+                    else -> {
+                        _submitErrorMessage.value = "답변 제출 결과를 확인하지 못했습니다. 다시 시도해주세요."
                     }
-
-                    is DataResourceResult.DummyConstructor -> {}
                 }
+            } finally {
+                _isSubmitting.value = false
             }
         }
     }

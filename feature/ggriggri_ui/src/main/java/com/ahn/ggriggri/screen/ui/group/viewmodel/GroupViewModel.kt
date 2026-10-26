@@ -10,6 +10,8 @@ import com.ahn.domain.repository.GroupRepository
 import com.ahn.domain.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -42,6 +44,35 @@ class GroupViewModel @Inject constructor(
     private val _isGroupCodeDuplicate = MutableStateFlow<DataResourceResult<Boolean>?>(null)
     val isGroupCodeDuplicate: StateFlow<DataResourceResult<Boolean>?> = _isGroupCodeDuplicate
 
+
+    /** Loading을 건너뛰고 첫 번째 Success/Failure 결과만 받는다. */
+    private suspend fun <T> Flow<DataResourceResult<T>>.awaitResult(): DataResourceResult<T> =
+        filter { it is DataResourceResult.Success || it is DataResourceResult.Failure }.first()
+
+    /** Firebase에서 최신 사용자 정보를 가져와 SessionManager를 갱신한다. 실패해도 흐름은 계속된다. */
+    private suspend fun refreshSessionUser(userId: String, tag: String) {
+        try {
+            when (val updatedUserResult = userRepository.getUserById(userId).awaitResult()) {
+                is DataResourceResult.Success -> {
+                    updatedUserResult.data?.let { sessionManager.loginUser(it) }
+                }
+                is DataResourceResult.Failure -> {
+                    Log.e(tag, "최신 사용자 정보 가져오기 실패", updatedUserResult.exception)
+                }
+                else -> Unit
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(tag, "사용자 정보 업데이트 실패", e)
+        }
+    }
+
+    private suspend fun fail(exception: Throwable, message: String) {
+        _createResult.value = DataResourceResult.Failure(exception)
+        _snackBarMessage.emit(message)
+    }
+
     fun createGroupAndUpdateUser(
         userId: String,
         groupName: String,
@@ -50,81 +81,50 @@ class GroupViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             _createResult.value = DataResourceResult.Loading
-            
-            groupRepository.create(
-                Group(
-                    groupName = groupName,
-                    groupCode = groupCode,
-                    groupPw = groupPw
-                )
-            ).collect { result ->
-                when (result) {
-                    is DataResourceResult.Loading -> {
-                        _createResult.value = DataResourceResult.Loading
-                    }
-
-                    is DataResourceResult.Success -> {
-                        val groupId = result.data
-                        userRepository.updateUserGroupDocumentId(userId, groupId)
-                            .collect { updateResult ->
-                                when (updateResult) {
-                                    is DataResourceResult.Success -> {
-                                        Log.d("MakeGroup", "사용자 그룹 ID 업데이트 성공")
-                                        
-                                        groupRepository.addUserToGroup(groupId, userId)
-                                            .filter { it !is DataResourceResult.Loading }
-                                            .collect { groupUserAddResult ->
-                                                when (groupUserAddResult) {
-                                                    is DataResourceResult.Success -> {
-                                                        Log.i("GroupVM_Create", "User $userId successfully added to group $groupId members list.")
-                                                        // Firebase에서 최신 사용자 정보를 가져와서 SessionManager 업데이트
-                                                        try {
-                                                            val updatedUserResult = userRepository.getUserById(userId)
-                                                                .filter { it !is DataResourceResult.Loading }
-                                                                .first()
-                                                            when (updatedUserResult) {
-                                                                is DataResourceResult.Success -> {
-                                                                    updatedUserResult.data?.let { updatedUser ->
-                                                                        sessionManager.loginUser(updatedUser)
-                                                                        Log.d("GroupVM_Create", "SessionManager에 최신 사용자 정보 업데이트 성공")
-                                                                    }
-                                                                }
-                                                                else -> {
-                                                                    Log.e("GroupVM_Create", "최신 사용자 정보 가져오기 실패")
-                                                                }
-                                                            }
-                                                        } catch (e: Exception) {
-                                                            Log.e("GroupVM_Create", "사용자 정보 업데이트 실패", e)
-                                                        }
-                                                        _createResult.value = DataResourceResult.Success(Unit)
-                                                        showSnackBar("그룹이 성공적으로 생성되었습니다!")
-                                                    }
-                                                    is DataResourceResult.Failure -> {
-                                                        Log.e("GroupVM_Create", "Failed to add user $userId to group $groupId members list.", groupUserAddResult.exception)
-                                                        _createResult.value = DataResourceResult.Failure(groupUserAddResult.exception)
-                                                        showSnackBar("그룹 생성 중 오류가 발생했습니다.")
-                                                    }
-                                                    else -> {}
-                                                }
-                                            }
-                                    }
-                                    is DataResourceResult.Failure -> {
-                                        Log.e("MakeGroup", "사용자 그룹 ID 업데이트 실패", updateResult.exception)
-                                        _createResult.value = DataResourceResult.Failure(updateResult.exception)
-                                        showSnackBar("사용자 정보 업데이트에 실패했습니다.")
-                                    }
-                                    else -> {}
-                                }
-                            }
-                    }
+            try {
+                // 1. 그룹 생성
+                val createResult = groupRepository.create(
+                    Group(
+                        groupName = groupName,
+                        groupCode = groupCode,
+                        groupPw = groupPw
+                    )
+                ).awaitResult()
+                val groupId = when (createResult) {
+                    is DataResourceResult.Success -> createResult.data
                     is DataResourceResult.Failure -> {
-                        Log.e("MakeGroup", "그룹 생성 실패", result.exception)
-                        _createResult.value = DataResourceResult.Failure(result.exception)
-                        showSnackBar("그룹 생성에 실패했습니다.")
+                        Log.e("GroupVM_Create", "그룹 생성 실패", createResult.exception)
+                        fail(createResult.exception, "그룹 생성에 실패했습니다.")
+                        return@launch
                     }
-
-                    else -> { }
+                    else -> return@launch // awaitResult는 Success/Failure만 반환한다
                 }
+
+                // 2. 사용자 문서에 그룹 ID 기록
+                val updateResult = userRepository.updateUserGroupDocumentId(userId, groupId).awaitResult()
+                if (updateResult is DataResourceResult.Failure) {
+                    Log.e("GroupVM_Create", "사용자 그룹 ID 업데이트 실패", updateResult.exception)
+                    fail(updateResult.exception, "사용자 정보 업데이트에 실패했습니다.")
+                    return@launch
+                }
+
+                // 3. 그룹 멤버 목록에 사용자 추가
+                val addResult = groupRepository.addUserToGroup(groupId, userId).awaitResult()
+                if (addResult is DataResourceResult.Failure) {
+                    Log.e("GroupVM_Create", "Failed to add user $userId to group $groupId members list.", addResult.exception)
+                    fail(addResult.exception, "그룹 생성 중 오류가 발생했습니다.")
+                    return@launch
+                }
+
+                // 4. 세션 갱신 후 성공 처리
+                refreshSessionUser(userId, "GroupVM_Create")
+                _createResult.value = DataResourceResult.Success(Unit)
+                _snackBarMessage.emit("그룹이 성공적으로 생성되었습니다!")
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.e("GroupVM_Create", "그룹 생성 처리 중 예외", e)
+                fail(e, "그룹 생성 중 오류가 발생했습니다.")
             }
         }
     }
@@ -171,97 +171,56 @@ class GroupViewModel @Inject constructor(
         userId: String,
         groupCode: String,
         groupPw: String
-    ){
-      viewModelScope.launch {
-          _createResult.value = DataResourceResult.Loading
-          Log.d("GroupVM_Join", "Attempting to join group. User: $userId, Code: $groupCode")
+    ) {
+        viewModelScope.launch {
+            _createResult.value = DataResourceResult.Loading
+            try {
+                // 1. 그룹 조회 및 검증
+                val group = when (val groupResult = groupRepository.getGroupByCode(groupCode).awaitResult()) {
+                    is DataResourceResult.Success -> groupResult.data
+                    is DataResourceResult.Failure -> {
+                        Log.e("GroupVM_Join", "Failed to get group by code: $groupCode", groupResult.exception)
+                        fail(groupResult.exception, "그룹 정보를 가져오는데 실패했습니다.")
+                        return@launch
+                    }
+                    else -> return@launch // awaitResult는 Success/Failure만 반환한다
+                }
+                val groupDocumentId = group?.groupDocumentId
+                if (group == null || groupDocumentId == null) {
+                    fail(Exception("그룹을 찾을 수 없습니다."), "그룹을 찾을 수 없습니다.")
+                    return@launch
+                }
+                if (group.groupPw != groupPw) {
+                    fail(Exception("비밀번호가 일치하지 않습니다."), "비밀번호가 일치하지 않습니다.")
+                    return@launch
+                }
 
-          // 그룹 정보 가져오기
-          groupRepository.getGroupByCode(groupCode)
-              .filter { it !is DataResourceResult.Loading }
-              .collect { groupResult ->
-                  when (groupResult) {
-                      is DataResourceResult.Success -> {
-                          val group = groupResult.data
-                          if (group == null || group.groupDocumentId == null){
-                              Log.w("GroupVM_Join", "Group not found or documentId is null for code: $groupCode")
-                              _createResult.value = DataResourceResult.Failure(Exception("그룹을 찾을 수 없습니다."))
-                              showSnackBar("그룹을 찾을 수 없습니다.")
-                              return@collect
-                          }
-                          Log.d("GroupVM_Join", "Group found: ${group.groupName}, ID: ${group.groupDocumentId}")
+                // 2. 사용자 문서에 그룹 ID 기록
+                val updateResult = userRepository.updateUserGroupDocumentId(userId, groupDocumentId).awaitResult()
+                if (updateResult is DataResourceResult.Failure) {
+                    Log.e("GroupVM_Join", "Failed to update user $userId with group ID: $groupDocumentId", updateResult.exception)
+                    fail(updateResult.exception, "사용자 정보 업데이트에 실패했습니다.")
+                    return@launch
+                }
 
-                          if (group.groupPw != groupPw) {
-                              Log.w("GroupVM_Join", "Password mismatch for group: ${group.groupDocumentId}")
-                              _createResult.value = DataResourceResult.Failure(Exception("비밀번호가 일치하지 않습니다."))
-                              showSnackBar("비밀번호가 일치하지 않습니다.")
-                              return@collect
-                          }
-                          Log.d("GroupVM_Join", "Password matched for group: ${group.groupDocumentId}")
+                // 3. 그룹 멤버 목록에 사용자 추가
+                val addResult = groupRepository.addUserToGroup(groupDocumentId, userId).awaitResult()
+                if (addResult is DataResourceResult.Failure) {
+                    Log.e("GroupVM_Join", "Failed to add user $userId to group $groupDocumentId members list.", addResult.exception)
+                    fail(addResult.exception, "그룹 가입 중 오류가 발생했습니다.")
+                    return@launch
+                }
 
-                          val actualGroupDocumentId = group.groupDocumentId
-                          userRepository.updateUserGroupDocumentId(userId, actualGroupDocumentId)
-                              .filter {it !is DataResourceResult.Loading}
-                              .collect { userUpdateResult ->
-                                  when(userUpdateResult) {
-                                      is DataResourceResult.Success -> {
-                                          Log.d("GroupVM_Join", "User $userId successfully updated with group ID: $actualGroupDocumentId")
-                                          groupRepository.addUserToGroup(actualGroupDocumentId,userId)
-                                              .filter { it !is DataResourceResult.Loading }
-                                              .collect { groupUserAddResult ->
-                                                  when (groupUserAddResult) {
-                                                      is DataResourceResult.Success -> {
-                                                          Log.i("GroupVM_Join", "User $userId successfully added to group $actualGroupDocumentId members list.")
-                                                          // Firebase에서 최신 사용자 정보를 가져와서 SessionManager 업데이트
-                                                          try {
-                                                              val updatedUserResult = userRepository.getUserById(userId)
-                                                                  .filter { it !is DataResourceResult.Loading }
-                                                                  .first()
-                                                              when (updatedUserResult) {
-                                                                  is DataResourceResult.Success -> {
-                                                                      updatedUserResult.data?.let { updatedUser ->
-                                                                          sessionManager.loginUser(updatedUser)
-                                                                          Log.d("GroupVM_Join", "SessionManager에 최신 사용자 정보 업데이트 성공")
-                                                                      }
-                                                                  }
-                                                                  else -> {
-                                                                      Log.e("GroupVM_Join", "최신 사용자 정보 가져오기 실패")
-                                                                  }
-                                                              }
-                                                          } catch (e: Exception) {
-                                                              Log.e("GroupVM_Join", "사용자 정보 업데이트 실패", e)
-                                                          }
-                                                          _createResult.value = DataResourceResult.Success(Unit)
-                                                          showSnackBar("그룹에 성공적으로 가입되었습니다!")
-                                                      }
-                                                      is DataResourceResult.Failure -> {
-                                                          Log.e("GroupVM_Join", "Failed to add user $userId to group $actualGroupDocumentId members list.", groupUserAddResult.exception)
-                                                          _createResult.value = DataResourceResult.Failure(groupUserAddResult.exception)
-                                                          showSnackBar("그룹 가입 중 오류가 발생했습니다.")
-                                                      }
-                                                      else -> {}
-                                                  }
-                                              }
-                                      }
-                                      is DataResourceResult.Failure -> {
-                                          Log.e("GroupVM_Join", "Failed to update user $userId with group ID: $actualGroupDocumentId", userUpdateResult.exception)
-                                          _createResult.value = DataResourceResult.Failure(userUpdateResult.exception)
-                                          showSnackBar("사용자 정보 업데이트에 실패했습니다.")
-                                      }
-                                      else -> {}
-                                  }
-                              }
-                      }
-                      is DataResourceResult.Failure -> {
-                          Log.e("GroupVM_Join", "Failed to get group by code: $groupCode", groupResult.exception)
-                          _createResult.value = DataResourceResult.Failure(groupResult.exception)
-                          showSnackBar("그룹 정보를 가져오는데 실패했습니다.")
-                      }
-                      else -> {}
-                  }
-              }
-      }
+                // 4. 세션 갱신 후 성공 처리
+                refreshSessionUser(userId, "GroupVM_Join")
+                _createResult.value = DataResourceResult.Success(Unit)
+                _snackBarMessage.emit("그룹에 성공적으로 가입되었습니다!")
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.e("GroupVM_Join", "그룹 가입 처리 중 예외", e)
+                fail(e, "그룹 가입 중 오류가 발생했습니다.")
+            }
+        }
     }
-
-
 }

@@ -107,6 +107,8 @@ class RequestDetailViewModel @Inject constructor(
                         else -> {}
                     }
                 }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _isLoading.value = false
                 _error.value = e.message ?: "알 수 없는 오류가 발생했습니다."
@@ -129,6 +131,8 @@ class RequestDetailViewModel @Inject constructor(
                     _userProfileImage.value = ""
                 }
             }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             Log.e("RequestDetailViewModel", "Error getting user name for $userId", e)
             _userName.value = "알 수 없는 사용자"
@@ -159,6 +163,8 @@ class RequestDetailViewModel @Inject constructor(
                     else -> {}
                 }
             }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             Log.e("RequestDetailViewModel", "Error loading responses for $requestId", e)
             _responses.value = emptyList()
@@ -192,6 +198,8 @@ class RequestDetailViewModel @Inject constructor(
                                 Log.w("RequestDetailViewModel", "Failed to load user info for $userId")
                             }
                         }
+                    } catch (e: kotlinx.coroutines.CancellationException) {
+                        throw e
                     } catch (e: Exception) {
                         Log.e("RequestDetailViewModel", "Error loading user info for $userId", e)
                         userInfoMap[userId] = Pair("알 수 없는 사용자", "")
@@ -201,6 +209,8 @@ class RequestDetailViewModel @Inject constructor(
             
             _responseUserInfo.value = userInfoMap
             Log.d("RequestDetailViewModel", "Loaded user info for ${userInfoMap.size} users")
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             Log.e("RequestDetailViewModel", "Error loading response user info", e)
             _responseUserInfo.value = emptyMap()

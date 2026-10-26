@@ -17,7 +17,6 @@ appcompat = "1.7.1"
 material = "1.12.0"
 coilNetworkOkhttp = "3.2.0"
 coilCompose = "3.2.0"
-comGoogleGmsGoogleServicesGradlePlugin = "4.4.3"
 
 firebaseBom = "34.2.0"
 googleGmsServices = "4.4.3"
@@ -31,11 +30,9 @@ converterScalars = "3.0.0"
 lifecycleViewmodelCompose = "2.9.2"
 lifecycleRuntimeCompose = "2.9.2"
 kotlinxCoroutinesCore = "1.10.2"
-comGoogleAndroidLibrariesMapsplatformSecretsGradlePluginGradlePlugin = "2.0.1"
 secretsGradlePlugin = "2.0.1"
 datastorePreferences = "1.1.7"
 moshiKotlin = "1.15.2"
-moshiKotlinCodegen = "1.15.2"
 workRuntimeKtx = "2.9.0"
 apngVersion = "3.0.5"
 
@@ -52,11 +49,6 @@ ksp = "2.2.10-2.0.2"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
-androidx-material = { module = "androidx.compose.material:material" }
-androidx-runtime = { module = "androidx.compose.runtime:runtime" }
-androidx-foundation = { module = "androidx.compose.foundation:foundation" }
-androidx-ui-res = { module = "androidx.compose.ui:ui-res" }
-foundation = { module = "androidx.compose.foundation:foundation" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
@@ -82,14 +74,8 @@ firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.r
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
-runtime = { module = "androidx.compose.runtime:runtime" }
-ui = { module = "androidx.compose.ui:ui" }
-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
 coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coilNetworkOkhttp" }
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coilCompose" }
-com-google-gms-google-services-gradle-plugin = { group = "com.google.gms.google-services", name = "com.google.gms.google-services.gradle.plugin", version.ref = "comGoogleGmsGoogleServicesGradlePlugin" }
-xcom-firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
 v2-user = { group = "com.kakao.sdk", name = "v2-user", version.ref = "v2User" }
 retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
 converter-gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "converterGson" }
@@ -97,11 +83,8 @@ converter-scalars = { group = "com.squareup.retrofit2", name = "converter-scalar
 androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycleViewmodelCompose" }
 androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycleRuntimeCompose" }
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
-com-google-android-libraries-mapsplatform-secrets-gradle-plugin-gradle-plugin = { group = "com.google.android.libraries.mapsplatform.secrets-gradle-plugin", name = "com.google.android.libraries.mapsplatform.secrets-gradle-plugin.gradle.plugin", version.ref = "comGoogleAndroidLibrariesMapsplatformSecretsGradlePluginGradlePlugin" }
-secrets-gradle-plugin = { group = "com.google.android.libraries.mapsplatform.secrets-gradle-plugin", name = "secrets-gradle-plugin", version.ref = "secretsGradlePlugin" }
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastorePreferences" }
 moshi-kotlin = { group = "com.squareup.moshi", name = "moshi-kotlin", version.ref = "moshiKotlin" }
-moshi-kotlin-codegen = { group = "com.squareup.moshi", name = "moshi-kotlin-codegen", version.ref = "moshiKotlinCodegen" }
 work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workRuntimeKtx" }
 animation-apng = { group = "com.github.penfeizhou.android.animation", name = "apng", version.ref = "apngVersion" }
 
@@ -129,12 +112,12 @@ hilt-gradle = { id = "com.google.dagger.hilt.android", version.ref = "hiltAndroi
 
 
 [bundles]
-compose-libraries = ["androidx-activity-compose", "androidx-ui"]
 firebase-libraries = ["firebase-firestore", "firebase-storage", "firebase-messaging"]
 kakao-libraries = ["v2-user"]
 coil-libraries =["coil-network-okhttp","coil-compose"]
 navigation-libraries = ["androidx-navigation-compose" ]
-moshi-libraries = ["moshi-kotlin","moshi-kotlin-codegen"]
+# Moshi는 data의 KotlinJsonAdapterFactory(리플렉션)로 동작한다. codegen을 쓰려면 ksp(moshi-kotlin-codegen)로 따로 걸 것(implementation 번들에 넣지 말 것).
+moshi-libraries = ["moshi-kotlin"]
 datastore-libraries = ["androidx-datastore-preferences"]
 work-libraries = ["work-runtime-ktx"]
 apng-libraries = ["animation-apng"]

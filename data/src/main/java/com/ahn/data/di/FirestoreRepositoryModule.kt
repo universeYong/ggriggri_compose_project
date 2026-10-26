@@ -9,7 +9,6 @@ import com.ahn.data.repository.FirestoreQuestionRepositoryImpl
 import com.ahn.data.repository.FirestoreRequestRepositoryImpl
 import com.ahn.data.repository.FirestoreResponseRepositoryImpl
 import com.ahn.data.repository.FirestoreUserRepositoryImpl
-import com.ahn.data.repository.StorageRepository
 import com.ahn.domain.repository.AnswerRepository
 import com.ahn.domain.repository.FCMRepository
 import com.ahn.domain.repository.GroupRepository
@@ -17,6 +16,7 @@ import com.ahn.domain.repository.QuestionListRepository
 import com.ahn.domain.repository.QuestionRepository
 import com.ahn.domain.repository.RequestRepository
 import com.ahn.domain.repository.ResponseRepository
+import com.ahn.domain.repository.StorageRepository
 import com.ahn.domain.repository.UserRepository
 import dagger.Binds
 import dagger.Module

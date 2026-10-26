@@ -13,20 +13,23 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.ahn.ggriggri.screen.ui.main.viewmodel.HomeViewModel
 import theme.MainColor
 import theme.NanumSquareBold
 import theme.NanumSquareRegular
 
+/**
+ * 답변 가능한 요청이 없을 때의 요청 카드 (stateless).
+ */
 @Composable
 fun DefaultRequestCard(
-    viewModel: HomeViewModel,
     onNavigateToRequest: () -> Unit = {},
-    ) {
+    modifier: Modifier = Modifier,
+) {
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp),
         shape = RoundedCornerShape(15.dp),
@@ -56,9 +59,17 @@ fun DefaultRequestCard(
 
             DynamicButton(
                 request = null,
-                viewModel = viewModel,
-                onNavigateToRequest = onNavigateToRequest
+                isQuestioner = false,
+                hasUserResponded = false,
+                isCheckingResponse = false,
+                onCreateRequestClick = onNavigateToRequest
             )
         }
     }
+}
+
+@Preview(name = "요청 없음", showBackground = true)
+@Composable
+private fun DefaultRequestCardPreview() {
+    DefaultRequestCard()
 }

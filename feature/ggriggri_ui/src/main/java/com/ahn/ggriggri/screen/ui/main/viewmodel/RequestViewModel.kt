@@ -4,7 +4,7 @@ import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.ahn.data.repository.StorageRepository
+import com.ahn.domain.repository.StorageRepository
 import com.ahn.domain.common.DataResourceResult
 import com.ahn.domain.common.SessionManager
 import com.ahn.domain.model.Request
@@ -13,6 +13,7 @@ import com.ahn.domain.repository.RequestRepository
 import com.ahn.ggriggri.screen.ui.main.utils.ImageCompressionUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -139,7 +140,7 @@ class RequestViewModel @Inject constructor(
                     Log.d("RequestViewModel", "압축된 이미지 URI: $compressedUri")
                     
                     // 압축된 이미지 업로드 - 업로드가 실패하면 요청을 만들지 않고 중단한다.
-                    val uploadResult = storageRepository.uploadImage(compressedUri, "requests")
+                    val uploadResult = storageRepository.uploadImage(compressedUri.toString(), "requests")
                         .first { it is DataResourceResult.Success || it is DataResourceResult.Failure }
                     when (uploadResult) {
                         is DataResourceResult.Success -> {
@@ -199,6 +200,8 @@ class RequestViewModel @Inject constructor(
                 }
 
             }.getOrElse {
+                // runCatching은 CancellationException도 잡으므로 취소는 다시 던진다.
+                if (it is CancellationException) throw it
                 Log.e("RequestViewModel", "요청 처리 중 예외 발생: ${it.message}", it)
                 _isLoading.value = false
                 _errorMessage.value = "요청 처리 중 오류가 발생했습니다: ${it.message}"

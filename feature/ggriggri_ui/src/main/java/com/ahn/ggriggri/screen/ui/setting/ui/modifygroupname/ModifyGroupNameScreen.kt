@@ -69,11 +69,13 @@ fun ModifyGroupNameRoute(
         }
     }
 
-    // 성공 메시지 표시
+    // 성공 메시지를 보여준 뒤에만 화면을 벗어난다.
+    // 버튼에서 곧바로 이동하면 실패 메시지를 볼 수 없다. 실패하면 이 화면에 머문다.
     LaunchedEffect(successMessage) {
         successMessage?.let { message ->
             snackbarHostState.showSnackbar(message)
             viewModel.clearSuccessMessage()
+            onNavigateToSettingGroup()
         }
     }
 
@@ -85,7 +87,6 @@ fun ModifyGroupNameRoute(
         onSubmitClick = {
             if (groupName.isNotEmpty()) {
                 viewModel.updateGroupName(groupName)
-                onNavigateToSettingGroup()
             }
         }
     )

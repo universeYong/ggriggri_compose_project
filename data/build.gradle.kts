@@ -1,7 +1,7 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.google.gms.google.services)
+    // google-services 플러그인은 google-services.json이 있는 :app에만 적용한다.
     alias(libs.plugins.google.ksp)
     alias(libs.plugins.hilt.gradle)
 }
@@ -39,8 +39,6 @@ dependencies {
     implementation(project(":domain"))
 
     implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.appcompat)
-    implementation(libs.material)
 
     implementation(platform(libs.firebase.bom))
     implementation(libs.bundles.firebase.libraries)
@@ -52,6 +50,7 @@ dependencies {
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 
+    // SerializationModule의 KotlinJsonAdapterFactory(리플렉션)로 동작하므로 codegen(ksp)은 걸지 않는다.
     implementation(libs.bundles.moshi.libraries)
     implementation(libs.bundles.datastore.libraries)
 

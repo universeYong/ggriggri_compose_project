@@ -1,8 +1,10 @@
 package com.ahn.ggriggri.screen.auth.login
 
-import android.app.Activity
+import android.Manifest
 import android.util.Log
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -48,6 +50,10 @@ fun LoginScreen(
     val loginStatus by authViewModel.loginStatus.collectAsStateWithLifecycle()
     val currentUserId by authViewModel.currentUserId.collectAsStateWithLifecycle()
 
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted -> authViewModel.handlePermissionResult(isGranted) }
+
 
     // 뒤로가기 버튼을 눌렀을 때 앱 종료
     BackHandler {
@@ -65,8 +71,9 @@ fun LoginScreen(
                 onNavigationToHome = onNavigationToHome
             )
         }
-        if (context is Activity) {
-            authViewModel.requestNotificationPermission(context)
+        // 권한 요청은 Activity가 필요하므로 ViewModel이 아니라 화면에서 런처로 수행한다.
+        if (authViewModel.shouldRequestNotificationPermission()) {
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
     }
 

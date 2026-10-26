@@ -14,7 +14,9 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -36,6 +38,7 @@ import com.ahn.common_ui.components.CommonButton
 import com.ahn.common_ui.components.CommonOutlinedTextField
 import com.ahn.domain.common.DataResourceResult
 import com.ahn.ggriggri.screen.ui.group.viewmodel.GroupViewModel
+import kotlinx.coroutines.launch
 import theme.GgriggriTheme
 
 @Composable
@@ -67,21 +70,29 @@ fun MakeGroupScreen(
         }
     }
     
+    val snackbarHostState = remember { SnackbarHostState() }
+
     // SnackBar 메시지 표시
-    LaunchedEffect(Unit) {
+    // snackBarMessage는 replay 없는 SharedFlow(일회성 이벤트)라 따로 clear 할 상태가 없다.
+    // showSnackbar는 닫힐 때까지 suspend 되므로 별도 코루틴에서 띄워 VM의 emit이 막히지 않게 하고,
+    // 새 메시지가 오면 이전 스낵바를 닫아 메시지가 줄줄이 밀리지 않게 한다.
+    LaunchedEffect(groupViewModel) {
         groupViewModel.snackBarMessage.collect { message ->
-            // SnackBar 표시 로직 (필요시 추가)
+            snackbarHostState.currentSnackbarData?.dismiss()
+            launch { snackbarHostState.showSnackbar(message) }
         }
     }
 
     GgriggriTheme {
-        Surface(
+        Scaffold(
             modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ) {
+            containerColor = MaterialTheme.colorScheme.background,
+            snackbarHost = { SnackbarHost(snackbarHostState) }
+        ) { paddingValues ->
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .padding(paddingValues)
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {

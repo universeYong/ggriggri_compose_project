@@ -53,20 +53,11 @@ fun HomeScreen(
     var showBottomSheet by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
-    val requests by homeViewModel.requests.collectAsStateWithLifecycle()
-    val hasActiveRequest = requests.any { it.isAnswerable() }
-    val activeRequest = requests.firstOrNull { it.isAnswerable() }
-    
-    // 디버깅을 위한 로그
-    LaunchedEffect(requests) {
-        android.util.Log.d("HomeScreen", "요청 목록 업데이트: ${requests.size}개")
-        requests.forEach { request ->
-            android.util.Log.d("HomeScreen", "요청: ${request.requestMessage}, 답변 가능: ${request.isAnswerable()}, 마감 시간: ${request.answerDeadline}, 현재 시간: ${System.currentTimeMillis()}")
-        }
-        android.util.Log.d("HomeScreen", "활성 요청 있음: $hasActiveRequest, 활성 요청: $activeRequest")
-    }
+    // 요청 카드에 필요한 값(활성 요청, 요청자 이름, 응답 여부)은 ViewModel이 만들어 준다.
+    val activeRequestCard by homeViewModel.activeRequestCard.collectAsStateWithLifecycle()
 
-    LaunchedEffect(true) {
+    // 화면에 들어올 때(다른 화면에서 돌아올 때 포함)마다 요청 목록과 응답 여부를 새로 확인한다.
+    LaunchedEffect(Unit) {
         homeViewModel.loadRequests()
     }
 
@@ -169,26 +160,20 @@ fun HomeScreen(
                         }
                     }
                     item(key = "request_card_key") {
-                        // 디버깅을 위한 로그
-                        LaunchedEffect(hasActiveRequest, activeRequest) {
-                            android.util.Log.d("HomeScreen", "UI 업데이트 - hasActiveRequest: $hasActiveRequest, activeRequest: $activeRequest")
+                        val cardState = activeRequestCard
+                        if (cardState != null) {
+                            // 활성화된 요청
+                            ActiveRequestCard(
+                                state = cardState,
+                                onNavigateToResponse = onNavigateToResponse,
+                                onNavigateToRequestDetail = onNavigateToRequestDetail
+                            )
+                        } else {
+                            // 활성화된 요청 없음
+                            DefaultRequestCard(
+                                onNavigateToRequest = onNavigateToRequest
+                            )
                         }
-                        
-                        if (hasActiveRequest && activeRequest != null) {
-                        // 활성화된 질문
-                        ActiveRequestCard(
-                            request = activeRequest,
-                            viewModel = homeViewModel,
-                            onNavigateToResponse = onNavigateToResponse,
-                            onNavigateToRequestDetail = onNavigateToRequestDetail
-                        )
-                    } else {
-                        // 비활성화된 질문
-                        DefaultRequestCard(
-                            viewModel = homeViewModel,
-                            onNavigateToRequest = onNavigateToRequest
-                        )
-                    }
                     }
                 }
 //                // 추억 캐러셀

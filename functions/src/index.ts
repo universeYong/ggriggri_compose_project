@@ -40,6 +40,17 @@ const normalizeTokens = (raw: unknown): string[] => {
   return [];
 };
 
+// 사용자 ID 배열 필드를 읽을 때 쓴다. 형변환(as string[]) 대신 문자열이 아니거나
+// 빈 원소를 걸러서, 잘못 저장된 값이 doc(id) 호출로 넘어가지 않게 한다.
+const normalizeIds = (raw: unknown): string[] => {
+  if (!Array.isArray(raw)) {
+    return [];
+  }
+  return raw.filter((id): id is string => {
+    return typeof id === "string" && id.length > 0;
+  });
+};
+
 const chunk = <T>(items: T[], size: number): T[][] => {
   const chunks: T[][] = [];
   for (let i = 0; i < items.length; i += size) {
@@ -55,6 +66,17 @@ const getUserNameById = async (userId: string): Promise<string> => {
 
   const userSnap = await userCollection.doc(userId).get();
   return String(userSnap.data()?._userName ?? "").trim();
+};
+
+// 그룹 문서가 없으면 null, 있으면 group_data._groupUserDocumentID 멤버 목록.
+const getGroupMemberIds = async (
+  groupId: string,
+): Promise<string[] | null> => {
+  const groupSnap = await db.collection("group_data").doc(groupId).get();
+  if (!groupSnap.exists) {
+    return null;
+  }
+  return normalizeIds(groupSnap.data()?._groupUserDocumentID);
 };
 
 const pruneInvalidTokens = async (
@@ -196,9 +218,11 @@ export const notifyDailyQuestionCreated = onDocumentCreated(
       return;
     }
 
-    const groupSnap = await db.collection("group_data").doc(groupId).get();
-    const memberIds =
-      (groupSnap.data()?._groupUserDocumentID ?? []) as string[];
+    const memberIds = await getGroupMemberIds(groupId);
+    if (memberIds === null) {
+      logger.warn("Question group not found", {questionId, groupId});
+      return;
+    }
     const tokens = await getUserTokens(memberIds);
 
     await sendPushToTokens(
@@ -234,9 +258,22 @@ export const notifyRequestCreated = onDocumentCreated(
       return;
     }
 
-    const groupSnap = await db.collection("group_data").doc(groupId).get();
-    const memberIds =
-      (groupSnap.data()?._groupUserDocumentID ?? []) as string[];
+    const memberIds = await getGroupMemberIds(groupId);
+    if (memberIds === null) {
+      logger.warn("Request group not found", {requestId, groupId});
+      return;
+    }
+
+    // 그룹 멤버가 아닌 사용자가 만든 요청으로 그룹 전체에 푸시가 가지 않게 한다.
+    if (!requesterUserId || !memberIds.includes(requesterUserId)) {
+      logger.warn("Requester is not a group member, skip notification", {
+        requestId,
+        groupId,
+        requesterUserId,
+      });
+      return;
+    }
+
     const tokens = await getUserTokens(
       memberIds,
       new Set([requesterUserId]),
@@ -293,6 +330,28 @@ export const notifyResponseCreated = onDocumentCreated(
 
     if (requesterUserId === responderUserId) {
       logger.info("Skip self response notification", {requestId, responseId});
+      return;
+    }
+
+    if (!groupId) {
+      logger.warn("Request group id is empty", {requestId, responseId});
+      return;
+    }
+
+    const memberIds = await getGroupMemberIds(groupId);
+    if (memberIds === null) {
+      logger.warn("Request group not found", {requestId, responseId, groupId});
+      return;
+    }
+
+    // 요청이 속한 그룹의 멤버가 아닌 사용자의 응답으로는 요청자에게 푸시하지 않는다.
+    if (!responderUserId || !memberIds.includes(responderUserId)) {
+      logger.warn("Responder is not a group member, skip notification", {
+        requestId,
+        responseId,
+        groupId,
+        responderUserId,
+      });
       return;
     }
 

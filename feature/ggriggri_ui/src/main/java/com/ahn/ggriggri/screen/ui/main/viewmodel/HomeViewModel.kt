@@ -1,7 +1,7 @@
 package com.ahn.ggriggri.screen.ui.main.viewmodel
 
 import android.util.Log
-import androidx.compose.ui.graphics.Color
+import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ahn.domain.common.DataResourceResult
@@ -42,6 +42,23 @@ data class Profile(
     val profileImageUrl: String?,
 )
 
+/**
+ * 홈 화면 활성 요청 카드의 표시 상태.
+ *
+ * @param requesterName 요청자 이름. 조회 전에는 빈 문자열.
+ * @param isQuestioner 현재 사용자가 이 요청을 올린 사람인지.
+ * @param hasUserResponded 현재 사용자가 이미 응답했는지.
+ * @param isCheckingResponse 응답 여부를 아직 모르는 상태(사용자 정보 로딩 중 또는 조회 중).
+ */
+@Immutable
+data class RequestCardUiState(
+    val request: Request,
+    val requesterName: String,
+    val isQuestioner: Boolean,
+    val hasUserResponded: Boolean,
+    val isCheckingResponse: Boolean,
+)
+
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val sessionManager: SessionManager,
@@ -72,6 +89,19 @@ class HomeViewModel @Inject constructor(
 
     private val _requests = MutableStateFlow<List<Request>>(emptyList())
     val requests: StateFlow<List<Request>> = _requests.asStateFlow()
+
+    // 아래 상태들은 init 블록보다 먼저 선언해야 한다.
+    // viewModelScope는 Main.immediate라 init의 launch가 곧바로 loadRequests()까지 실행될 수 있다.
+
+    // requestRepository.read()는 Firestore 실시간 리스너라 끝나지 않는다.
+    // 다시 호출될 때마다 이전 구독을 취소해 리스너가 쌓이지 않게 한다.
+    private var requestsJob: Job? = null
+
+    // 요청 카드의 응답 여부 재확인 트리거 (loadRequests 호출마다 증가)
+    private val cardRefreshKey = MutableStateFlow(0)
+
+    // 같은 요청을 다시 확인할 때 이전 결과를 유지해, 재확인 중 버튼이 "응답하기"로 깜빡이지 않게 한다.
+    private var lastRequestCard: RequestCardUiState? = null
 
     init {
         Log.d("HomeViewModel", "HomeViewModel 초기화 시작")
@@ -162,18 +192,6 @@ class HomeViewModel @Inject constructor(
             }
         }
     }
-
-    val currentUser: StateFlow<User?> = sessionManager.currentUserFlow
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = null
-        )
-
-    fun getCurrentUserId(): String? {
-        return currentUser.value?.userId
-    }
-
 
     // 모든 질문 목록 로드 함수
     private suspend fun loadAllQuestionLists() {
@@ -386,21 +404,78 @@ class HomeViewModel @Inject constructor(
     }
 
 
-    fun hasActiveRequest(): Boolean {
-        return _requests.value.any { it.isAnswerable() }
+    // 요청 카드가 보여줄 값(요청자 이름, 내가 질문자인지, 내가 응답했는지)을 한곳에서 만든다.
+    // 카드/버튼 Composable은 이 값만 받고 ViewModel을 직접 호출하지 않는다.
+    //
+    // 현재 사용자 ID도 입력으로 combine 하므로, 사용자 정보가 요청 목록보다 늦게 로드되어도
+    // 응답 여부를 다시 확인한다. responseRepository.read()는 1회성 조회라 화면 복귀 시
+    // loadRequests()가 올리는 refreshKey로 재확인한다.
+    private val currentUserIdFlow: Flow<String?> = sessionManager.currentUserFlow
+        .map { it?.userId }
+        .distinctUntilChanged()
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val activeRequestCard: StateFlow<RequestCardUiState?> = combine(
+        _requests,
+        currentUserIdFlow,
+        cardRefreshKey
+    ) { requests, userId, refreshKey ->
+        Triple(requests.firstOrNull { it.isAnswerable() }, userId, refreshKey)
     }
+        .distinctUntilChanged()
+        .flatMapLatest { (request, userId, _) ->
+            if (request == null) {
+                flowOf(null)
+            } else {
+                buildRequestCardState(request, userId)
+            }
+        }
+        .catch { e ->
+            Log.e("HomeViewModel", "요청 카드 상태 생성 실패", e)
+            emit(null)
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = null
+        )
 
+    private fun buildRequestCardState(request: Request, userId: String?): Flow<RequestCardUiState> = flow {
+        val isQuestioner = request.isQuestioner(userId)
+        val previous = lastRequestCard?.takeIf { it.request.requestId == request.requestId }
 
-    fun getActiveRequest(): Request? {
-        return _requests.value.firstOrNull { it.isAnswerable() }
+        // 1) 먼저 알고 있는 값으로 카드를 그린다. 응답 여부를 모르는 동안에는 버튼을 막아 둔다.
+        val pending = RequestCardUiState(
+            request = request,
+            requesterName = previous?.requesterName.orEmpty(),
+            isQuestioner = isQuestioner,
+            hasUserResponded = previous?.hasUserResponded ?: false,
+            isCheckingResponse = !isQuestioner && previous == null
+        )
+        lastRequestCard = pending
+        emit(pending)
+
+        // 2) 요청자 이름과 응답 여부를 조회해 채운다.
+        val requesterName = previous?.requesterName?.takeIf { it.isNotEmpty() }
+            ?: getUserName(request.requestUserDocumentID)
+        val hasResponded = when {
+            isQuestioner -> false
+            // 사용자 정보가 아직 없으면 판단을 미룬다. userId가 들어오면 combine이 다시 실행된다.
+            userId == null -> null
+            else -> hasUserResponded(request.requestId, userId)
+        }
+        val loaded = pending.copy(
+            requesterName = requesterName,
+            hasUserResponded = hasResponded ?: false,
+            isCheckingResponse = !isQuestioner && hasResponded == null
+        )
+        lastRequestCard = loaded
+        emit(loaded)
     }
-
-
-    // requestRepository.read()는 Firestore 실시간 리스너라 끝나지 않는다.
-    // 다시 호출될 때마다 이전 구독을 취소해 리스너가 쌓이지 않게 한다.
-    private var requestsJob: Job? = null
 
     fun loadRequests() {
+        // 화면에 다시 들어올 때마다 호출되므로, 그사이 바뀌었을 수 있는 응답 여부도 다시 확인한다.
+        cardRefreshKey.update { it + 1 }
         requestsJob?.cancel()
         requestsJob = viewModelScope.launch {
             _isLoading.value = true
@@ -434,11 +509,7 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun refreshRequests() {
-        loadRequests()
-    }
-
-    suspend fun getUserName(userId: String): String {
+    private suspend fun getUserName(userId: String): String {
         return try {
             when (val result = userRepository.getUserByIdSync(userId)) {
                 is DataResourceResult.Success -> result.data?.userName ?: "알 수 없음"
@@ -452,33 +523,22 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun navigateToCreateRequest(onNavigate: () -> Unit) {
-        onNavigate()
-    }
-
-    fun showResponse(request: Request, onNavigate: (Request) -> Unit) {
-        onNavigate(request)
-    }
-
     // 현재 사용자가 특정 Request에 응답했는지 확인
-    suspend fun hasUserResponded(requestId: String): Boolean {
+    private suspend fun hasUserResponded(requestId: String, userId: String): Boolean {
         return try {
-            val currentUser = currentUser.first()
-            if (currentUser?.userId == null) return false
-            
-            Log.d("HomeViewModel", "Checking if user ${currentUser.userId} responded to request $requestId")
-            
+            Log.d("HomeViewModel", "Checking if user $userId responded to request $requestId")
+
             // ResponseRepository에서 해당 Request의 모든 Response 조회
             val responsesResult = responseRepository.read(requestId)
                 .filter { it !is DataResourceResult.Loading }
                 .first()
-            
+
             when (responsesResult) {
                 is DataResourceResult.Success -> {
                     val hasResponded = responsesResult.data.any { response ->
-                        response.responseUserDocumentID == currentUser.userId
+                        response.responseUserDocumentID == userId
                     }
-                    Log.d("HomeViewModel", "User ${currentUser.userId} has responded to request $requestId: $hasResponded")
+                    Log.d("HomeViewModel", "User $userId has responded to request $requestId: $hasResponded")
                     hasResponded
                 }
                 is DataResourceResult.Failure -> {
@@ -490,6 +550,8 @@ class HomeViewModel @Inject constructor(
                     false
                 }
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Log.e("HomeViewModel", "Error checking user response", e)
             false
