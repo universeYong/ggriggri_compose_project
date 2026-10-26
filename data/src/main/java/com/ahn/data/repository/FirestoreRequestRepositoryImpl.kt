@@ -7,6 +7,7 @@ import com.ahn.domain.repository.RequestRepository
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 
 class FirestoreRequestRepositoryImpl @Inject constructor(val requestDataSource: RequestDataSource) : RequestRepository {
@@ -27,6 +28,11 @@ class FirestoreRequestRepositoryImpl @Inject constructor(val requestDataSource: 
         requestDataSource.readAllRequests(groupId).collect { result ->
             emit(result)
         }
+    }.catch { emit(DataResourceResult.Failure(it)) }
+
+    override suspend fun getRequestById(requestId: String): Flow<DataResourceResult<Request?>> = flow {
+        emit(DataResourceResult.Loading)
+        emitAll(requestDataSource.getRequestById(requestId))
     }.catch { emit(DataResourceResult.Failure(it)) }
 
     override suspend fun update(request: Request): Flow<DataResourceResult<Unit>> {

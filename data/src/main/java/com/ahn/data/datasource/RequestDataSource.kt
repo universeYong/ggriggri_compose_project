@@ -10,4 +10,5 @@ interface RequestDataSource {
     suspend fun update(request: Request): DataResourceResult<Unit>
     suspend fun read(groupId: String): Flow<DataResourceResult<List<Request>>>
     suspend fun readAllRequests(groupId: String): Flow<DataResourceResult<List<Request>>>
+    fun getRequestById(requestId: String): Flow<DataResourceResult<Request?>>
 }

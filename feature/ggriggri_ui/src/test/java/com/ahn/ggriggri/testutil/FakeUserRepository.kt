@@ -25,8 +25,13 @@ class FakeUserRepository : UserRepository {
     override suspend fun getUserById(userId: String): Flow<DataResourceResult<User?>> =
         flowOf(DataResourceResult.Loading, DataResourceResult.Success(users[userId]))
 
-    override suspend fun getUserByIdSync(userId: String): DataResourceResult<User?> =
-        DataResourceResult.Success(users[userId])
+    /** getUserByIdSync로 조회된 userId 기록(중복 조회 검증용). */
+    val getUserByIdSyncCalls = mutableListOf<String>()
+
+    override suspend fun getUserByIdSync(userId: String): DataResourceResult<User?> {
+        getUserByIdSyncCalls += userId
+        return DataResourceResult.Success(users[userId])
+    }
 
     override suspend fun create(userInfo: User): Flow<DataResourceResult<Unit>> = notUsed()
     override suspend fun read(): Flow<DataResourceResult<List<User>>> = notUsed()

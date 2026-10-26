@@ -24,14 +24,12 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,28 +38,26 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
-import com.ahn.domain.model.Request
-import com.ahn.domain.model.Response
-import com.ahn.ggriggri.screen.ui.archive.viewmodel.requestdetail.RequestDetailViewModel
 import com.ahn.common_ui.theme.GgriggriTheme
-import com.ahn.common_ui.theme.OnMainColorAvatarPlaceholder
-import com.ahn.common_ui.theme.OnMainColorSecondary
 import com.ahn.common_ui.theme.NanumSquareBold
 import com.ahn.common_ui.theme.NanumSquareRegular
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import com.ahn.common_ui.theme.OnMainColorAvatarPlaceholder
+import com.ahn.common_ui.theme.OnMainColorSecondary
+import com.ahn.ggriggri.screen.ui.archive.viewmodel.requestdetail.RequestDetailItem
+import com.ahn.ggriggri.screen.ui.archive.viewmodel.requestdetail.RequestDetailUiState
+import com.ahn.ggriggri.screen.ui.archive.viewmodel.requestdetail.RequestDetailViewModel
+import com.ahn.ggriggri.screen.ui.archive.viewmodel.requestdetail.ResponseItem
 
+/** 진입 Composable: ViewModel 상태를 수집해 stateless 화면에 값만 넘긴다. */
 @Composable
 fun RequestDetailScreen(
     requestId: String,
     onNavigateBack: () -> Unit,
     viewModel: RequestDetailViewModel = hiltViewModel(),
 ) {
-    val request by viewModel.request.collectAsStateWithLifecycle()
-    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
-    val error by viewModel.error.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(requestId) {
         if (requestId.isNotBlank()) {
@@ -69,144 +65,110 @@ fun RequestDetailScreen(
         }
     }
 
+    RequestDetailContent(
+        state = uiState,
+        isRequestIdMissing = requestId.isBlank(),
+    )
+}
+
+@Composable
+fun RequestDetailContent(
+    state: RequestDetailUiState,
+    isRequestIdMissing: Boolean,
+    modifier: Modifier = Modifier,
+) {
     Surface(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         color = GgriggriTheme.colors.surfaceSubtle
     ) {
-        Column(
-            modifier = Modifier.fillMaxSize()
-        ) {
-
-            // 메인 콘텐츠
-            when {
-                isLoading -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                }
-
-                error != null -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "오류: $error",
-                            color = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.padding(16.dp)
-                        )
-                    }
-                }
-
-                request != null -> {
-                    RequestDetailContent(
-                        request = request!!,
-                        viewModel = viewModel
-                    )
-                }
-
-                requestId.isBlank() -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "요청 ID가 없습니다.",
-                            color = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.padding(16.dp)
-                        )
-                    }
-                }
-
-                else -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "요청을 찾을 수 없습니다.",
-                            color = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.padding(16.dp)
-                        )
-                    }
+        val request = state.request
+        when {
+            state.isLoading -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
                 }
             }
+
+            state.error != null -> CenterMessage("오류: ${state.error}")
+
+            request != null -> RequestDetailList(request = request, responses = state.responses)
+
+            isRequestIdMissing -> CenterMessage("요청 ID가 없습니다.")
+
+            else -> CenterMessage("요청을 찾을 수 없습니다.")
         }
     }
 }
 
 @Composable
-fun RequestDetailContent(
-    request: Request,
-    viewModel: RequestDetailViewModel,
-) {
-    val userName by viewModel.userName.collectAsStateWithLifecycle()
-    val userProfileImage by viewModel.userProfileImage.collectAsStateWithLifecycle()
-    val responses by viewModel.responses.collectAsStateWithLifecycle()
-    val responseUserInfo by viewModel.responseUserInfo.collectAsStateWithLifecycle()
+private fun CenterMessage(text: String) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = text,
+            color = MaterialTheme.colorScheme.error,
+            modifier = Modifier.padding(16.dp)
+        )
+    }
+}
 
-    Column(Modifier.fillMaxSize()) {
-        LazyColumn(
-            modifier = Modifier.fillMaxWidth(),
-            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 4.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
-        ) {
-            // 요청 정보 카드
-            item {
-                RequestInfoCard(
-                    request = request,
-                    userName = userName,
-                    userProfileImage = userProfileImage
-                )
-            }
+/** 요청 본문과 응답 목록을 하나의 LazyColumn(스크롤 하나)으로 보여준다. */
+@Composable
+private fun RequestDetailList(
+    request: RequestDetailItem,
+    responses: List<ResponseItem>,
+) {
+    val itemPadding = Modifier.padding(horizontal = 20.dp)
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(vertical = 4.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp)
+    ) {
+        item(key = "request_info") {
+            RequestInfoCard(request = request, modifier = itemPadding)
         }
+
+        // 구분선은 좌우 여백 없이 화면 폭 전체
+        item(key = "divider") {
             Spacer(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(15.dp)
                     .background(GgriggriTheme.colors.sectionDivider)
             )
+        }
 
-        LazyColumn(
-            modifier = Modifier.fillMaxWidth(),
-            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 4.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
-        ) {
-            // 응답 목록
-            if (responses.isNotEmpty()) {
-
-                items(responses, key = { it.responseId.ifBlank { "${it.responseUserDocumentID}_${it.responseTime}" } }) { response ->
-                    ResponseCard(
-                        response = response,
-                        viewModel = viewModel,
-                        responseUserInfo = responseUserInfo
-                    )
-                }
-            } else {
-                item {
-                    Card(
+        if (responses.isNotEmpty()) {
+            items(responses, key = { it.key }) { response ->
+                ResponseCard(response = response, modifier = itemPadding)
+            }
+        } else {
+            item(key = "empty_responses") {
+                Card(
+                    modifier = itemPadding
+                        .fillMaxWidth()
+                        .padding(horizontal = 4.dp),
+                    colors = CardDefaults.cardColors(containerColor = GgriggriTheme.colors.surfaceSubtle),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 4.dp),
-                        colors = CardDefaults.cardColors(containerColor = GgriggriTheme.colors.surfaceSubtle),
-                        shape = RoundedCornerShape(12.dp)
+                            .padding(24.dp),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(24.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "아직 답변이 없습니다.",
-                                fontSize = 14.sp,
-                                fontFamily = NanumSquareRegular,
-                                color = GgriggriTheme.colors.textSecondary
-                            )
-                        }
+                        Text(
+                            text = "아직 답변이 없습니다.",
+                            fontSize = 14.sp,
+                            fontFamily = NanumSquareRegular,
+                            color = GgriggriTheme.colors.textSecondary
+                        )
                     }
                 }
             }
@@ -216,12 +178,11 @@ fun RequestDetailContent(
 
 @Composable
 fun RequestInfoCard(
-    request: Request,
-    userName: String?,
-    userProfileImage: String?,
+    request: RequestDetailItem,
+    modifier: Modifier = Modifier,
 ) {
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 4.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
@@ -235,9 +196,9 @@ fun RequestInfoCard(
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                if (userProfileImage != null) {
+                if (!request.authorProfileImage.isNullOrEmpty()) {
                     AsyncImage(
-                        model = userProfileImage,
+                        model = request.authorProfileImage,
                         contentDescription = "프로필 이미지",
                         modifier = Modifier
                             .size(50.dp)
@@ -266,13 +227,13 @@ fun RequestInfoCard(
 
                 Column {
                     Text(
-                        text = userName ?: "알 수 없음",
+                        text = request.authorName ?: "알 수 없음",
                         fontSize = 16.sp,
                         fontFamily = NanumSquareBold,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                     Text(
-                        text = formatTime(request.requestTime),
+                        text = request.timeText,
                         fontSize = 12.sp,
                         fontFamily = NanumSquareRegular,
                         color = OnMainColorSecondary
@@ -284,7 +245,7 @@ fun RequestInfoCard(
 
             // 요청 메시지
             Text(
-                text = request.requestMessage,
+                text = request.message,
                 fontSize = 15.sp,
                 fontFamily = NanumSquareRegular,
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -292,10 +253,10 @@ fun RequestInfoCard(
             )
 
             // 이미지가 있는 경우
-            if (request.requestImage.isNotEmpty()) {
+            if (request.imageUrl.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(16.dp))
                 AsyncImage(
-                    model = request.requestImage,
+                    model = request.imageUrl,
                     contentDescription = "요청 이미지",
                     modifier = Modifier
                         .fillMaxWidth()
@@ -310,12 +271,11 @@ fun RequestInfoCard(
 
 @Composable
 fun ResponseCard(
-    response: Response,
-    viewModel: RequestDetailViewModel,
-    responseUserInfo: Map<String, Pair<String, String>>,
+    response: ResponseItem,
+    modifier: Modifier = Modifier,
 ) {
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 4.dp),
         colors = CardDefaults.cardColors(containerColor = GgriggriTheme.colors.surfaceRaised),
@@ -326,17 +286,13 @@ fun ResponseCard(
             modifier = Modifier.padding(16.dp)
         ) {
             // 응답자 정보 (프로필 이미지 + 이름)
-            val userInfo = responseUserInfo[response.responseUserDocumentID]
-            val (userName, userProfileImage) = userInfo ?: Pair("알 수 없는 사용자", "")
-
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(bottom = 12.dp)
             ) {
-                // 프로필 이미지
-                if (userProfileImage.isNotEmpty()) {
+                if (response.authorProfileImage.isNotEmpty()) {
                     AsyncImage(
-                        model = userProfileImage,
+                        model = response.authorProfileImage,
                         contentDescription = "프로필 이미지",
                         modifier = Modifier
                             .size(50.dp)
@@ -365,16 +321,14 @@ fun ResponseCard(
                 Spacer(modifier = Modifier.width(8.dp))
 
                 Column {
-                    // 사용자 이름
                     Text(
-                        text = userName,
+                        text = response.authorName,
                         fontSize = 16.sp,
                         fontFamily = NanumSquareBold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
-                    // 응답 시간
                     Text(
-                        text = formatTime(response.responseTime),
+                        text = response.timeText,
                         fontSize = 12.sp,
                         fontFamily = NanumSquareRegular,
                         color = GgriggriTheme.colors.textTertiary
@@ -383,9 +337,9 @@ fun ResponseCard(
             }
 
             // 응답 메시지
-            if (response.responseMessage.isNotEmpty()) {
+            if (response.message.isNotEmpty()) {
                 Text(
-                    text = response.responseMessage,
+                    text = response.message,
                     fontSize = 14.sp,
                     fontFamily = NanumSquareRegular,
                     color = MaterialTheme.colorScheme.onSurface,
@@ -396,9 +350,9 @@ fun ResponseCard(
             }
 
             // 응답 이미지
-            if (response.responseImage.isNotEmpty()) {
+            if (response.imageUrl.isNotEmpty()) {
                 AsyncImage(
-                    model = response.responseImage,
+                    model = response.imageUrl,
                     contentDescription = "응답 이미지",
                     modifier = Modifier
                         .fillMaxWidth()
@@ -409,14 +363,6 @@ fun ResponseCard(
 
                 Spacer(modifier = Modifier.height(8.dp))
             }
-
-
         }
     }
-}
-
-private fun formatTime(timestamp: Long): String {
-    val date = Date(timestamp)
-    val format = SimpleDateFormat("MM월 dd일 HH:mm", Locale.getDefault())
-    return format.format(date)
 }

@@ -167,7 +167,34 @@ class FirestoreRequestDataSourceImpl @Inject constructor(): RequestDataSource {
                     trySend(DataResourceResult.Success(requestList))
                 }
             }
-        
+
+        awaitClose { listener.remove() }
+    }
+
+    // 상세 화면용: 컬렉션 전체가 아니라 문서 하나만 구독한다.
+    override fun getRequestById(requestId: String): Flow<DataResourceResult<Request?>> = callbackFlow {
+        val listener = db.collection("request_data")
+            .document(requestId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    Log.e("FirestoreRequestDataSource", "요청 단건 리스너 오류: $requestId", error)
+                    trySend(DataResourceResult.Failure(error))
+                    return@addSnapshotListener
+                }
+                if (snapshot == null) return@addSnapshotListener
+                try {
+                    val request = if (snapshot.exists()) {
+                        snapshot.toObject(RequestDTO::class.java)?.toDomainRequest(snapshot.id)
+                    } else {
+                        null
+                    }
+                    trySend(DataResourceResult.Success(request))
+                } catch (e: Exception) {
+                    Log.e("FirestoreRequestDataSource", "요청 단건 변환 오류: $requestId", e)
+                    trySend(DataResourceResult.Failure(e))
+                }
+            }
+
         awaitClose { listener.remove() }
     }
 }
