@@ -20,6 +20,10 @@ class FirestoreRequestDataSourceImpl @Inject constructor(): RequestDataSource {
 
     private val db = Firebase.firestore
 
+    private companion object {
+        const val GROUP_FIELD = "_requestGroupDocumentID"
+    }
+
     override suspend fun delete(requestId: String): DataResourceResult<Unit> {
         TODO("Not yet implemented")
     }
@@ -49,18 +53,9 @@ class FirestoreRequestDataSourceImpl @Inject constructor(): RequestDataSource {
         
         // 먼저 일회성 쿼리로 현재 데이터를 가져옴
         try {
-            // 디버깅을 위해 모든 데이터를 먼저 확인
-            val allSnapshot = db.collection("request_data")
-                .get()
-                .await()
-            
-            Log.d("FirestoreRequestDataSource", "전체 request_data 컬렉션 문서 수: ${allSnapshot.size()}")
-            allSnapshot.documents.forEach { doc ->
-                Log.d("FirestoreRequestDataSource", "전체 문서: ${doc.id} - ${doc.data}")
-            }
-            
-            // 그룹 ID로 필터링 (인덱스 없이도 작동하도록 단순화)
+            // 보안 규칙이 그룹 ID 동등 필터가 있는 쿼리만 허용한다. 정렬은 복합 인덱스를 피하려고 클라이언트에서 한다.
             val initialSnapshot = db.collection("request_data")
+                .whereEqualTo(GROUP_FIELD, groupId)
                 .get()
                 .await()
             
@@ -94,6 +89,7 @@ class FirestoreRequestDataSourceImpl @Inject constructor(): RequestDataSource {
         
         // 그 다음 실시간 리스너 시작 (인덱스 없이도 작동하도록 단순화)
         val listener = db.collection("request_data")
+            .whereEqualTo(GROUP_FIELD, groupId)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     Log.e("FirestoreRequestDataSource", "실시간 리스너 오류", error)
@@ -144,6 +140,7 @@ class FirestoreRequestDataSourceImpl @Inject constructor(): RequestDataSource {
         
         // 실시간 리스너만 사용하여 중복 데이터 전송 방지
         val listener = db.collection("request_data")
+            .whereEqualTo(GROUP_FIELD, groupId)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     Log.e("FirestoreRequestDataSource", "모든 요청 실시간 리스너 오류", error)

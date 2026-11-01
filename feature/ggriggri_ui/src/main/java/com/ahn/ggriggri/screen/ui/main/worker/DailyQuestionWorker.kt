@@ -12,6 +12,8 @@ import com.ahn.domain.model.Question
 import com.ahn.domain.model.QuestionList
 import com.ahn.domain.repository.QuestionListRepository
 import com.ahn.domain.repository.QuestionRepository
+import com.ahn.ggriggri.auth.EnsureAuthResult
+import com.ahn.ggriggri.auth.EnsureFirebaseAuthUseCase
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.flow.filter
@@ -27,6 +29,7 @@ class DailyQuestionWorker @AssistedInject constructor(
     private val sessionManager: SessionManager, // 실제로는 의존성 주입 필요
     private val questionListRepository: QuestionListRepository, // 실제로는 의존성 주입 필요
     private val questionRepository: QuestionRepository, // 실제로는 의존성 주입 필요
+    private val ensureFirebaseAuth: EnsureFirebaseAuthUseCase,
 ) : CoroutineWorker(appContext, workerParams) {
 
     companion object {
@@ -39,6 +42,26 @@ class DailyQuestionWorker @AssistedInject constructor(
         // runCatching의 결과는 kotlin.Result<ListenableWorker.Result>가 됩니다.
         // 이를 최종적으로 ListenableWorker.Result로 변환해야 합니다.
         val operationResult: kotlin.Result<ListenableWorker.Result> = runCatching {
+            // Firestore 규칙이 로그인한 그룹 멤버만 허용한다. Auth 세션이 없으면 조용히 처리한다.
+            //  - 로컬 세션도 없다(로그아웃 상태): 할 일이 없으므로 성공으로 끝낸다.
+            //  - 카카오 세션만 있다(업데이트 직후 등): 조용히 Auth 로그인을 시도하고, 일시 오류면 재시도한다.
+            //  - 카카오 토큰이 만료/거부: 재로그인이 필요하므로 조용히 끝낸다(다음 실행 때 다시 확인).
+            if (sessionManager.getCurrentUserIdOnce() == null) {
+                Log.d(TAG, "No logged-in user. Nothing to do.")
+                return@runCatching ListenableWorker.Result.success()
+            }
+            when (ensureFirebaseAuth()) {
+                EnsureAuthResult.AlreadySignedIn, EnsureAuthResult.SignedIn -> Unit
+                EnsureAuthResult.NeedsRelogin -> {
+                    Log.w(TAG, "Firebase Auth unavailable (relogin needed). Skipping.")
+                    return@runCatching ListenableWorker.Result.success()
+                }
+                EnsureAuthResult.TemporaryFailure -> {
+                    Log.w(TAG, "Firebase Auth temporarily unavailable. Retrying later.")
+                    return@runCatching ListenableWorker.Result.retry()
+                }
+            }
+
             val currentGroupId = sessionManager.currentUserGroupIdFlow.first()
             if (currentGroupId.isNullOrEmpty()) {
                 Log.w(TAG, "Current group ID is null or empty. Worker cannot proceed.")

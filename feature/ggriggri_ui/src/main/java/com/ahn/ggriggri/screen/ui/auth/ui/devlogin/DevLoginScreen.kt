@@ -31,7 +31,9 @@ fun DevLoginScreen(
         if (currentUserId != null) {
             authViewModel.checkUserGroupAndNavigate(
                 onNavigationToGroup = onNavigationToGroup,
-                onNavigationToHome = onNavigationToHome
+                onNavigationToHome = onNavigationToHome,
+                // 개발용 세션에는 카카오 토큰이 없어 Firebase Auth를 만들 수 없다(디버그 빌드 전용, 규칙이 열린 개발 환경 전제).
+                requireFirebaseAuth = false
             )
         }
     }

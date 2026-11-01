@@ -32,7 +32,8 @@ android {
     }
     buildFeatures {
         compose = true
-//        buildConfig = true
+        // BuildConfig.DEBUG로 개발용 로그인(DevLogin)을 디버그 빌드에만 노출/허용한다.
+        buildConfig = true
     }
     testOptions {
         // ViewModel 단위 테스트에서 android.util.Log 호출이 "Method ... not mocked" 예외를 내지 않게 한다.

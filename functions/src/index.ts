@@ -1,7 +1,21 @@
 import {setGlobalOptions} from "firebase-functions";
 import {onDocumentCreated} from "firebase-functions/v2/firestore";
+import {HttpsError, onCall} from "firebase-functions/v2/https";
 import * as logger from "firebase-functions/logger";
 import * as admin from "firebase-admin";
+
+// 카카오 로그인 -> Firebase Auth 커스텀 토큰 교환 함수(kakaoCustomToken)의 설정.
+// 리전은 기존 Firestore 트리거와 같은 us-central1이다. 바꾸면 앱의
+// FirebaseFunctions 인스턴스 리전도 같이 바꿔야 한다.
+const FUNCTION_REGION = "us-central1";
+// 우리 카카오 앱의 앱 ID. 카카오 개발자 콘솔에서 누구나 볼 수 있는 공개
+// 식별자이며 비밀이 아니다. 다른 카카오 앱이 발급한 토큰으로 로그인하는 것을
+// 막는 데에만 쓰므로 코드에 두어도 안전하다.
+const KAKAO_APP_ID = 1278293;
+const KAKAO_TOKEN_INFO_URL =
+  "https://kapi.kakao.com/v1/user/access_token_info";
+const KAKAO_REQUEST_TIMEOUT_MS = 5000;
+const MAX_ACCESS_TOKEN_LENGTH = 2000;
 
 setGlobalOptions({maxInstances: 10});
 admin.initializeApp();
@@ -374,5 +388,112 @@ export const notifyResponseCreated = onDocumentCreated(
         responderUserId,
       },
     );
+  },
+);
+
+// 로그에 사용자 식별자 전체를 남기지 않기 위해 앞 4글자만 보여 준다.
+const maskId = (value: string): string => {
+  return `${value.slice(0, 4)}***`;
+};
+
+type KakaoTokenInfo = {
+  // 카카오 회원번호. Firebase uid이자 user_data 문서 ID로 쓰인다.
+  userId: string;
+  appId: number;
+};
+
+// 카카오 access_token_info로 토큰을 검증하고 회원번호와 앱 ID를 돌려준다.
+// 카카오가 거부하면 unauthenticated, 카카오 서버/네트워크 문제면 internal.
+const fetchKakaoTokenInfo = async (
+  accessToken: string,
+): Promise<KakaoTokenInfo> => {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), KAKAO_REQUEST_TIMEOUT_MS);
+
+  let status: number;
+  let body: Record<string, unknown>;
+  try {
+    const response = await fetch(KAKAO_TOKEN_INFO_URL, {
+      headers: {Authorization: `Bearer ${accessToken}`},
+      signal: controller.signal,
+    });
+    status = response.status;
+    body = (await response.json()) as Record<string, unknown>;
+  } catch {
+    logger.error("Kakao token info request failed", {
+      timedOut: controller.signal.aborted,
+    });
+    throw new HttpsError("internal", "Failed to reach Kakao server.");
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (status === 400 || status === 401 || status === 403) {
+    logger.warn("Kakao rejected access token", {status});
+    throw new HttpsError("unauthenticated", "Invalid Kakao access token.");
+  }
+  if (status < 200 || status >= 300) {
+    logger.error("Kakao token info returned unexpected status", {status});
+    throw new HttpsError("internal", "Kakao server error.");
+  }
+
+  // 카카오 응답은 app_id(구버전)와 appId를 모두 줄 수 있다.
+  const rawId = body["id"];
+  const rawAppId = body["app_id"] ?? body["appId"];
+  const isValidId =
+    (typeof rawId === "number" && Number.isSafeInteger(rawId) && rawId > 0) ||
+    (typeof rawId === "string" && /^\d{1,20}$/.test(rawId));
+  const appId = Number(rawAppId);
+  if (!isValidId || !Number.isFinite(appId)) {
+    logger.error("Kakao token info has unexpected shape");
+    throw new HttpsError("internal", "Unexpected Kakao response.");
+  }
+
+  return {userId: String(rawId), appId};
+};
+
+export const kakaoCustomToken = onCall(
+  {region: FUNCTION_REGION},
+  async (request) => {
+    const accessToken: unknown = request.data?.accessToken;
+    // 공백 없는 출력 가능한 ASCII만 허용해 헤더 주입/잘못된 헤더 값을 막는다.
+    if (
+      typeof accessToken !== "string" ||
+      accessToken.length === 0 ||
+      accessToken.length > MAX_ACCESS_TOKEN_LENGTH ||
+      !/^[\x21-\x7e]+$/.test(accessToken)
+    ) {
+      throw new HttpsError("invalid-argument", "accessToken is required.");
+    }
+
+    const info = await fetchKakaoTokenInfo(accessToken);
+
+    // 다른 카카오 앱에서 발급된 토큰으로 우리 Firebase에 로그인하는 것을 막는다.
+    if (info.appId !== KAKAO_APP_ID) {
+      logger.warn("Kakao token belongs to a different app", {
+        appId: info.appId,
+        userId: maskId(info.userId),
+      });
+      throw new HttpsError(
+        "unauthenticated",
+        "Access token was issued for a different app.",
+      );
+    }
+
+    let firebaseToken: string;
+    try {
+      firebaseToken = await admin.auth().createCustomToken(info.userId);
+    } catch (error) {
+      logger.error("createCustomToken failed", {
+        userId: maskId(info.userId),
+        error: error instanceof Error ? error.message : "unknown",
+      });
+      throw new HttpsError("internal", "Failed to issue Firebase token.");
+    }
+
+    logger.info("Issued Firebase custom token", {
+      userId: maskId(info.userId),
+    });
+    return {firebaseToken};
   },
 );

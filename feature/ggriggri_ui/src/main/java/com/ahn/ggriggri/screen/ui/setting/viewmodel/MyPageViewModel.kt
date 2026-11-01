@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.ahn.domain.common.SessionManager
 import com.ahn.domain.model.User
 import com.ahn.domain.model.Group
+import com.ahn.domain.repository.AuthRepository
 import com.ahn.domain.repository.UserRepository
 import com.ahn.domain.repository.GroupRepository
 import com.ahn.domain.repository.FCMRepository
@@ -40,6 +41,7 @@ class MyPageViewModel @Inject constructor(
     private val groupRepository: GroupRepository,
     private val userRepository: UserRepository,
     private val fcmRepository: FCMRepository,
+    private val authRepository: AuthRepository,
 ): ViewModel(){
 
     private val _currentGroup = MutableStateFlow<Group?>(null)
@@ -150,6 +152,12 @@ class MyPageViewModel @Inject constructor(
                 // 타임아웃은 withTimeoutOrNull 안에서 처리된다. 외부 취소까지 삼키면 안 되므로 다시 던진다.
                 if (it is kotlinx.coroutines.CancellationException) throw it
                 Log.e("MyPageViewModel", "FCM 토큰 정리 실패", it)
+            }
+            // Auth 로그아웃은 FCM 토큰 정리(Firestore 쓰기) 다음이어야 한다. 먼저 하면 규칙에 막힌다.
+            // 실패해도 로컬 세션 정리와 화면 이동은 계속한다.
+            runCatching { authRepository.signOut() }.onFailure {
+                if (it is kotlinx.coroutines.CancellationException) throw it
+                Log.e("MyPageViewModel", "Firebase Auth 로그아웃 실패", it)
             }
             sessionManager.logoutUser()
             onNavigateToLogin()

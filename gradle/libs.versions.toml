@@ -69,6 +69,8 @@ androidx-material-icons-extended = { group = "androidx.compose.material", name =
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore" }
 firebase-storage = { group = "com.google.firebase", name = "firebase-storage" }
 firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging" }
+firebase-auth = { group = "com.google.firebase", name = "firebase-auth" }
+firebase-functions = { group = "com.google.firebase", name = "firebase-functions" }
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
 
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
@@ -113,7 +115,7 @@ hilt-gradle = { id = "com.google.dagger.hilt.android", version.ref = "hiltAndroi
 
 
 [bundles]
-firebase-libraries = ["firebase-firestore", "firebase-storage", "firebase-messaging"]
+firebase-libraries = ["firebase-firestore", "firebase-storage", "firebase-messaging", "firebase-auth", "firebase-functions"]
 kakao-libraries = ["v2-user"]
 coil-libraries =["coil-network-okhttp","coil-compose"]
 navigation-libraries = ["androidx-navigation-compose" ]

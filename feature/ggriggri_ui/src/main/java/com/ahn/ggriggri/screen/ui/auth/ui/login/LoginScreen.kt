@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ahn.common_ui.R
+import com.ahn.ggriggri.BuildConfig
 import com.ahn.common_ui.components.AppLogo
 import com.ahn.ggriggri.screen.ui.auth.ui.login.components.LoginText
 import com.ahn.ggriggri.screen.ui.auth.ui.login.components.SocialLoginDivider
@@ -112,14 +113,16 @@ fun LoginScreen(
 
             Spacer(Modifier.height(20.dp))
 
-            // 개발용 로그인 버튼 (개발 빌드에서만 표시)
-            Button(
-                onClick = { onNavigationToDevLogin() },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(60.dp)
-            ) {
-                Text("개발용 로그인")
+            // 개발용 로그인 버튼 (디버그 빌드에서만 표시)
+            if (BuildConfig.DEBUG) {
+                Button(
+                    onClick = { onNavigationToDevLogin() },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(60.dp)
+                ) {
+                    Text("개발용 로그인")
+                }
             }
 
         }

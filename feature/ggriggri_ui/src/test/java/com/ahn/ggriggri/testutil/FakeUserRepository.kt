@@ -33,9 +33,30 @@ class FakeUserRepository : UserRepository {
         return DataResourceResult.Success(users[userId])
     }
 
-    override suspend fun create(userInfo: User): Flow<DataResourceResult<Unit>> = notUsed()
-    override suspend fun read(): Flow<DataResourceResult<List<User>>> = notUsed()
-    override suspend fun update(userInfo: User): Flow<DataResourceResult<Unit>> = notUsed()
+    /** read/create/update 호출 기록(Auth 실패 시 Firestore에 닿지 않았는지 검증용). */
+    var readCalls = 0
+    val createCalls = mutableListOf<User>()
+    val updateCalls = mutableListOf<User>()
+
+    var writeResult: DataResourceResult<Unit> = DataResourceResult.Success(Unit)
+
+    override suspend fun create(userInfo: User): Flow<DataResourceResult<Unit>> {
+        createCalls += userInfo
+        if (writeResult is DataResourceResult.Success) users[userInfo.userId] = userInfo
+        return flowOf(DataResourceResult.Loading, writeResult)
+    }
+
+    override suspend fun read(): Flow<DataResourceResult<List<User>>> {
+        readCalls++
+        return flowOf(DataResourceResult.Loading, DataResourceResult.Success(users.values.toList()))
+    }
+
+    override suspend fun update(userInfo: User): Flow<DataResourceResult<Unit>> {
+        updateCalls += userInfo
+        if (writeResult is DataResourceResult.Success) users[userInfo.userId] = userInfo
+        return flowOf(DataResourceResult.Loading, writeResult)
+    }
+
     override suspend fun delete(userId: String): Flow<DataResourceResult<Unit>> = notUsed()
     override suspend fun getUserGroupDocumentId(userId: String): Flow<DataResourceResult<String?>> = notUsed()
     override suspend fun updateFcmToken(userId: String, token: String): Flow<DataResourceResult<Boolean>> = notUsed()

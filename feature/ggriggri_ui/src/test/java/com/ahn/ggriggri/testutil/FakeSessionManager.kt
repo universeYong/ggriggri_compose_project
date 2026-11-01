@@ -28,7 +28,10 @@ class FakeSessionManager(initialUser: User? = null) : SessionManager {
         userState.value = null
     }
 
-    override suspend fun getTokenOnce(): String? = null
+    /** getTokenOnce가 돌려줄 로컬 세션 토큰. */
+    var token: String? = null
+
+    override suspend fun getTokenOnce(): String? = token
     override suspend fun getCurrentUserIdOnce(): String? = userState.value?.userId
     override suspend fun updateUserProfile(newName: String, newProfileImage: String) = Unit
     override suspend fun refreshUserInfo() = Unit
