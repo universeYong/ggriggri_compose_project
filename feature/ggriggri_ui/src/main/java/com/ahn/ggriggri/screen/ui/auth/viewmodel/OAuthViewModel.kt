@@ -100,7 +100,7 @@ class OAuthViewModel @Inject constructor(
     private val kakaoLoginCallback: (OAuthToken?, Throwable?) -> Unit = { token, error ->
         if (error != null) {
             _loginStatus.value = "로그인 실패 ${error.message}"
-            Log.e("oauth", "Fail")
+            Log.e("oauth", "카카오 로그인 실패: ${error.javaClass.simpleName}", error)
         } else if (token != null) {
             // 여기서는 "성공"을 알리지 않는다. Firebase Auth 로그인과 사용자 저장이 끝나야 성공이다.
             _loginStatus.value = "로그인 처리 중..."
