@@ -43,9 +43,6 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.bundles.firebase.libraries)
 
-    implementation(libs.retrofit)
-    implementation(libs.converter.gson)
-    implementation(libs.converter.scalars)
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)

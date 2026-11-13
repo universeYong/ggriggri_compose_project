@@ -1,12 +1,9 @@
 package com.ahn.data.repository
 
-import android.util.Log
 import com.ahn.domain.common.DataResourceResult
 import com.ahn.domain.model.User
 import com.ahn.domain.repository.UserRepository
 import com.ahn.data.datasource.UserDataSource
-import com.ahn.data.remote.dto.FCMTokenRequestDTO
-import com.ahn.data.rest.ApiService
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.SetOptions
@@ -18,8 +15,7 @@ import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 class FirestoreUserRepositoryImpl @Inject constructor(
-    val userDataSource: UserDataSource,
-    private val apiService: ApiService
+    val userDataSource: UserDataSource
 ) : UserRepository {
     override suspend fun create(userInfo: User): Flow<DataResourceResult<Unit>> = flow {
         emit(DataResourceResult.Loading)
@@ -91,12 +87,6 @@ class FirestoreUserRepositoryImpl @Inject constructor(
             )
             .await()
 
-        // 백엔드 동기화는 best-effort로 유지한다.
-        val request = FCMTokenRequestDTO(userId, token)
-        val response = runCatching { apiService.updateFCMToken(request) }.getOrNull()
-        if (response?.isSuccessful != true) {
-            Log.w("FirestoreUserRepository", "FCM token API sync failed, but Firestore update succeeded.")
-        }
 
         emit(DataResourceResult.Success(true))
     }.catch { emit(DataResourceResult.Failure(it)) }
