@@ -2,6 +2,7 @@ package com.ahn.ggriggri.screen.ui.auth.ui.login
 
 import android.Manifest
 import android.util.Log
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -27,6 +28,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -41,6 +43,7 @@ import com.ahn.ggriggri.BuildConfig
 import com.ahn.common_ui.components.AppLogo
 import com.ahn.ggriggri.screen.ui.auth.ui.login.components.LoginText
 import com.ahn.ggriggri.screen.ui.auth.ui.login.components.SocialLoginDivider
+import com.ahn.ggriggri.screen.ui.auth.viewmodel.AppStartViewModel
 import com.ahn.ggriggri.screen.ui.auth.viewmodel.OAuthViewModel
 import com.ahn.common_ui.theme.NanumSquareBold
 
@@ -57,6 +60,23 @@ fun LoginScreen(
     val loginStatus by authViewModel.loginStatus.collectAsStateWithLifecycle()
     val currentUserId by authViewModel.currentUserId.collectAsStateWithLifecycle()
     val isLoading by authViewModel.isLoading.collectAsStateWithLifecycle()
+    val autoLoginFinished by authViewModel.autoLoginFinished.collectAsStateWithLifecycle()
+
+    // 앱을 새로 켰을 때만 자동 로그인을 시도한다(Activity 범위 플래그). 그룹 화면 등에서 돌아온 경우는 시도하지 않는다.
+    val appStartViewModel: AppStartViewModel = hiltViewModel(
+        checkNotNull(context as? ComponentActivity) { "LoginScreen은 ComponentActivity 안에서 쓴다." }
+    )
+    val runAutoLogin = rememberSaveable { appStartViewModel.consumeAutoLogin() }
+    val checkingSession = runAutoLogin && !autoLoginFinished
+
+    LaunchedEffect(Unit) {
+        if (runAutoLogin) {
+            authViewModel.tryAutoLogin(
+                onNavigationToGroup = onNavigationToGroup,
+                onNavigationToHome = onNavigationToHome
+            )
+        }
+    }
 
     // 다른 화면으로 이동해 이 화면이 사라질 때 로딩 표시를 되돌려, 뒤로가기로 돌아왔을 때 스피너가 남지 않게 한다.
     DisposableEffect(Unit) {
@@ -157,12 +177,15 @@ fun LoginScreen(
 
         }
 
-        // 로그인 진행 중 표시. 터치를 막아 중복 로그인을 방지한다.
-        if (isLoading) {
+        // 로그인 진행 중 / 저장된 로그인 확인 중 표시. 터치를 막아 중복 로그인을 방지한다.
+        // 앱 시작 시 확인 중에는 배경을 불투명하게 해서 로그인 버튼이 잠깐 보이지 않게 한다.
+        if (isLoading || checkingSession) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background.copy(alpha = 0.85f))
+                    .background(
+                        MaterialTheme.colorScheme.background.copy(alpha = if (checkingSession) 1f else 0.85f)
+                    )
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null,
@@ -174,7 +197,7 @@ fun LoginScreen(
                     CircularProgressIndicator()
                     Spacer(Modifier.height(16.dp))
                     Text(
-                        text = "로그인 중이에요. 잠시만 기다려 주세요...",
+                        text = if (checkingSession) "로그인 정보를 확인하고 있어요..." else "로그인 중이에요. 잠시만 기다려 주세요...",
                         color = MaterialTheme.colorScheme.onBackground,
                         style = MaterialTheme.typography.bodyMedium,
                     )

@@ -45,9 +45,15 @@ class OAuthViewModel @Inject constructor(
     private val _loginStatus = MutableStateFlow("")
     val loginStatus: StateFlow<String> = _loginStatus
 
-    /** 로그인(버튼 누른 뒤 ~ 화면 이동 전)이 진행 중인지. 화면의 로딩 표시에 쓴다. */
+    /** 로그인(버튼 누른 뒤 ~ 화면 이동 전)이나 자동 로그인 확인이 진행 중인지. 화면의 로딩 표시에 쓴다. */
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    /** 앱 시작 시 자동 로그인 확인이 끝났는지(이동했거나, 세션이 없어 로그인 화면을 보여야 하거나). */
+    private val _autoLoginFinished = MutableStateFlow(false)
+    val autoLoginFinished: StateFlow<Boolean> = _autoLoginFinished.asStateFlow()
+
+    private var autoLoginStarted = false
 
     val currentUserId: StateFlow<String?> = sessionManager.currentUserFlow
         .map { it?.userId }
@@ -89,6 +95,26 @@ class OAuthViewModel @Inject constructor(
     /** 화면이 사라질 때 로딩 표시를 되돌린다(이동 후 뒤로가기로 돌아왔을 때 스피너가 남지 않게). */
     fun resetLoading() {
         _isLoading.value = false
+    }
+
+    /**
+     * 앱을 새로 켰을 때 저장된 세션이 있으면 로그인 화면을 거치지 않고 홈(또는 그룹) 화면으로 보낸다.
+     * ViewModel당 한 번만 시도하며, 세션이 없거나 실패하면 [autoLoginFinished]가 true가 되어 로그인 화면이 보인다.
+     */
+    fun tryAutoLogin(
+        onNavigationToGroup: () -> Unit,
+        onNavigationToHome: () -> Unit,
+    ) {
+        if (autoLoginStarted) return
+        autoLoginStarted = true
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                navigateByUserGroup(onNavigationToGroup, onNavigationToHome, requireFirebaseAuth = true)
+            } finally {
+                _autoLoginFinished.value = true
+            }
+        }
     }
 
     fun handleKakaoLogin(context: Context) {

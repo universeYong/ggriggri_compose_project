@@ -213,7 +213,96 @@ class OAuthViewModelTest {
         assertEquals(0, tokenProvider.refreshCalls)
     }
 
-    // ---- 로그인 진행 중 표시 ----
+    // ---- 앱 시작 시 자동 로그인 / 로딩 표시 ----
+
+    @Test
+    fun `저장된 세션이 있으면 자동 로그인으로 홈으로 이동한다`() = runTest {
+        val user = User(userId = "12345", userName = "안", userGroupDocumentId = "g1")
+        sessionManager.userState.value = user
+        userRepository.users["12345"] = user
+        authRepository.signedIn = true
+        val viewModel = createViewModel()
+        var home = false
+
+        viewModel.tryAutoLogin(onNavigationToGroup = {}, onNavigationToHome = { home = true })
+        advanceUntilIdle()
+
+        assertTrue(home)
+        assertTrue(viewModel.autoLoginFinished.value)
+        // 이동했으므로 전환 중에는 로딩 표시를 유지한다(화면이 사라질 때 resetLoading으로 끈다).
+        assertTrue(viewModel.isLoading.value)
+        viewModel.resetLoading()
+        assertFalse(viewModel.isLoading.value)
+    }
+
+    @Test
+    fun `그룹이 없는 세션은 자동 로그인으로 그룹 화면으로 이동한다`() = runTest {
+        val user = User(userId = "12345", userName = "안", userGroupDocumentId = "")
+        sessionManager.userState.value = user
+        userRepository.users["12345"] = user
+        authRepository.signedIn = true
+        val viewModel = createViewModel()
+        var group = false
+
+        viewModel.tryAutoLogin(onNavigationToGroup = { group = true }, onNavigationToHome = {})
+        advanceUntilIdle()
+
+        assertTrue(group)
+    }
+
+    @Test
+    fun `세션이 없으면 이동하지 않고 로그인 화면을 보여 준다`() = runTest {
+        val viewModel = createViewModel()
+        var navigated = false
+
+        viewModel.tryAutoLogin(
+            onNavigationToGroup = { navigated = true },
+            onNavigationToHome = { navigated = true },
+        )
+        advanceUntilIdle()
+
+        assertFalse(navigated)
+        assertTrue(viewModel.autoLoginFinished.value)
+        assertFalse(viewModel.isLoading.value)
+    }
+
+    @Test
+    fun `자동 로그인 중 토큰이 만료되면 로그인 화면과 안내를 보여 준다`() = runTest {
+        val user = User(userId = "12345", userName = "안", userGroupDocumentId = "g1")
+        sessionManager.userState.value = user
+        sessionManager.token = "expired"
+        authRepository.signInResult = Result.failure(KakaoTokenRejectedException())
+        val viewModel = createViewModel()
+        var navigated = false
+
+        viewModel.tryAutoLogin(
+            onNavigationToGroup = { navigated = true },
+            onNavigationToHome = { navigated = true },
+        )
+        advanceUntilIdle()
+
+        assertFalse(navigated)
+        assertTrue(viewModel.autoLoginFinished.value)
+        assertFalse(viewModel.isLoading.value)
+        assertEquals("로그인이 만료되었습니다. 다시 로그인해 주세요.", viewModel.loginStatus.value)
+    }
+
+    @Test
+    fun `자동 로그인은 한 번만 시도한다`() = runTest {
+        val user = User(userId = "12345", userName = "안", userGroupDocumentId = "g1")
+        sessionManager.userState.value = user
+        userRepository.users["12345"] = user
+        authRepository.signedIn = true
+        val viewModel = createViewModel()
+        var homeCount = 0
+
+        viewModel.tryAutoLogin(onNavigationToGroup = {}, onNavigationToHome = { homeCount++ })
+        advanceUntilIdle()
+        viewModel.tryAutoLogin(onNavigationToGroup = {}, onNavigationToHome = { homeCount++ })
+        advanceUntilIdle()
+
+        assertEquals(1, homeCount)
+    }
 
     @Test
     fun `카카오 로그인 후속 처리가 실패하면 로딩 표시를 끈다`() = runTest {
@@ -224,5 +313,14 @@ class OAuthViewModelTest {
         advanceUntilIdle()
 
         assertFalse(viewModel.isLoading.value)
+    }
+
+    @Test
+    fun `AppStartViewModel은 처음 한 번만 자동 로그인 차례를 알려 준다`() {
+        val appStart = AppStartViewModel()
+
+        assertTrue(appStart.consumeAutoLogin())
+        assertFalse(appStart.consumeAutoLogin())
+        assertFalse(appStart.consumeAutoLogin())
     }
 }
