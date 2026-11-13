@@ -37,4 +37,25 @@ class ImageCompressionUtilsTest {
         // 10000x1000 -> 1250x125
         assertEquals(8, ImageCompressionUtils.calculateInSampleSize(10000, 1000, 800))
     }
+
+    @Test
+    fun `작은 사진은 확대하지 않는다`() {
+        assertEquals(Pair(400, 300), ImageCompressionUtils.calculateTargetSize(400, 300, 800))
+    }
+
+    @Test
+    fun `큰 사진은 비율을 유지하며 긴 변을 최대 크기에 맞춘다`() {
+        assertEquals(Pair(800, 600), ImageCompressionUtils.calculateTargetSize(1000, 750, 800))
+        assertEquals(Pair(600, 800), ImageCompressionUtils.calculateTargetSize(750, 1000, 800))
+    }
+
+    @Test
+    fun `최대 크기와 같은 사진은 그대로 둔다`() {
+        assertEquals(Pair(800, 800), ImageCompressionUtils.calculateTargetSize(800, 800, 800))
+    }
+
+    @Test
+    fun `아주 긴 사진도 짧은 변이 0이 되지 않는다`() {
+        assertEquals(Pair(800, 1), ImageCompressionUtils.calculateTargetSize(10000, 5, 800))
+    }
 }

@@ -46,13 +46,8 @@ class ImageCompressionUtils @Inject constructor(
                     return@withContext null
                 }
 
-                // 이미지 크기 조절 (최대 800x800)
-                val ratio = minOf(
-                    MAX_SIZE.toFloat() / bitmap.width,
-                    MAX_SIZE.toFloat() / bitmap.height
-                )
-                val newWidth = (bitmap.width * ratio).toInt()
-                val newHeight = (bitmap.height * ratio).toInt()
+                // 이미지 크기 조절 (최대 800x800, 작은 사진은 확대하지 않음)
+                val (newWidth, newHeight) = calculateTargetSize(bitmap.width, bitmap.height, MAX_SIZE)
 
                 Log.d("ImageCompressionUtils", "원본 크기: ${bounds.outWidth}x${bounds.outHeight}")
                 Log.d("ImageCompressionUtils", "압축 크기: ${newWidth}x${newHeight}")
@@ -97,6 +92,18 @@ class ImageCompressionUtils @Inject constructor(
                 sampleSize *= 2
             }
             return sampleSize
+        }
+
+        /**
+         * 비율을 유지하면서 긴 변이 [maxSize]를 넘지 않는 크기를 구한다.
+         * 이미 작은 사진은 확대하지 않고 그대로 둔다.
+         */
+        fun calculateTargetSize(width: Int, height: Int, maxSize: Int): Pair<Int, Int> {
+            val ratio = minOf(maxSize.toFloat() / width, maxSize.toFloat() / height).coerceAtMost(1f)
+            return Pair(
+                (width * ratio).toInt().coerceAtLeast(1),
+                (height * ratio).toInt().coerceAtLeast(1)
+            )
         }
     }
 }
