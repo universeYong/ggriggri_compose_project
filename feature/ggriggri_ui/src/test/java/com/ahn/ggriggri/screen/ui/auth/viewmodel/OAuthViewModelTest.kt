@@ -212,4 +212,17 @@ class OAuthViewModelTest {
         assertTrue(authRepository.signInTokens.isEmpty())
         assertEquals(0, tokenProvider.refreshCalls)
     }
+
+    // ---- 로그인 진행 중 표시 ----
+
+    @Test
+    fun `카카오 로그인 후속 처리가 실패하면 로딩 표시를 끈다`() = runTest {
+        authRepository.signInResult = Result.failure(IOException("offline"))
+        val viewModel = createViewModel()
+
+        viewModel.completeKakaoLogin("kakao-token", "12345", "안", null)
+        advanceUntilIdle()
+
+        assertFalse(viewModel.isLoading.value)
+    }
 }

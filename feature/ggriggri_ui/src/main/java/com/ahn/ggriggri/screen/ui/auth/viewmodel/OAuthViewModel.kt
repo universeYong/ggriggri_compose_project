@@ -45,6 +45,10 @@ class OAuthViewModel @Inject constructor(
     private val _loginStatus = MutableStateFlow("")
     val loginStatus: StateFlow<String> = _loginStatus
 
+    /** 로그인(버튼 누른 뒤 ~ 화면 이동 전)이 진행 중인지. 화면의 로딩 표시에 쓴다. */
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
     val currentUserId: StateFlow<String?> = sessionManager.currentUserFlow
         .map { it?.userId }
         .distinctUntilChanged()
@@ -82,7 +86,14 @@ class OAuthViewModel @Inject constructor(
         }
     }
 
+    /** 화면이 사라질 때 로딩 표시를 되돌린다(이동 후 뒤로가기로 돌아왔을 때 스피너가 남지 않게). */
+    fun resetLoading() {
+        _isLoading.value = false
+    }
+
     fun handleKakaoLogin(context: Context) {
+        _isLoading.value = true
+        _loginStatus.value = ""
         if (UserApiClient.instance.isKakaoTalkLoginAvailable(context)) {
             UserApiClient.instance.loginWithKakaoTalk(context, callback = kakaoLoginCallback)
         } else {
@@ -99,6 +110,7 @@ class OAuthViewModel @Inject constructor(
      */
     private val kakaoLoginCallback: (OAuthToken?, Throwable?) -> Unit = { token, error ->
         if (error != null) {
+            _isLoading.value = false
             _loginStatus.value = "로그인 실패 ${error.message}"
             Log.e("oauth", "카카오 로그인 실패: ${error.javaClass.simpleName}", error)
         } else if (token != null) {
@@ -114,11 +126,13 @@ class OAuthViewModel @Inject constructor(
         UserApiClient.instance.me { kakaoUser, error ->
             if (error != null) {
                 Log.e("oauth", "사용자 정보 요청 실패: ${error.message}")
+                _isLoading.value = false
                 _loginStatus.value = "사용자 정보 요청 실패"
                 return@me
             }
             if (kakaoUser == null) {
                 Log.e("oauth", "사용자 정보가 null")
+                _isLoading.value = false
                 _loginStatus.value = "사용자 정보가 null"
                 return@me
             }
@@ -159,6 +173,7 @@ class OAuthViewModel @Inject constructor(
             is DataResourceResult.Failure -> {
                 // 조회에 실패했는데 "없는 사용자"로 보고 create()하면 기존 문서를 덮어쓸 수 있으므로 중단한다.
                 Log.e("OAuthViewModel", "Firestore read failed", userReadResult.exception)
+                _isLoading.value = false
                 _loginStatus.value = "회원 정보 조회 실패: ${userReadResult.exception.message}"
                 return
             }
@@ -202,6 +217,7 @@ class OAuthViewModel @Inject constructor(
 
             is DataResourceResult.Failure -> {
                 val failMsg = "회원 정보 저장/업데이트 실패: ${dbOperationResult.exception.message}"
+                _isLoading.value = false
                 _loginStatus.value = failMsg
                 Log.e("oauth", failMsg, dbOperationResult.exception)
             }
@@ -219,6 +235,7 @@ class OAuthViewModel @Inject constructor(
         if (result.isSuccess) return true
         // 토큰/ID가 섞일 수 있는 메시지는 화면과 로그에 그대로 쓰지 않는다.
         Log.e("oauth", "Firebase Auth 로그인 실패: ${result.exceptionOrNull()?.javaClass?.simpleName}")
+        _isLoading.value = false
         _loginStatus.value = "로그인 실패: 인증 서버 로그인에 실패했습니다. 잠시 후 다시 시도해 주세요."
         return false
     }
@@ -234,18 +251,34 @@ class OAuthViewModel @Inject constructor(
         requireFirebaseAuth: Boolean = true,
     ) {
         viewModelScope.launch {
+            _isLoading.value = true
+            navigateByUserGroup(onNavigationToGroup, onNavigationToHome, requireFirebaseAuth)
+        }
+    }
+
+    /**
+     * 세션의 사용자를 확인하고 그룹 유무에 따라 화면을 이동한다. 이동했으면 true.
+     * 이동하지 않고 끝나면(세션 없음, 재로그인 필요, 일시 오류 등) 로딩 표시를 끄고 false.
+     * 이동한 경우 로딩 표시는 켜 둔다(전환 중 로그인 버튼이 깜빡이지 않게). 화면이 사라질 때 [resetLoading]으로 끈다.
+     */
+    private suspend fun navigateByUserGroup(
+        onNavigationToGroup: () -> Unit,
+        onNavigationToHome: () -> Unit,
+        requireFirebaseAuth: Boolean,
+    ): Boolean {
+        var navigated = false
+        try {
             val currentUser = sessionManager.currentUserFlow.first()
             if (currentUser == null) {
                 Log.d("OAuthViewModel", "No user logged in, cannot check group.")
-                return@launch
+                return false
             }
 
-            if (requireFirebaseAuth && !ensureFirebaseAuthOrReport()) return@launch
+            if (requireFirebaseAuth && !ensureFirebaseAuthOrReport()) return false
 
             val latestUserResult = userRepository.getUserById(currentUser.userId)
                 .filter { it !is DataResourceResult.Loading }
                 .first()
-
 
             when (latestUserResult) {
                 is DataResourceResult.Success -> {
@@ -254,6 +287,7 @@ class OAuthViewModel @Inject constructor(
                         // 서버의 User에는 토큰이 없으므로 로컬 세션 토큰을 유지한 채 사용자 정보만 갱신한다.
                         sessionManager.updateUser(latestUser)
                         val groupId = latestUser.userGroupDocumentId
+                        navigated = true
                         if (groupId.isNullOrEmpty()) {
                             onNavigationToGroup()
                         } else {
@@ -263,6 +297,7 @@ class OAuthViewModel @Inject constructor(
                 }
                 else -> {
                     val groupId = sessionManager.currentUserGroupIdFlow.first()
+                    navigated = true
                     if (groupId.isNullOrBlank()) {
                         onNavigationToGroup()
                     } else {
@@ -270,6 +305,9 @@ class OAuthViewModel @Inject constructor(
                     }
                 }
             }
+            return navigated
+        } finally {
+            if (!navigated) _isLoading.value = false
         }
     }
 
