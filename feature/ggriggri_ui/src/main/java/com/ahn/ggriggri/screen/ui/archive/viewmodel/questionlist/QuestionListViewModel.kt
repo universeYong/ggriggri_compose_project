@@ -45,7 +45,8 @@ class QuestionListViewModel @Inject constructor(
     private val _archivedQuestions = MutableStateFlow<List<ArchivedQuestionItem>>(emptyList())
     val archivedQuestions: StateFlow<List<ArchivedQuestionItem>> = _archivedQuestions.asStateFlow()
 
-    private val _isLoading = MutableStateFlow(false)
+    // 첫 프레임부터 로딩 상태여야 "질문이 없습니다" 화면이 잠깐 보이는 일이 없다.
+    private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
     private val _error = MutableStateFlow<String?>(null)
@@ -110,8 +111,10 @@ class QuestionListViewModel @Inject constructor(
                     null
                 }
             }.collectLatest { result ->
-                _isLoading.value = false // combine 내부에서 로딩 상태 관리가 더 복잡하면, collect 진입/종료 시점으로 단순화
-                result?.fold(
+                // 아직 로딩 중(두 결과가 모두 오기 전)인 emission은 건너뛴다. 결과가 정해졌을 때만 로딩을 끈다.
+                if (result == null) return@collectLatest
+                _isLoading.value = false
+                result.fold(
                     onSuccess = { items ->
                         _archivedQuestions.value = items
                         if (items.isEmpty()) {
