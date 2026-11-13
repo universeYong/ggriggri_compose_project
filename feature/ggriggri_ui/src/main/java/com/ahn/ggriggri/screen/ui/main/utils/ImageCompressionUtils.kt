@@ -3,6 +3,8 @@ package com.ahn.ggriggri.screen.ui.main.utils
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Matrix
+import android.media.ExifInterface
 import android.net.Uri
 import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -52,7 +54,18 @@ class ImageCompressionUtils @Inject constructor(
                 Log.d("ImageCompressionUtils", "원본 크기: ${bounds.outWidth}x${bounds.outHeight}")
                 Log.d("ImageCompressionUtils", "압축 크기: ${newWidth}x${newHeight}")
 
-                val compressedBitmap = Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true)
+                val scaledBitmap = Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true)
+
+                // 카메라 사진은 회전 정보를 EXIF에만 적어 두므로, 다시 저장하기 전에 픽셀에 반영한다.
+                // (JPEG로 다시 저장하면 EXIF가 사라져 세로 사진이 누워 보인다.)
+                val degrees = rotationDegrees(readExifOrientation(uri))
+                val compressedBitmap = if (degrees == 0) {
+                    scaledBitmap
+                } else {
+                    val matrix = Matrix().apply { postRotate(degrees.toFloat()) }
+                    Bitmap.createBitmap(scaledBitmap, 0, 0, scaledBitmap.width, scaledBitmap.height, matrix, true)
+                        .also { if (it !== scaledBitmap) scaledBitmap.recycle() }
+                }
 
                 // 압축된 이미지를 임시 파일로 저장
                 val tempFile = File.createTempFile(TEMP_PREFIX, ".jpg", context.cacheDir)
@@ -79,6 +92,21 @@ class ImageCompressionUtils @Inject constructor(
                 Log.e("ImageCompressionUtils", "이미지 압축 실패", e)
                 null
             }
+        }
+    }
+
+    /** EXIF의 방향 값을 읽는다. 읽지 못하면(EXIF가 없는 PNG 등) 회전 없음으로 본다. */
+    private fun readExifOrientation(uri: Uri): Int {
+        return try {
+            context.contentResolver.openInputStream(uri)?.use { stream ->
+                ExifInterface(stream).getAttributeInt(
+                    ExifInterface.TAG_ORIENTATION,
+                    ExifInterface.ORIENTATION_NORMAL
+                )
+            } ?: ExifInterface.ORIENTATION_NORMAL
+        } catch (e: Exception) {
+            Log.w("ImageCompressionUtils", "EXIF 방향 읽기 실패: ${e.javaClass.simpleName}")
+            ExifInterface.ORIENTATION_NORMAL
         }
     }
 
@@ -114,6 +142,17 @@ class ImageCompressionUtils @Inject constructor(
                 sampleSize *= 2
             }
             return sampleSize
+        }
+
+        /**
+         * EXIF 방향 값을 시계 방향 회전 각도로 바꾼다.
+         * 좌우 반전이 섞인 값(전면 카메라 일부)은 드물어 회전하지 않고 그대로 둔다.
+         */
+        fun rotationDegrees(exifOrientation: Int): Int = when (exifOrientation) {
+            ExifInterface.ORIENTATION_ROTATE_90 -> 90
+            ExifInterface.ORIENTATION_ROTATE_180 -> 180
+            ExifInterface.ORIENTATION_ROTATE_270 -> 270
+            else -> 0
         }
 
         /**

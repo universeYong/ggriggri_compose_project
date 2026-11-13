@@ -39,6 +39,21 @@ class ImageCompressionUtilsTest {
     }
 
     @Test
+    fun `EXIF 방향 값을 회전 각도로 바꾼다`() {
+        // EXIF 표준 값: 1 정상, 3 180도, 6 90도, 8 270도
+        assertEquals(0, ImageCompressionUtils.rotationDegrees(1))
+        assertEquals(180, ImageCompressionUtils.rotationDegrees(3))
+        assertEquals(90, ImageCompressionUtils.rotationDegrees(6))
+        assertEquals(270, ImageCompressionUtils.rotationDegrees(8))
+    }
+
+    @Test
+    fun `방향 정보가 없거나 반전이 섞인 값은 회전하지 않는다`() {
+        assertEquals(0, ImageCompressionUtils.rotationDegrees(0))
+        assertEquals(0, ImageCompressionUtils.rotationDegrees(2))
+    }
+
+    @Test
     fun `작은 사진은 확대하지 않는다`() {
         assertEquals(Pair(400, 300), ImageCompressionUtils.calculateTargetSize(400, 300, 800))
     }
