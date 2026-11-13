@@ -14,6 +14,7 @@ import com.ahn.ggriggri.screen.ui.main.utils.ImageCompressionUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -23,6 +24,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 
 @HiltViewModel
@@ -140,8 +142,13 @@ class RequestViewModel @Inject constructor(
                     Log.d("RequestViewModel", "압축된 이미지 URI: $compressedUri")
                     
                     // 압축된 이미지 업로드 - 업로드가 실패하면 요청을 만들지 않고 중단한다.
-                    val uploadResult = storageRepository.uploadImage(compressedUri.toString(), "requests")
-                        .first { it is DataResourceResult.Success || it is DataResourceResult.Failure }
+                    // 업로드가 끝나면(성공·실패·취소 모두) 압축본 임시 파일을 지운다.
+                    val uploadResult = try {
+                        storageRepository.uploadImage(compressedUri.toString(), "requests")
+                            .first { it is DataResourceResult.Success || it is DataResourceResult.Failure }
+                    } finally {
+                        withContext(NonCancellable) { imageCompressionUtils.deleteTempFile(compressedUri) }
+                    }
                     when (uploadResult) {
                         is DataResourceResult.Success -> {
                             imageUrl = uploadResult.data

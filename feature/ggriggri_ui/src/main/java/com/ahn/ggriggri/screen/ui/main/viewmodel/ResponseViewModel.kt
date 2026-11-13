@@ -11,6 +11,7 @@ import com.ahn.domain.model.Response
 import com.ahn.domain.repository.ResponseRepository
 import com.ahn.ggriggri.screen.ui.main.utils.ImageCompressionUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,6 +21,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -127,9 +129,14 @@ class ResponseViewModel @Inject constructor(
                         Log.d("ResponseViewModel", "압축된 이미지 URI: $compressedUri")
                         Log.d("ResponseViewModel", "이미지 업로드 시작")
                         // 압축된 이미지 업로드 - 업로드가 실패하면 응답을 만들지 않고 중단한다.
-                        val uploadResult = storageRepository.uploadImage(compressedUri.toString(), "response")
-                            .filter { it is DataResourceResult.Success || it is DataResourceResult.Failure }
-                            .first()
+                        // 업로드가 끝나면(성공·실패·취소 모두) 압축본 임시 파일을 지운다.
+                        val uploadResult = try {
+                            storageRepository.uploadImage(compressedUri.toString(), "response")
+                                .filter { it is DataResourceResult.Success || it is DataResourceResult.Failure }
+                                .first()
+                        } finally {
+                            withContext(NonCancellable) { imageCompressionUtils.deleteTempFile(compressedUri) }
+                        }
                         when (uploadResult) {
                             is DataResourceResult.Success -> {
                                 imageUrl = uploadResult.data

@@ -55,10 +55,16 @@ class ImageCompressionUtils @Inject constructor(
                 val compressedBitmap = Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true)
 
                 // 압축된 이미지를 임시 파일로 저장
-                val tempFile = File.createTempFile("compressed_", ".jpg", context.cacheDir)
-                val outputStream = FileOutputStream(tempFile)
-                compressedBitmap.compress(Bitmap.CompressFormat.JPEG, 80, outputStream) // 80% 품질
-                outputStream.close()
+                val tempFile = File.createTempFile(TEMP_PREFIX, ".jpg", context.cacheDir)
+                try {
+                    FileOutputStream(tempFile).use { outputStream ->
+                        compressedBitmap.compress(Bitmap.CompressFormat.JPEG, 80, outputStream) // 80% 품질
+                    }
+                } catch (e: Exception) {
+                    // 쓰다가 실패한 파일을 캐시에 남기지 않는다.
+                    tempFile.delete()
+                    throw e
+                }
 
                 // 메모리 정리
                 bitmap.recycle()
@@ -76,7 +82,23 @@ class ImageCompressionUtils @Inject constructor(
         }
     }
 
+    /**
+     * [compressImage]가 만든 임시 파일을 지운다. 업로드가 끝나면(성공·실패 모두) 호출한다.
+     * 이 클래스가 캐시 폴더에 만든 파일이 아니면 건드리지 않는다.
+     */
+    suspend fun deleteTempFile(uri: Uri) {
+        withContext(Dispatchers.IO) {
+            val file = uri.path?.let { File(it) } ?: return@withContext
+            val isOwnTempFile = file.parentFile == context.cacheDir && file.name.startsWith(TEMP_PREFIX)
+            if (isOwnTempFile && !file.delete()) {
+                Log.w("ImageCompressionUtils", "임시 파일 삭제 실패: ${file.name}")
+            }
+        }
+    }
+
     companion object {
+        private const val TEMP_PREFIX = "compressed_"
+
         /** 압축 결과의 가로·세로 최대 크기(px). */
         const val MAX_SIZE = 800
 
