@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<lint>
+    <!--
+      GgriggriFirebaseMessagingService는 :data 모듈의 FirebaseMessagingService(= Service)를 상속한다.
+      firebase-messaging이 :data의 implementation 의존성이라 :app의 lint가 상위 클래스를 해석하지 못하고
+      "must extend android.app.Service"로 오탐한다. 릴리스 빌드의 lintVital만 막으므로
+      이 서비스 한 건에만 무시를 건다(서비스는 디버그 빌드에서 정상 수신·동작함).
+    -->
+    <issue id="Instantiatable">
+        <ignore path="src/main/AndroidManifest.xml" />
+    </issue>
+</lint>
