@@ -37,7 +37,9 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // 앱 모듈에서만 켠다. 라이브러리 모듈은 앱과 함께 한 번에 축소된다.
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
