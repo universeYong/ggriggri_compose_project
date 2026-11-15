@@ -34,12 +34,4 @@ class FirestoreRequestRepositoryImpl @Inject constructor(val requestDataSource: 
         emit(DataResourceResult.Loading)
         emitAll(requestDataSource.getRequestById(requestId))
     }.catch { emit(DataResourceResult.Failure(it)) }
-
-    override suspend fun update(request: Request): Flow<DataResourceResult<Unit>> {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun delete(requestId: String): Flow<DataResourceResult<Unit>> {
-        TODO("Not yet implemented")
-    }
 }

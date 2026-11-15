@@ -32,11 +32,6 @@ class FirestoreUserRepositoryImpl @Inject constructor(
         emit(userDataSource.update(userInfo))
     }.catch { emit(DataResourceResult.Failure(it)) }
 
-    override suspend fun delete(userId: String): Flow<DataResourceResult<Unit>> = flow {
-        emit(DataResourceResult.Loading)
-        emit(userDataSource.delete(userId))
-    }.catch { emit(DataResourceResult.Failure(it)) }
-
     override suspend fun getUserGroupDocumentId(userId: String):
             Flow<DataResourceResult<String?>> = flow {
         emit(DataResourceResult.Loading)

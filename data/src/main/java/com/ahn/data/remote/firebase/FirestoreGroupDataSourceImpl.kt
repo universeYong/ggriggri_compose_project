@@ -40,10 +40,6 @@ class FirestoreGroupDataSourceImpl @Inject constructor(): GroupDataSource {
         DataResourceResult.Failure(it)
     }
 
-    override suspend fun read(): DataResourceResult<List<Group>> {
-        TODO("Not yet implemented")
-    }
-
     override suspend fun getGroupById(groupId: String): DataResourceResult<Group?> = runCatching {
         Log.d("FirestoreGroupDS", "getGroupById 시작 - groupId: $groupId")
         

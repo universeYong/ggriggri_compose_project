@@ -20,10 +20,6 @@ import java.time.format.DateTimeFormatter
 class FirestoreQuestionDataSourceImpl @Inject constructor(): QuestionDataSource {
     private val db = Firebase.firestore
 
-    override suspend fun delete(questionId: String): DataResourceResult<Unit> {
-        TODO("Not yet implemented")
-    }
-
     // 문서 ID를 "{groupId}_{yyyyMMdd}"로 고정하고 트랜잭션으로 "없을 때만" 만든다.
     // 그룹원 여러 명(또는 Worker)이 동시에 만들려고 해도 문서는 하나만 생기므로
     // onDocumentCreated 트리거(일일 질문 푸시)도 한 번만 실행된다.
@@ -59,14 +55,6 @@ class FirestoreQuestionDataSourceImpl @Inject constructor(): QuestionDataSource 
             .toLocalDate()
             .format(DateTimeFormatter.BASIC_ISO_DATE) // yyyyMMdd
         return "${groupId}_$date"
-    }
-
-    override suspend fun update(question: Question): DataResourceResult<Unit> {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun read(): DataResourceResult<List<Question>> {
-        TODO("Not yet implemented")
     }
 
     override suspend fun getQuestionForGroupAndDate(

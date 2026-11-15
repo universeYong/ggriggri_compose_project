@@ -16,18 +16,6 @@ class FirestoreQuestionRepositoryImpl @Inject constructor(val questionDataSource
         emit(questionDataSource.create(question))
     }.catch { emit(DataResourceResult.Failure(it)) }
 
-    override suspend fun read(): Flow<DataResourceResult<List<Question>>> {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun update(question: Question): Flow<DataResourceResult<Unit>> {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun delete(questionId: String): Flow<DataResourceResult<Unit>> {
-        TODO("Not yet implemented")
-    }
-
     override suspend fun getQuestionForGroupAndDate(
         groupId: String,
         dateTimestamp: Long,

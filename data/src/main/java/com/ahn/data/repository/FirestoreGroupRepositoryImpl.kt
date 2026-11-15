@@ -16,10 +16,6 @@ class FirestoreGroupRepositoryImpl @Inject constructor(val groupDataSource: Grou
         emit(groupDataSource.create(groupInfo))
     }.catch { emit(DataResourceResult.Failure(it)) }
 
-    override suspend fun read(): Flow<DataResourceResult<List<Group>>> {
-        TODO("Not yet implemented")
-    }
-
     override suspend fun update(groupInfo: Group): Flow<DataResourceResult<Unit>> = flow {
         emit(DataResourceResult.Loading)
         emit(groupDataSource.update(groupInfo))

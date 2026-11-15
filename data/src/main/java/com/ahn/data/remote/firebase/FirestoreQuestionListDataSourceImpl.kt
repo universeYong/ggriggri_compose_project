@@ -15,18 +15,6 @@ class FirestoreQuestionListDataSourceImpl @Inject constructor(): QuestionListDat
 
     private val db = Firebase.firestore
 
-    override suspend fun delete(questionId: String): DataResourceResult<Unit> {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun create(question: QuestionList): DataResourceResult<Unit> {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun update(question: QuestionList): DataResourceResult<Unit> {
-        TODO("Not yet implemented")
-    }
-
     override suspend fun read(): DataResourceResult<List<QuestionList>> = runCatching {
         Log.d("FirestoreQuestionListDS", "Reading all question lists")
         val querySnapshot = db.collection("questionlist_data")

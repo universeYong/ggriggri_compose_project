@@ -29,8 +29,6 @@ class FakeRequestRepository : RequestRepository {
     override suspend fun create(request: Request): Flow<DataResourceResult<Unit>> = notUsed()
     override suspend fun read(groupId: String): Flow<DataResourceResult<List<Request>>> = notUsed()
     override suspend fun readAllRequests(groupId: String): Flow<DataResourceResult<List<Request>>> = notUsed()
-    override suspend fun update(request: Request): Flow<DataResourceResult<Unit>> = notUsed()
-    override suspend fun delete(requestId: String): Flow<DataResourceResult<Unit>> = notUsed()
 
     private fun notUsed(): Nothing = throw UnsupportedOperationException("이 테스트에서는 쓰지 않음")
 }

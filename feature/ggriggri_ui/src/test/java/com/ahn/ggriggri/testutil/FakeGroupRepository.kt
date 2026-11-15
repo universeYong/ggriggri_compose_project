@@ -30,7 +30,6 @@ class FakeGroupRepository : GroupRepository {
     }
 
     override suspend fun create(groupInfo: Group): Flow<DataResourceResult<String>> = notUsed()
-    override suspend fun read(): Flow<DataResourceResult<List<Group>>> = notUsed()
     override suspend fun delete(groupId: String): Flow<DataResourceResult<Unit>> = notUsed()
     override suspend fun getGroupByCode(groupCode: String): Flow<DataResourceResult<Group?>> = notUsed()
     override suspend fun addUserToGroup(groupId: String, userId: String): Flow<DataResourceResult<Unit>> = notUsed()

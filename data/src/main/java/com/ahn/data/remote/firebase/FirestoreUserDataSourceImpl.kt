@@ -16,10 +16,6 @@ import jakarta.inject.Inject
 import kotlinx.coroutines.tasks.await
 
 class FirestoreUserDataSourceImpl @Inject constructor() : UserDataSource {
-    override suspend fun delete(userId: String): DataResourceResult<Unit> {
-        TODO("Not yet implemented")
-    }
-
     override suspend fun create(user: User): DataResourceResult<Unit> = runCatching {
         Firebase.firestore.collection("user_data")
             .document(user.userId)

@@ -12,20 +12,8 @@ import kotlinx.coroutines.flow.flow
 class FirestoreQuestionListRepositoryImpl @Inject constructor
     (val questionListDataSource: QuestionListDataSource):
     QuestionListRepository {
-    override suspend fun create(question: QuestionList): Flow<DataResourceResult<Unit>> {
-        TODO("Not yet implemented")
-    }
-
     override suspend fun read(): Flow<DataResourceResult<List<QuestionList>>> = flow{
         emit(DataResourceResult.Loading)
         emit(questionListDataSource.read())
     }.catch { emit(DataResourceResult.Failure(it))}
-
-    override suspend fun update(question: QuestionList): Flow<DataResourceResult<Unit>> {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun delete(questionId: String): Flow<DataResourceResult<Unit>> {
-        TODO("Not yet implemented")
-    }
 }

@@ -57,7 +57,6 @@ class FakeUserRepository : UserRepository {
         return flowOf(DataResourceResult.Loading, writeResult)
     }
 
-    override suspend fun delete(userId: String): Flow<DataResourceResult<Unit>> = notUsed()
     override suspend fun getUserGroupDocumentId(userId: String): Flow<DataResourceResult<String?>> = notUsed()
     override suspend fun updateFcmToken(userId: String, token: String): Flow<DataResourceResult<Boolean>> = notUsed()
     override suspend fun removeFcmToken(userId: String, token: String): Flow<DataResourceResult<Boolean>> = notUsed()

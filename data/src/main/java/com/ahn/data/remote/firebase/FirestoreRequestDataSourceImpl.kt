@@ -24,10 +24,6 @@ class FirestoreRequestDataSourceImpl @Inject constructor(): RequestDataSource {
         const val GROUP_FIELD = "_requestGroupDocumentID"
     }
 
-    override suspend fun delete(requestId: String): DataResourceResult<Unit> {
-        TODO("Not yet implemented")
-    }
-
     override suspend fun create(request: Request): DataResourceResult<Unit> = runCatching {
         Log.d("FirestoreRequestDataSource", "create() 호출됨 - Request: $request")
         val requestDTO = request.toFirestoreRequestDTO()
@@ -42,10 +38,6 @@ class FirestoreRequestDataSourceImpl @Inject constructor(): RequestDataSource {
     }.getOrElse { 
         Log.e("FirestoreRequestDataSource", "Firestore에 문서 추가 실패", it)
         DataResourceResult.Failure(it) 
-    }
-
-    override suspend fun update(request: Request): DataResourceResult<Unit> {
-        TODO("Not yet implemented")
     }
 
     override suspend fun read(groupId: String): Flow<DataResourceResult<List<Request>>> = callbackFlow {
