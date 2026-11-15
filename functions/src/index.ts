@@ -1,8 +1,14 @@
 import {setGlobalOptions} from "firebase-functions";
 import {onDocumentCreated} from "firebase-functions/v2/firestore";
 import {HttpsError, onCall} from "firebase-functions/v2/https";
+import {onSchedule} from "firebase-functions/v2/scheduler";
 import * as logger from "firebase-functions/logger";
 import * as admin from "firebase-admin";
+import {
+  dailyQuestionDocId,
+  kstDayOf,
+  selectQuestionNumber,
+} from "./dailyQuestion";
 
 // 카카오 로그인 -> Firebase Auth 커스텀 토큰 교환 함수(kakaoCustomToken)의 설정.
 // 리전은 기존 Firestore 트리거와 같은 us-central1이다. 바꾸면 앱의
@@ -388,6 +394,121 @@ export const notifyResponseCreated = onDocumentCreated(
         responderUserId,
       },
     );
+  },
+);
+
+// 매일 한국 시간 자정에 모든 그룹의 오늘의 질문을 만든다.
+// 앱이 기기마다 만들던 것을 서버로 옮긴 것으로, 문서 ID를 {groupId}_{yyyyMMdd}로
+// 고정하고 "없을 때만" create()하므로 여러 번 실행되거나 앱이 먼저 만들어도 중복되지 않는다.
+// 문서가 생기면 notifyDailyQuestionCreated가 그룹에 푸시를 보낸다.
+const DAILY_QUESTION_SCHEDULE = "0 0 * * *";
+const SCHEDULE_TIME_ZONE = "Asia/Seoul";
+const GRPC_ALREADY_EXISTS = 6;
+const GROUP_CONCURRENCY = 20;
+
+const readQuestionNumbers = async (): Promise<number[]> => {
+  const snapshot = await db.collection("questionlist_data")
+    .orderBy("_number")
+    .select("_number")
+    .get();
+  return snapshot.docs
+    .map((doc) => Number(doc.get("_number")))
+    .filter((value) => Number.isFinite(value));
+};
+
+const isAlreadyExists = (error: unknown): boolean => {
+  const code = (error as {code?: unknown} | null)?.code;
+  return code === GRPC_ALREADY_EXISTS || code === "already-exists";
+};
+
+type DailyQuestionSummary = {
+  created: number;
+  existed: number;
+  failed: number;
+  skippedNoMembers: number;
+};
+
+const createDailyQuestions = async (
+  now: Date,
+): Promise<DailyQuestionSummary> => {
+  const day = kstDayOf(now);
+  const questionNumber = selectQuestionNumber(
+    await readQuestionNumbers(),
+    day.daysSinceBase,
+  );
+  if (questionNumber === null) {
+    // 던져서 스케줄러가 재시도하게 한다(질문 목록이 비면 아무 그룹도 만들 수 없다).
+    throw new Error("questionlist_data is empty");
+  }
+
+  const groups = await db.collection("group_data")
+    .select("_groupUserDocumentID")
+    .get();
+
+  const summary: DailyQuestionSummary = {
+    created: 0,
+    existed: 0,
+    failed: 0,
+    skippedNoMembers: 0,
+  };
+
+  const targets = groups.docs.filter((group) => {
+    const hasMembers =
+      normalizeIds(group.get("_groupUserDocumentID")).length > 0;
+    if (!hasMembers) {
+      summary.skippedNoMembers++;
+    }
+    return hasMembers;
+  });
+
+  for (const batch of chunk(targets, GROUP_CONCURRENCY)) {
+    const results = await Promise.allSettled(batch.map((group) => {
+      return db.collection("question_data")
+        .doc(dailyQuestionDocId(group.id, day.yyyymmdd))
+        .create({
+          _questionCreatedTime: day.startOfDayMillis,
+          _questionGroupDocumentId: group.id,
+          _questionListDocumentId: String(questionNumber),
+        });
+    }));
+
+    results.forEach((result, index) => {
+      if (result.status === "fulfilled") {
+        summary.created++;
+      } else if (isAlreadyExists(result.reason)) {
+        summary.existed++;
+      } else {
+        summary.failed++;
+        logger.error("Failed to create daily question", {
+          groupId: maskId(batch[index].id),
+          error: result.reason instanceof Error ?
+            result.reason.message : "unknown",
+        });
+      }
+    });
+  }
+
+  logger.info("Daily questions processed", {
+    date: day.yyyymmdd,
+    questionNumber,
+    ...summary,
+  });
+  return summary;
+};
+
+export const createDailyQuestionsScheduled = onSchedule(
+  {
+    schedule: DAILY_QUESTION_SCHEDULE,
+    timeZone: SCHEDULE_TIME_ZONE,
+    region: FUNCTION_REGION,
+    // 문서 ID가 고정이라 재시도해도 중복되지 않는다. 일부 그룹이 실패하면 재시도로 채운다.
+    retryCount: 3,
+  },
+  async () => {
+    const summary = await createDailyQuestions(new Date());
+    if (summary.failed > 0) {
+      throw new Error(`${summary.failed} group(s) failed`);
+    }
   },
 );
 
